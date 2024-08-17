@@ -20,13 +20,12 @@ using CounterStrikeSharp.API.Modules.Cvars;
 
 namespace SharpTimer
 {
-    [MinimumApiVersion(228)]
+    [MinimumApiVersion(255)]
     public partial class SharpTimer : BasePlugin
     {
         public override void Load(bool hotReload)
         {
             SharpTimerConPrint("Loading Plugin...");
-            CheckForUpdate();
 
             defaultServerHostname = ConVar.Find("hostname")!.StringValue;
             Server.ExecuteCommand($"execifexists SharpTimer/config.cfg");

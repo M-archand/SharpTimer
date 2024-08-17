@@ -61,31 +61,6 @@ namespace SharpTimer
             }
         }
 
-        public async void CheckForUpdate()
-        {
-            try
-            {
-                (bool isLatest, string latestVersion) = await IsLatestVersion();
-
-                if (!isLatest && latestVersion != "null")
-                {
-                    for (int i = 0; i < 5; i++)
-                    {
-                        SharpTimerConPrint($"\u001b[33m----------------------------------------------------");
-                        SharpTimerConPrint($"\u001b[33mPLUGIN VERSION DOES NOT MATCH LATEST GITHUB RELEASE");
-                        SharpTimerConPrint($"\u001b[33mCURRENT VERSION: {ModuleVersion}");
-                        SharpTimerConPrint($"\u001b[33mLATEST RELEASE VERSION: {latestVersion}");
-                        SharpTimerConPrint($"\u001b[33mPLEASE CONSIDER UPDATING SOON!");
-                    }
-                    SharpTimerConPrint($"\u001b[33m----------------------------------------------------");
-                }
-            }
-            catch (Exception ex)
-            {
-                SharpTimerError($"An error occurred in CheckForUpdate: {ex.Message}");
-            }
-        }
-
         private void ServerRecordADtimer()
         {
             if (isADTimerRunning) return;
