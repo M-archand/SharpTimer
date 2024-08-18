@@ -128,7 +128,6 @@ namespace SharpTimer
                                               $"{((currentMapType == null && currentMapTier == null) ? $" | {currentMapName} " : "")} </font>"
                                             : $" <font class='fontSize-s' color='white'>{playerTimer.ReplayHUDString}</font><br>";
                         
-                        // Conditionally add a <br> if keys are disabled
                         if (!keyEnabled)
                         {
                             infoLine += "<br>";
