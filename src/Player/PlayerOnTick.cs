@@ -102,7 +102,7 @@ namespace SharpTimer
                         string timerLine;
                         if (isBonusTimerRunning)
                         {
-                            timerLine = $" <font class='fontSize-m' color='{tertiaryHUDcolor}'>B{playerTimer.BonusStage} Timer:</font> " +
+                            timerLine = $" <font class='fontSize-m' color='{tertiaryHUDcolor}'>B{playerTimer.BonusStage}</font> " +
                                         $"<font class='fontSize-l horizontal-center' color='{primaryHUDcolor}'>{playerBonusTime}</font> <br>";
                         }
                         else if (isTimerRunning)
