@@ -315,7 +315,15 @@ namespace SharpTimer
 
                             await row.CloseAsync();
                             // Update or insert the record
-                            string upsertQuery = "REPLACE INTO PlayerRecords (MapName, SteamID, PlayerName, TimerTicks, LastFinished, TimesFinished, FormattedTime, UnixStamp) VALUES (@MapName, @SteamID, @PlayerName, @TimerTicks, @LastFinished, @TimesFinished, @FormattedTime, @UnixStamp)";
+                            string upsertQuery = @"INSERT INTO PlayerRecords 
+                                                (MapName, SteamID, PlayerName, TimerTicks, LastFinished, TimesFinished, FormattedTime, UnixStamp)
+                                                VALUES (@MapName, @SteamID, @PlayerName, @TimerTicks, @LastFinished, @TimesFinished, @FormattedTime, @UnixStamp)
+                                                ON DUPLICATE KEY UPDATE
+                                                    TimerTicks = LEAST(TimerTicks, @TimerTicks),
+                                                    FormattedTime = IF(TimerTicks > @TimerTicks, @FormattedTime, FormattedTime),
+                                                    LastFinished = GREATEST(LastFinished, @LastFinished),
+                                                    TimesFinished = TimesFinished + 1,
+                                                    UnixStamp = GREATEST(UnixStamp, @UnixStamp)";
                             using (var upsertCommand = new MySqlCommand(upsertQuery, connection))
                             {
                                 upsertCommand.Parameters.AddWithValue("@MapName", currentMapNamee);
@@ -339,7 +347,15 @@ namespace SharpTimer
                             Server.NextFrame(() => SharpTimerDebug($"No player record yet"));
                             if (enableReplays == true && useMySQL == true) _ = Task.Run(async () => await DumpReplayToJson(player!, steamId, playerSlot, bonusX));
                             await row.CloseAsync();
-                            string upsertQuery = "REPLACE INTO PlayerRecords (MapName, SteamID, PlayerName, TimerTicks, LastFinished, TimesFinished, FormattedTime, UnixStamp) VALUES (@MapName, @SteamID, @PlayerName, @TimerTicks, @LastFinished, @TimesFinished, @FormattedTime, @UnixStamp)";
+                            string upsertQuery = @"INSERT INTO PlayerRecords 
+                                                (MapName, SteamID, PlayerName, TimerTicks, LastFinished, TimesFinished, FormattedTime, UnixStamp)
+                                                VALUES (@MapName, @SteamID, @PlayerName, @TimerTicks, @LastFinished, @TimesFinished, @FormattedTime, @UnixStamp)
+                                                ON DUPLICATE KEY UPDATE
+                                                    TimerTicks = LEAST(TimerTicks, @TimerTicks),
+                                                    FormattedTime = IF(TimerTicks > @TimerTicks, @FormattedTime, FormattedTime),
+                                                    LastFinished = GREATEST(LastFinished, @LastFinished),
+                                                    TimesFinished = TimesFinished + 1,
+                                                    UnixStamp = GREATEST(UnixStamp, @UnixStamp)";
                             using (var upsertCommand = new MySqlCommand(upsertQuery, connection))
                             {
                                 upsertCommand.Parameters.AddWithValue("@MapName", currentMapNamee);
