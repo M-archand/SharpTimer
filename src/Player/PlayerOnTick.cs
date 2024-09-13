@@ -62,15 +62,15 @@ namespace SharpTimer
                         PlayerButtons? playerButtons = player.Buttons;
                         Vector playerSpeed = player.PlayerPawn!.Value!.AbsVelocity;
 
-                        bool keyEnabled = playerTimer.HideKeys != true && keysOverlayEnabled == true;
-                        bool hudEnabled = playerTimer.HideTimerHud != true && hudOverlayEnabled == true;
+                        bool keyEnabled = !playerTimer.HideKeys && keysOverlayEnabled;
+                        bool hudEnabled = !playerTimer.HideTimerHud && hudOverlayEnabled;
 
                         string formattedPlayerVel = Math.Round(use2DSpeed ? playerSpeed.Length2D()
                                                                             : playerSpeed.Length())
                                                                             .ToString("0000");
                         int playerVel = int.Parse(formattedPlayerVel);
                         
-                        string secondaryHUDcolorDynamic = "LimeGreen"; // Initialize with a default value
+                        string secondaryHUDcolorDynamic = "LimeGreen";
                         int[] velocityThresholds = { 349, 699, 1049, 1399, 1749, 2099, 2449, 2799, 3149, 3499 };
                         string[] hudColors = { "LimeGreen", "Lime", "GreenYellow", "Yellow", "Gold", "Orange", "DarkOrange", "Tomato", "OrangeRed", "Red", "Crimson" };
                         for (int i = 0; i < velocityThresholds.Length; i++)
@@ -309,8 +309,8 @@ namespace SharpTimer
                     PlayerButtons? playerButtons = target.Buttons;
                     Vector playerSpeed = target.PlayerPawn!.Value!.AbsVelocity;
 
-                    bool keyEnabled = playerTimer.HideKeys != true && playerTimer.IsReplaying != true && keysOverlayEnabled == true;
-                    bool hudEnabled = playerTimer.HideTimerHud != true && hudOverlayEnabled == true;
+                    bool keyEnabled = !playerTimer.HideKeys && !playerTimer.IsReplaying && keysOverlayEnabled;
+                    bool hudEnabled = !playerTimer.HideTimerHud && hudOverlayEnabled;
 
                     string formattedPlayerVel = Math.Round(use2DSpeed ? playerSpeed.Length2D()
                                                                         : playerSpeed.Length())
