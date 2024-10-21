@@ -220,13 +220,14 @@ namespace SharpTimer
                 playerTimer.Rotation.Add(newEyeAngle);
                 playerTimer.TotalSync++;
 
-                //Check left goodsync
-                if (playerTimer.Rotation != null && playerTimer.Rotation.Count > 1 && eyeangle.Y > playerTimer.Rotation[playerTimer.TotalSync - 2].Y && left)
-                    playerTimer.GoodSync++;
+                if (playerTimer.Rotation != null && playerTimer.Rotation.Count > 1 && playerTimer.TotalSync >= 2)
+                {
+                    if (eyeangle.Y > playerTimer.Rotation[playerTimer.TotalSync - 2].Y && left)
+                        playerTimer.GoodSync++;
 
-                //Check right goodsync
-                if (playerTimer.Rotation != null && playerTimer.Rotation.Count > 1 && eyeangle.Y < playerTimer.Rotation[playerTimer.TotalSync - 2].Y && right)
-                    playerTimer.GoodSync++;
+                    if (eyeangle.Y < playerTimer.Rotation[playerTimer.TotalSync - 2].Y && right)
+                        playerTimer.GoodSync++;
+                }
 
                 playerTimer.Sync = Math.Round((float)playerTimers[player.Slot].GoodSync / playerTimers[player.Slot].TotalSync * 100, 0);
             }
