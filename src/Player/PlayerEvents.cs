@@ -102,20 +102,20 @@ namespace SharpTimer
             });
 
             if (enableReplays && enableSRreplayBot && connectedReplayBots.Count == 0)
+            {
+                AddTimer(5.0f, () =>
+                {
+                    if (ConVar.Find("mp_force_pick_time")!.GetPrimitiveValue<float>() == 1.0)
+                        _ = Task.Run(async () => await SpawnReplayBot());
+                    else
                     {
-                        AddTimer(5.0f, () =>
-                        {
-                            if (ConVar.Find("mp_force_pick_time")!.GetPrimitiveValue<float>() == 1.0)
-                                _ = Task.Run(async () => await SpawnReplayBot());
-                            else
-                            {
-                                PrintToChatAll($" {ChatColors.LightRed}Couldnt Spawn Replay bot!");
-                                PrintToChatAll($" {ChatColors.LightRed}Please make sure mp_force_pick_time is set to 1");
-                                PrintToChatAll($" {ChatColors.LightRed}in your custom_exec.cfg");
-                                SharpTimerError("Couldnt Spawn Replay bot! Please make sure mp_force_pick_time is set to 1 in your custom_exec.cfg");
-                            }
-                        });
+                        PrintToChatAll($" {ChatColors.LightRed}Couldnt Spawn Replay bot!");
+                        PrintToChatAll($" {ChatColors.LightRed}Please make sure mp_force_pick_time is set to 1");
+                        PrintToChatAll($" {ChatColors.LightRed}in your custom_exec.cfg");
+                        SharpTimerError("Couldnt Spawn Replay bot! Please make sure mp_force_pick_time is set to 1 in your custom_exec.cfg");
                     }
+                });
+            }
         }
 
         private void OnPlayerDisconnect(CCSPlayerController? player, bool isForBot = false)
