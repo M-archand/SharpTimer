@@ -108,6 +108,18 @@ namespace SharpTimer
             return adMessages;
         }
 
+        // Add new method to call GetSortedRecordsFromDatabase for a specifc map+style
+        public async Task FetchServerRecord(string mapName, int style)
+        {
+            if (_serverRecordCache == null || _lastFetchedMap != mapName || _lastFetchedStyle != style)
+            {
+                _lastFetchedMap = mapName;
+                _lastFetchedStyle = style;
+                
+                _serverRecordCache = await GetSortedRecordsFromDatabase(1, 0, mapName, style);
+            }
+        }
+
         private string ReplaceVars(string message)
         {
             var replacements = new Dictionary<string, string>
