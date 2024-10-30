@@ -116,8 +116,8 @@ namespace SharpTimer
                 { "{current_map}",  $"{Server.MapName}" },
                 { "{max_players}",  $"{Server.MaxPlayers}" },
                 { "{players}",      $"{Utilities.GetPlayers().Count()}" },
-                { "{current_time}", $"{DateTime.Now.ToString("HH:mm:ss")}" },
-                { "{current_date}", $"{DateTime.Now.ToString("dd.MMM.yyyy")}" },
+                { "{current_time}", $"{DateTime.Now:HH:mm:ss}" },
+                { "{current_date}", $"{DateTime.Now:dd.MMM.yyyy}" },
                 { "{primary}",      $"{primaryChatColor}" },
                 { "{default}",      $"{ChatColors.Default}" },
                 { "{red}",          $"{ChatColors.Red}" },
@@ -167,7 +167,7 @@ namespace SharpTimer
         {
             TimeSpan timeSpan = TimeSpan.FromSeconds(ticks / 64.0);
 
-            string milliseconds = $"{(ticks % 64) * (1000.0 / 64.0):000}";
+            string milliseconds = $"{ticks % 64 * (1000.0 / 64.0):000}";
 
             int totalMinutes = (int)timeSpan.TotalMinutes;
             if (totalMinutes >= 60)
@@ -176,6 +176,21 @@ namespace SharpTimer
             }
 
             return $"{totalMinutes:D1}:{timeSpan.Seconds:D2}.{milliseconds}";
+        }
+
+        // Keep only two decimal places for the time on the HUD
+        public static string FormatTimeHUD(int ticks)
+        {
+            string formattedTime = FormatTime(ticks);
+
+            int decimalIndex = formattedTime.LastIndexOf('.');
+            if (decimalIndex >= 0 && decimalIndex + 3 < formattedTime.Length)
+            {
+
+                return formattedTime[..(decimalIndex + 3)];
+            }
+
+            return formattedTime;
         }
 
         private static string FormatTimeDifference(int currentTicks, int previousTicks, bool noColor = false)
