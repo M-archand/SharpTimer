@@ -22,6 +22,11 @@ namespace SharpTimer
         private Dictionary<uint, CCSPlayerController> specTargets = [];
         private EntityCache? entityCache;
         public Dictionary<string, PlayerRecord>? SortedCachedRecords = [];
+        
+        // idk where to put these lol
+        private string? lastFetchedMap;
+        public int? lastFetchedStyle;
+
         private static readonly HttpClient httpClient = new();
 
         public static JsonSerializerOptions jsonSerializerOptions = new()
