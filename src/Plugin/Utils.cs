@@ -111,12 +111,12 @@ namespace SharpTimer
         // Add new method to call GetSortedRecordsFromDatabase for a specifc map+style
         public async Task FetchServerRecord(string mapName, int style)
         {
-            if (_serverRecordCache == null || _lastFetchedMap != mapName || _lastFetchedStyle != style)
+            if (SortedCachedRecords == null || lastFetchedMap != mapName || lastFetchedStyle != style)
             {
-                _lastFetchedMap = mapName;
-                _lastFetchedStyle = style;
+                lastFetchedMap = mapName;
+                lastFetchedStyle = style;
                 
-                _serverRecordCache = await GetSortedRecordsFromDatabase(1, 0, mapName, style);
+                SortedCachedRecords = await GetSortedRecordsFromDatabase(1, 0, mapName, style);
             }
         }
 
