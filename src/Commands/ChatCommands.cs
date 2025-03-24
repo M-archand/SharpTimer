@@ -270,14 +270,21 @@ namespace SharpTimer
                 if (wr)
                 {
                     var sortedRecords = await GetSortedRecordsFromGlobal(10, bonusX, currentMapName!, style);
-                    wrID = sortedRecords[top10-1].RecordID;
-                    wrSteamID = sortedRecords[top10-1].SteamID;
-                    wrPlayerName = sortedRecords[top10-1].PlayerName;
-                    wrTime = FormatTime(sortedRecords[top10-1].TimerTicks);
-                }
-                    
-            }
 
+                    if (sortedRecords != null && sortedRecords.Count >= top10)
+                    {
+                        wrID = sortedRecords[top10 - 1].RecordID;
+                        wrSteamID = sortedRecords[top10 - 1].SteamID;
+                        wrPlayerName = sortedRecords[top10 - 1].PlayerName;
+                        wrTime = FormatTime(sortedRecords[top10 - 1].TimerTicks);
+                    }
+                    else
+                    {
+                        SharpTimerError($"Error in ReplayHandler: sortedRecords is null or does not contain enough records (top10={top10}).");
+                        return;
+                    }
+                }
+            }
 
             if ((srSteamID == "null" || srPlayerName == "null" || srTime == "null") && !self)
             {
