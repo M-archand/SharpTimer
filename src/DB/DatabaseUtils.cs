@@ -1401,13 +1401,6 @@ namespace SharpTimer
                 int timeNowUnix = (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
                 int timesConnected = 0;
                 int lastConnected = 0;
-                bool hideTimerHud = false;
-                bool hideKeys = false;
-                bool hideJS = false;
-                bool hideWeapon = false;
-                bool hidePlayers = false;
-                bool soundsEnabled = true;
-                int playerFov = 0;
                 bool isVip = false;
                 string bigGif = "x";
                 int playerPoints = 0;
@@ -1642,11 +1635,6 @@ namespace SharpTimer
                 int timeNowUnix = (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
                 int timesConnected = 0;
                 int lastConnected = 0;
-                bool hideTimerHud = false;
-                bool hideKeys = false;
-                bool hideJS = false;
-                bool soundsEnabled = true;
-                int playerFov = 0;
                 bool isVip = false;
                 string bigGif = "x";
                 int playerPoints = 0;
