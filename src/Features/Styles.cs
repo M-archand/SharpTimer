@@ -157,106 +157,64 @@ namespace SharpTimer
 
         public string GetNamedStyle(int style)
         {
-            switch(style)
+            return style switch
             {
-                case 0:
-                    return "Normal";
-                case 1:
-                    return "Low Gravity";
-                case 2:
-                    return "Sideways";
-                case 3:
-                    return "OnlyW";
-                case 4:
-                    return "400vel";
-                case 5:
-                    return "High Gravity";
-                case 6:
-                    return "OnlyA";
-                case 7:
-                    return "OnlyD";
-                case 8:
-                    return "OnlyS";
-                case 9:
-                    return "Half Sideways";
-                case 10:
-                    return "Fast Forward";
-                case 11:
-                    return "Parachute";
-                case 12:
-                    return "TAS";
-                default:
-                    return "null";
-            }
+                0 => "Normal",
+                1 => "Low Gravity",
+                2 => "Sideways",
+                3 => "OnlyW",
+                4 => "400vel",
+                5 => "High Gravity",
+                6 => "OnlyA",
+                7 => "OnlyD",
+                8 => "OnlyS",
+                9 => "Half Sideways",
+                10 => "Fast Forward",
+                11 => "Parachute",
+                12 => "TAS",
+                _ => "null",
+            };
         }
 
         public double GetStyleMultiplier(int style, bool global = false)
         {
             if (global)
             {
-                switch(style)
+                return style switch
                 {
-                    case 0:
-                        return 1;
-                    case 1:
-                        return 0.8;
-                    case 2:
-                        return 1.3;
-                    case 3:
-                        return 1.3;
-                    case 4:
-                        return 1.5;
-                    case 5:
-                        return 1;
-                    case 6:
-                        return 1.33;
-                    case 7:
-                        return 1.33;
-                    case 8:
-                        return 1.33;
-                    case 9:
-                        return 1.3;
-                    case 10:
-                        return 0.8;
-                    case 11:
-                        return 0.8;
-                    case 12:
-                        return 0.0;
-                    default:
-                        return 1;
-                }
+                    0 => 1,
+                    1 => 0.8,
+                    2 => 1.3,
+                    3 => 1.3,
+                    4 => 1.5,
+                    5 => 1,
+                    6 => 1.33,
+                    7 => 1.33,
+                    8 => 1.33,
+                    9 => 1.3,
+                    10 => 0.8,
+                    11 => 0.8,
+                    12 => 0.0,
+                    _ => 1,
+                };
             }
-            switch(style)
+            return style switch
             {
-                case 0:
-                    return 1; // 1.0x for normal
-                case 1:
-                    return lowgravPointModifier; //1.1x for lowgrav
-                case 2:
-                    return sidewaysPointModifier; // 1.3x for sideways
-                case 3:
-                    return onlywPointModifier; // 1.33x for onlyw
-                case 4:
-                    return velPointModifier; // 1.5x for 400vel
-                case 5:
-                    return highgravPointModifier; // 1.3x for highgrav
-                case 6:
-                    return onlyaPointModifier; // 1.33x for onlya
-                case 7:
-                    return onlydPointModifier; // 1.33x for onlyd
-                case 8:
-                    return onlysPointModifier; // 1.33x for onlys
-                case 9:
-                    return halfSidewaysPointModifier; // 1.3x for halfsideways
-                case 10:
-                    return fastForwardPointModifier; // 1.3x for ff
-                case 11:
-                    return parachutePointModifier; // 0.8x for parachute
-                case 12:
-                    return tasPointModifier; // 0.0x for TAS
-                default:
-                    return 1;
-            }
+                0 => 1, // 1.0x for normal
+                1 => lowgravPointModifier, //1.1x for lowgrav
+                2 => sidewaysPointModifier, // 1.3x for sideways
+                3 => onlywPointModifier, // 1.33x for onlyw
+                4 => velPointModifier, // 1.5x for 400vel
+                5 => highgravPointModifier, // 1.3x for highgrav
+                6 => onlyaPointModifier, // 1.33x for onlya
+                7 => onlydPointModifier, // 1.33x for onlyd
+                8 => onlysPointModifier, // 1.33x for onlys
+                9 => halfSidewaysPointModifier, // 1.3x for halfsideways
+                10 => fastForwardPointModifier, // 1.3x for ff
+                11 => parachutePointModifier, // 0.8x for parachute
+                12 => tasPointModifier, // 0.0x for TAS
+                _ => 1,
+            };
         }
     }
 }

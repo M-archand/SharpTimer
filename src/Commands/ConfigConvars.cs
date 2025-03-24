@@ -1,22 +1,8 @@
-/*
-Copyright (C) 2024 Dea Brcka
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Commands;
+using System.Globalization;
 
 
 namespace SharpTimer
@@ -92,7 +78,7 @@ namespace SharpTimer
             if (int.TryParse(args, out int minPoints) && minPoints > 0)
             {
                 minGlobalPointsForRank = minPoints;
-                SharpTimerConPrint($"SharpTimer min points for rank set to {minPoints} points.");
+                //SharpTimerConPrint($"SharpTimer min points for rank set to {minPoints} points.");
             }
             else
             {
@@ -106,10 +92,10 @@ namespace SharpTimer
         {
             string args = command.ArgString;
 
-            if (double.TryParse(args, out double multiplier) && multiplier is >= 0 and <= 1)
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double multiplier) && multiplier is >= 0 and <= 1)
             {
                 globalPointsBonusMultiplier = multiplier;
-                SharpTimerConPrint($"SharpTimer bonus points multiplier set to {multiplier}");
+                //SharpTimerConPrint($"SharpTimer bonus points multiplier set to {multiplier}");
             }
             else
             {
@@ -126,7 +112,7 @@ namespace SharpTimer
             if (int.TryParse(args, out int baseline) && baseline > 0)
             {
                 baselineT1 = baseline;
-                SharpTimerConPrint($"SharpTimer baseline T1 points set to {baseline}");
+                //SharpTimerConPrint($"SharpTimer baseline T1 points set to {baseline}");
             }
             else
             {
@@ -143,7 +129,7 @@ namespace SharpTimer
             if (int.TryParse(args, out int baseline) && baseline > 0)
             {
                 baselineT2 = baseline;
-                SharpTimerConPrint($"SharpTimer baseline T2 points set to {baseline}");
+                //SharpTimerConPrint($"SharpTimer baseline T2 points set to {baseline}");
             }
             else
             {
@@ -160,7 +146,7 @@ namespace SharpTimer
             if (int.TryParse(args, out int baseline) && baseline > 0)
             {
                 baselineT3 = baseline;
-                SharpTimerConPrint($"SharpTimer baseline T3 points set to {baseline}");
+                //SharpTimerConPrint($"SharpTimer baseline T3 points set to {baseline}");
             }
             else
             {
@@ -177,7 +163,7 @@ namespace SharpTimer
             if (int.TryParse(args, out int baseline) && baseline > 0)
             {
                 baselineT4 = baseline;
-                SharpTimerConPrint($"SharpTimer baseline T4 points set to {baseline}");
+                //SharpTimerConPrint($"SharpTimer baseline T4 points set to {baseline}");
             }
             else
             {
@@ -194,7 +180,7 @@ namespace SharpTimer
             if (int.TryParse(args, out int baseline) && baseline > 0)
             {
                 baselineT5 = baseline;
-                SharpTimerConPrint($"SharpTimer baseline T5 points set to {baseline}");
+                //SharpTimerConPrint($"SharpTimer baseline T5 points set to {baseline}");
             }
             else
             {
@@ -211,7 +197,7 @@ namespace SharpTimer
             if (int.TryParse(args, out int baseline) && baseline > 0)
             {
                 baselineT6 = baseline;
-                SharpTimerConPrint($"SharpTimer baseline T6 points set to {baseline}");
+                //SharpTimerConPrint($"SharpTimer baseline T6 points set to {baseline}");
             }
             else
             {
@@ -228,7 +214,7 @@ namespace SharpTimer
             if (int.TryParse(args, out int baseline) && baseline > 0)
             {
                 baselineT7 = baseline;
-                SharpTimerConPrint($"SharpTimer baseline T7 points set to {baseline}");
+                //SharpTimerConPrint($"SharpTimer baseline T7 points set to {baseline}");
             }
             else
             {
@@ -245,7 +231,7 @@ namespace SharpTimer
             if (int.TryParse(args, out int baseline) && baseline > 0)
             {
                 baselineT8 = baseline;
-                SharpTimerConPrint($"SharpTimer baseline T8 points set to {baseline}");
+                //SharpTimerConPrint($"SharpTimer baseline T8 points set to {baseline}");
             }
             else
             {
@@ -262,7 +248,7 @@ namespace SharpTimer
             if (int.TryParse(args, out int baseline) && baseline > 0)
             {
                 maxRecordPointsBase = baseline;
-                SharpTimerConPrint($"SharpTimer max record points set to {baseline}");
+                //SharpTimerConPrint($"SharpTimer max record points set to {baseline}");
             }
             else
             {
@@ -279,7 +265,7 @@ namespace SharpTimer
             if (int.TryParse(args, out int completions) && completions >= 0)
             {
                 globalPointsMaxCompletions = completions;
-                SharpTimerConPrint($"SharpTimer max completions set to {completions}");
+                //SharpTimerConPrint($"SharpTimer max completions set to {completions}");
             }
             else
             {
@@ -293,10 +279,10 @@ namespace SharpTimer
         {
             string args = command.ArgString;
 
-            if (double.TryParse(args, out double multiplier) && multiplier is >= 0 and <= 1)
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double multiplier) && multiplier is >= 0 and <= 1)
             {
                 top10_1 = multiplier;
-                SharpTimerConPrint($"SharpTimer top10_1 multiplier set to {multiplier}");
+                //SharpTimerConPrint($"SharpTimer top10_1 multiplier set to {multiplier}");
             }
             else
             {
@@ -310,10 +296,10 @@ namespace SharpTimer
         {
             string args = command.ArgString;
 
-            if (double.TryParse(args, out double multiplier) && multiplier is >= 0 and <= 1)
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double multiplier) && multiplier is >= 0 and <= 1)
             {
                 top10_2 = multiplier;
-                SharpTimerConPrint($"SharpTimer top10_2 multiplier set to {multiplier}");
+                //SharpTimerConPrint($"SharpTimer top10_2 multiplier set to {multiplier}");
             }
             else
             {
@@ -327,10 +313,10 @@ namespace SharpTimer
         {
             string args = command.ArgString;
 
-            if (double.TryParse(args, out double multiplier) && multiplier is >= 0 and <= 1)
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double multiplier) && multiplier is >= 0 and <= 1)
             {
                 top10_3 = multiplier;
-                SharpTimerConPrint($"SharpTimer top10_3 multiplier set to {multiplier}");
+                //SharpTimerConPrint($"SharpTimer top10_3 multiplier set to {multiplier}");
             }
             else
             {
@@ -344,10 +330,10 @@ namespace SharpTimer
         {
             string args = command.ArgString;
 
-            if (double.TryParse(args, out double multiplier) && multiplier is >= 0 and <= 1)
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double multiplier) && multiplier is >= 0 and <= 1)
             {
                 top10_4 = multiplier;
-                SharpTimerConPrint($"SharpTimer top10_4 multiplier set to {multiplier}");
+                //SharpTimerConPrint($"SharpTimer top10_4 multiplier set to {multiplier}");
             }
             else
             {
@@ -361,10 +347,10 @@ namespace SharpTimer
         {
             string args = command.ArgString;
 
-            if (double.TryParse(args, out double multiplier) && multiplier is >= 0 and <= 1)
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double multiplier) && multiplier is >= 0 and <= 1)
             {
                 top10_5 = multiplier;
-                SharpTimerConPrint($"SharpTimer top10_5 multiplier set to {multiplier}");
+                //SharpTimerConPrint($"SharpTimer top10_5 multiplier set to {multiplier}");
             }
             else
             {
@@ -378,10 +364,10 @@ namespace SharpTimer
         {
             string args = command.ArgString;
 
-            if (double.TryParse(args, out double multiplier) && multiplier is >= 0 and <= 1)
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double multiplier) && multiplier is >= 0 and <= 1)
             {
                 top10_6 = multiplier;
-                SharpTimerConPrint($"SharpTimer top10_6 multiplier set to {multiplier}");
+                //SharpTimerConPrint($"SharpTimer top10_6 multiplier set to {multiplier}");
             }
             else
             {
@@ -395,10 +381,10 @@ namespace SharpTimer
         {
             string args = command.ArgString;
 
-            if (double.TryParse(args, out double multiplier) && multiplier is >= 0 and <= 1)
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double multiplier) && multiplier is >= 0 and <= 1)
             {
                 top10_7 = multiplier;
-                SharpTimerConPrint($"SharpTimer top10_7 multiplier set to {multiplier}");
+                //SharpTimerConPrint($"SharpTimer top10_7 multiplier set to {multiplier}");
             }
             else
             {
@@ -412,10 +398,10 @@ namespace SharpTimer
         {
             string args = command.ArgString;
 
-            if (double.TryParse(args, out double multiplier) && multiplier is >= 0 and <= 1)
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double multiplier) && multiplier is >= 0 and <= 1)
             {
                 top10_8 = multiplier;
-                SharpTimerConPrint($"SharpTimer top10_8 multiplier set to {multiplier}");
+                //SharpTimerConPrint($"SharpTimer top10_8 multiplier set to {multiplier}");
             }
             else
             {
@@ -429,10 +415,10 @@ namespace SharpTimer
         {
             string args = command.ArgString;
 
-            if (double.TryParse(args, out double multiplier) && multiplier is >= 0 and <= 1)
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double multiplier) && multiplier is >= 0 and <= 1)
             {
                 top10_9 = multiplier;
-                SharpTimerConPrint($"SharpTimer top10_9 multiplier set to {multiplier}");
+                //SharpTimerConPrint($"SharpTimer top10_9 multiplier set to {multiplier}");
             }
             else
             {
@@ -446,10 +432,10 @@ namespace SharpTimer
         {
             string args = command.ArgString;
 
-            if (double.TryParse(args, out double multiplier) && multiplier is >= 0 and <= 1)
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double multiplier) && multiplier is >= 0 and <= 1)
             {
                 top10_10 = multiplier;
-                SharpTimerConPrint($"SharpTimer top10_10 multiplier set to {multiplier}");
+                //SharpTimerConPrint($"SharpTimer top10_10 multiplier set to {multiplier}");
             }
             else
             {
@@ -463,10 +449,10 @@ namespace SharpTimer
         {
             string args = command.ArgString;
 
-            if (double.TryParse(args, out double percentile) && percentile is >= 0 and <= 100)
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double percentile) && percentile is >= 0 and <= 100)
             {
                 group1 = percentile;
-                SharpTimerConPrint($"SharpTimer group #1 percentile set to {percentile}");
+                //SharpTimerConPrint($"SharpTimer group #1 percentile set to {percentile}");
             }
             else
             {
@@ -480,10 +466,10 @@ namespace SharpTimer
         {
             string args = command.ArgString;
 
-            if (double.TryParse(args, out double percentile) && percentile is >= 0 and <= 100)
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double percentile) && percentile is >= 0 and <= 100)
             {
                 group2 = percentile;
-                SharpTimerConPrint($"SharpTimer group #2 percentile set to {percentile}");
+                //SharpTimerConPrint($"SharpTimer group #2 percentile set to {percentile}");
             }
             else
             {
@@ -497,10 +483,10 @@ namespace SharpTimer
         {
             string args = command.ArgString;
 
-            if (double.TryParse(args, out double percentile) && percentile is >= 0 and <= 100)
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double percentile) && percentile is >= 0 and <= 100)
             {
                 group3 = percentile;
-                SharpTimerConPrint($"SharpTimer group #3 percentile set to {percentile}");
+                //SharpTimerConPrint($"SharpTimer group #3 percentile set to {percentile}");
             }
             else
             {
@@ -514,10 +500,10 @@ namespace SharpTimer
         {
             string args = command.ArgString;
 
-            if (double.TryParse(args, out double percentile) && percentile is >= 0 and <= 100)
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double percentile) && percentile is >= 0 and <= 100)
             {
                 group4 = percentile;
-                SharpTimerConPrint($"SharpTimer group #4 percentile set to {percentile}");
+                //SharpTimerConPrint($"SharpTimer group #4 percentile set to {percentile}");
             }
             else
             {
@@ -531,10 +517,10 @@ namespace SharpTimer
         {
             string args = command.ArgString;
 
-            if (double.TryParse(args, out double percentile) && percentile is >= 0 and <= 100)
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double percentile) && percentile is >= 0 and <= 100)
             {
                 group5 = percentile;
-                SharpTimerConPrint($"SharpTimer group #5 percentile set to {percentile}");
+                //SharpTimerConPrint($"SharpTimer group #5 percentile set to {percentile}");
             }
             else
             {
@@ -551,6 +537,14 @@ namespace SharpTimer
             enableReplays = bool.TryParse(args, out bool enableReplaysValue) ? enableReplaysValue : args != "0" && enableReplays;
         }
 
+        [ConsoleCommand("sharptimer_replay_only_sr", "Only saves SR replay if true. Default value: false")]
+        [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
+        public void SharpTimerReplaySRConvar(CCSPlayerController? player, CommandInfo command)
+        {
+            string args = command.ArgString;
+            onlySRReplay = bool.TryParse(args, out bool value) ? value : args != "0" && onlySRReplay;
+        }
+
         [ConsoleCommand("sharptimer_replay_max_length", "The maximum length for a Replay to be saved in seconds. Anything longer will be discarded Default value: 300")]
         [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
         public void SharpTimerReplayMaxLengthConvar(CCSPlayerController? player, CommandInfo command)
@@ -560,7 +554,7 @@ namespace SharpTimer
             if (int.TryParse(args, out int mxLength) && mxLength > 0)
             {
                 maxReplayFrames = (int)(mxLength * 64);
-                SharpTimerConPrint($"SharpTimer max replay length set to {mxLength} seconds.");
+                //SharpTimerConPrint($"SharpTimer max replay length set to {mxLength} seconds.");
             }
             else
             {
@@ -625,7 +619,7 @@ namespace SharpTimer
             if (float.TryParse(args, out float dist) && dist > 0)
             {
                 jumpStatsMinDist = dist;
-                SharpTimerConPrint($"SharpTimer JumpStats min distance set to {dist} units.");
+                //SharpTimerConPrint($"SharpTimer JumpStats min distance set to {dist} units.");
             }
             else
             {
@@ -642,7 +636,7 @@ namespace SharpTimer
             if (float.TryParse(args, out float dist) && dist > 0)
             {
                 jumpStatsMaxVert = dist;
-                SharpTimerConPrint($"SharpTimer JumpStats max vert distance set to {dist} units.");
+                //SharpTimerConPrint($"SharpTimer JumpStats max vert distance set to {dist} units.");
             }
             else
             {
@@ -668,7 +662,8 @@ namespace SharpTimer
             if (float.TryParse(args, out float value) && value > 0)
             {
                 movementUnlockerCapValue = value;
-                if (movementUnlockerCapEnabled) SharpTimerConPrint($"SharpTimer JumpStats Movement Unlocker cap value set to {value} units.");
+                if (movementUnlockerCapEnabled) 
+                    SharpTimerDebug($"SharpTimer JumpStats Movement Unlocker cap value set to {value} units.");
             }
             else
             {
@@ -685,11 +680,11 @@ namespace SharpTimer
             if (int.TryParse(args, out int value) && value > 0)
             {
                 globalCacheInterval = value;
-                SharpTimerConPrint($"SharpTimer global cache refresh interval set to {value} seconds.");
+                //SharpTimerConPrint($"SharpTimer global cache refresh interval set to {value} seconds.");
             }
             else
             {
-                SharpTimerConPrint("Invalid global ache refresh interval value. Please provide a positive float.");
+                SharpTimerConPrint("Invalid global cache refresh interval value. Please provide a positive float.");
             }
         }
 
@@ -737,7 +732,7 @@ namespace SharpTimer
             if (int.TryParse(args, out int secs) && secs >= 0)
             {
                 afkSeconds = secs;
-                SharpTimerConPrint($"SharpTimer afk period: {secs}s");
+                //SharpTimerConPrint($"SharpTimer afk period: {secs}s");
             }
             else
             {
@@ -754,7 +749,7 @@ namespace SharpTimer
             if (int.TryParse(args, out int tickrate) && tickrate >= 0 && tickrate <= 64)
             {
                 hudTickrate = tickrate;
-                SharpTimerConPrint($"SharpTimer hud updates per second: {tickrate}");
+                //SharpTimerConPrint($"SharpTimer hud updates per second: {tickrate}");
             }
             else
             {
@@ -996,7 +991,7 @@ namespace SharpTimer
             if (float.TryParse(args, out float cooldown) && cooldown > 0)
             {
                 cmdCooldown = (int)(cooldown * 64);
-                SharpTimerConPrint($"SharpTimer command cooldown set to {cooldown} seconds.");
+                //SharpTimerConPrint($"SharpTimer command cooldown set to {cooldown} seconds.");
             }
             else
             {
@@ -1013,7 +1008,7 @@ namespace SharpTimer
             if (float.TryParse(args, out float time) && time > 0)
             {
                 bhopBlockTime = (int)(time * 64);
-                SharpTimerConPrint($"SharpTimer max bhop block time set to {time} seconds.");
+                //SharpTimerConPrint($"SharpTimer max bhop block time set to {time} seconds.");
             }
             else
             {
@@ -1151,7 +1146,7 @@ namespace SharpTimer
             {
                 maxStartingSpeed = speed;
                 Server.ExecuteCommand($"sv_maxspeed {maxStartingSpeed}");
-                SharpTimerConPrint($"SharpTimer max trigger speed set to {speed}.");
+                //SharpTimerConPrint($"SharpTimer max trigger speed set to {speed}.");
             }
             else
             {
@@ -1168,7 +1163,7 @@ namespace SharpTimer
             if (int.TryParse(args, out int speed) && speed > 0)
             {
                 maxBonusStartingSpeed = speed;
-                SharpTimerConPrint($"SharpTimer max bonus trigger speed set to {speed}.");
+                //SharpTimerConPrint($"SharpTimer max bonus trigger speed set to {speed}.");
             }
             else
             {
@@ -1194,7 +1189,7 @@ namespace SharpTimer
             if (int.TryParse(args, out int speed) && speed > 0)
             {
                 forcedPlayerSpeed = speed;
-                SharpTimerConPrint($"SharpTimer forced player speed set to {speed}.");
+                //SharpTimerConPrint($"SharpTimer forced player speed set to {speed}.");
             }
             else
             {
@@ -1211,7 +1206,7 @@ namespace SharpTimer
             if (int.TryParse(args, out int bhopTicks) && bhopTicks > 0)
             {
                 bhopBlockTime = bhopTicks;
-                SharpTimerConPrint($"SharpTimer forced bhop_block ticks to {bhopTicks}.");
+                //SharpTimerConPrint($"SharpTimer forced bhop_block ticks to {bhopTicks}.");
             }
             else
             {
@@ -1283,7 +1278,7 @@ namespace SharpTimer
             if (int.TryParse(args, out int interval) && interval > 0)
             {
                 adServerRecordTimer = interval;
-                SharpTimerConPrint($"SharpTimer sr ad interval set to {interval} seconds.");
+                //SharpTimerConPrint($"SharpTimer sr ad interval set to {interval} seconds.");
             }
             else
             {
@@ -1309,7 +1304,7 @@ namespace SharpTimer
             if (int.TryParse(args, out int interval) && interval > 0)
             {
                 adMessagesTimer = interval;
-                SharpTimerConPrint($"SharpTimer messages ad interval set to {interval} seconds.");
+                //SharpTimerConPrint($"SharpTimer messages ad interval set to {interval} seconds.");
             }
             else
             {
@@ -1381,7 +1376,7 @@ namespace SharpTimer
             if (float.TryParse(args, out float height) && height > 0)
             {
                 fakeTriggerHeight = height;
-                SharpTimerConPrint($"SharpTimer fake trigger height set to {height} units.");
+                //SharpTimerConPrint($"SharpTimer fake trigger height set to {height} units.");
             }
             else
             {
@@ -1546,10 +1541,10 @@ namespace SharpTimer
         {
             string args = command.ArgString;
 
-            if (double.TryParse(args, out double pointModifier) && pointModifier is >= 0 and <= 2)
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double pointModifier) && pointModifier is >= 0 and <= 2)
             {
                 parachutePointModifier = pointModifier;
-                SharpTimerConPrint($"SharpTimer parachute point modifier set to {pointModifier}.");
+                //SharpTimerConPrint($"SharpTimer parachute point modifier set to {pointModifier}.");
             }
             else
             {
@@ -1563,10 +1558,10 @@ namespace SharpTimer
         {
             string args = command.ArgString;
 
-            if (double.TryParse(args, out double pointModifier) && pointModifier is >= 0 and <= 2)
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double pointModifier) && pointModifier is >= 0 and <= 2)
             {
                 tasPointModifier = pointModifier;
-                SharpTimerConPrint($"SharpTimer TAS point modifier set to {pointModifier}.");
+                //SharpTimerConPrint($"SharpTimer TAS point modifier set to {pointModifier}.");
             }
             else
             {
@@ -1580,10 +1575,10 @@ namespace SharpTimer
         {
             string args = command.ArgString;
 
-            if (double.TryParse(args, out double pointModifier) && pointModifier is >= 0 and <= 2)
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double pointModifier) && pointModifier is >= 0 and <= 2)
             {
                 lowgravPointModifier = pointModifier;
-                SharpTimerConPrint($"SharpTimer low grav point modifier set to {pointModifier}.");
+                //SharpTimerConPrint($"SharpTimer low grav point modifier set to {pointModifier}.");
             }
             else
             {
@@ -1596,10 +1591,10 @@ namespace SharpTimer
         {
             string args = command.ArgString;
 
-            if (double.TryParse(args, out double pointModifier) && pointModifier is >= 0 and <= 2)
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double pointModifier) && pointModifier is >= 0 and <= 2)
             {
                 sidewaysPointModifier = pointModifier;
-                SharpTimerConPrint($"SharpTimer sideways point modifier set to {pointModifier}.");
+                //SharpTimerConPrint($"SharpTimer sideways point modifier set to {pointModifier}.");
             }
             else
             {
@@ -1613,10 +1608,10 @@ namespace SharpTimer
         {
             string args = command.ArgString;
 
-            if (double.TryParse(args, out double pointModifier) && pointModifier is >= 0 and <= 2)
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double pointModifier) && pointModifier is >= 0 and <= 2)
             {
                 onlywPointModifier = pointModifier;
-                SharpTimerConPrint($"SharpTimer onlyw point modifier set to {pointModifier}.");
+                //SharpTimerConPrint($"SharpTimer onlyw point modifier set to {pointModifier}.");
             }
             else
             {
@@ -1630,10 +1625,10 @@ namespace SharpTimer
         {
             string args = command.ArgString;
 
-            if (double.TryParse(args, out double pointModifier) && pointModifier is >= 0 and <= 2)
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double pointModifier) && pointModifier is >= 0 and <= 2)
             {
                 onlyaPointModifier = pointModifier;
-                SharpTimerConPrint($"SharpTimer onlya point modifier set to {pointModifier}.");
+                //SharpTimerConPrint($"SharpTimer onlya point modifier set to {pointModifier}.");
             }
             else
             {
@@ -1647,10 +1642,10 @@ namespace SharpTimer
         {
             string args = command.ArgString;
 
-            if (double.TryParse(args, out double pointModifier) && pointModifier is >= 0 and <= 2)
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double pointModifier) && pointModifier is >= 0 and <= 2)
             {
                 onlysPointModifier = pointModifier;
-                SharpTimerConPrint($"SharpTimer onlys point modifier set to {pointModifier}.");
+                //SharpTimerConPrint($"SharpTimer onlys point modifier set to {pointModifier}.");
             }
             else
             {
@@ -1664,10 +1659,10 @@ namespace SharpTimer
         {
             string args = command.ArgString;
 
-            if (double.TryParse(args, out double pointModifier) && pointModifier is >= 0 and <= 2)
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double pointModifier) && pointModifier is >= 0 and <= 2)
             {
                 onlydPointModifier = pointModifier;
-                SharpTimerConPrint($"SharpTimer onlyd point modifier set to {pointModifier}.");
+                //SharpTimerConPrint($"SharpTimer onlyd point modifier set to {pointModifier}.");
             }
             else
             {
@@ -1681,10 +1676,10 @@ namespace SharpTimer
         {
             string args = command.ArgString;
 
-            if (double.TryParse(args, out double pointModifier) && pointModifier is >= 0 and <= 2)
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double pointModifier) && pointModifier is >= 0 and <= 2)
             {
                 velPointModifier = pointModifier;
-                SharpTimerConPrint($"SharpTimer 400vel point modifier set to {pointModifier}.");
+                //SharpTimerConPrint($"SharpTimer 400vel point modifier set to {pointModifier}.");
             }
             else
             {
@@ -1698,10 +1693,10 @@ namespace SharpTimer
         {
             string args = command.ArgString;
 
-            if (double.TryParse(args, out double pointModifier) && pointModifier is >= 0 and <= 2)
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double pointModifier) && pointModifier is >= 0 and <= 2)
             {
                 highgravPointModifier = pointModifier;
-                SharpTimerConPrint($"SharpTimer highgrav point modifier set to {pointModifier}.");
+                //SharpTimerConPrint($"SharpTimer highgrav point modifier set to {pointModifier}.");
             }
             else
             {
@@ -1715,10 +1710,10 @@ namespace SharpTimer
         {
             string args = command.ArgString;
 
-            if (double.TryParse(args, out double pointModifier) && pointModifier is >= 0 and <= 2)
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double pointModifier) && pointModifier is >= 0 and <= 2)
             {
                 halfSidewaysPointModifier = pointModifier;
-                SharpTimerConPrint($"SharpTimer halfsideways point modifier set to {pointModifier}.");
+                //SharpTimerConPrint($"SharpTimer halfsideways point modifier set to {pointModifier}.");
             }
             else
             {
@@ -1732,10 +1727,10 @@ namespace SharpTimer
         {
             string args = command.ArgString;
 
-            if (double.TryParse(args, out double pointModifier) && pointModifier is >= 0 and <= 2)
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double pointModifier) && pointModifier is >= 0 and <= 2)
             {
                 fastForwardPointModifier = pointModifier;
-                SharpTimerConPrint($"SharpTimer fastforward point modifier set to {pointModifier}.");
+                //SharpTimerConPrint($"SharpTimer fastforward point modifier set to {pointModifier}.");
             }
             else
             {

@@ -1,18 +1,3 @@
-/*
-Copyright (C) 2024 Dea Brcka
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
@@ -220,13 +205,14 @@ namespace SharpTimer
 
             try
             {
-                if (playerReplays[playerSlot].replayFrames.Count >= maxReplayFrames) return "";
+                if (playerReplays[playerSlot].replayFrames.Count >= maxReplayFrames) 
+                    return "";
 
                 var indexedReplayFrames = playerReplays[playerSlot].replayFrames
                     .Select((frame, index) => new IndexedReplayFrames { Index = index, Frame = frame })
                     .ToList();
 
-                return JsonSerializer.Serialize(indexedReplayFrames);
+                return await Task.Run(() => JsonSerializer.Serialize(indexedReplayFrames));
             }
             catch (Exception ex)
             {

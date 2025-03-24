@@ -1,18 +1,3 @@
-/*
-Copyright (C) 2024 Dea Brcka
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Cvars;
@@ -31,64 +16,6 @@ namespace SharpTimer
     {
         private delegate nint CNetworkSystemUpdatePublicIp(nint a1);
         private static CNetworkSystemUpdatePublicIp? _networkSystemUpdatePublicIp;
-
-        public async Task<(bool IsLatest, string LatestVersion)> IsLatestVersion()
-        {
-            try
-            {
-                string apiUrl = "https://api.github.com/repos/Letaryat/poor-sharptimer/releases/latest";
-                var request = new HttpRequestMessage(HttpMethod.Get, apiUrl);
-                request.Headers.Add("User-Agent", "request");
-
-                HttpResponseMessage response = await httpClient.SendAsync(request);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    string json = await response.Content.ReadAsStringAsync();
-                    var options = jsonSerializerOptions;
-                    var releaseInfo = JsonSerializer.Deserialize<Dictionary<string, object>>(json, options);
-
-                    string latestVersion = releaseInfo!["name"].ToString()!;
-
-                    return (latestVersion! == ModuleVersion!, latestVersion!);
-                }
-                else
-                {
-                    SharpTimerError($"Failed to fetch data from GitHub API: {response.StatusCode}");
-                    return (false, "null");
-                }
-            }
-            catch (Exception ex)
-            {
-                SharpTimerError($"An error occurred in IsLatestVersion: {ex.Message}");
-                return (false, "null");
-            }
-        }
-
-        public async void CheckForUpdate()
-        {
-            try
-            {
-                (bool isLatest, string latestVersion) = await IsLatestVersion();
-
-                if (!isLatest && latestVersion != "null")
-                {
-                    for (int i = 0; i < 5; i++)
-                    {
-                        SharpTimerConPrint($"\u001b[33m----------------------------------------------------");
-                        SharpTimerConPrint($"\u001b[33mPLUGIN VERSION DOES NOT MATCH LATEST GITHUB RELEASE");
-                        SharpTimerConPrint($"\u001b[33mCURRENT VERSION: {ModuleVersion}");
-                        SharpTimerConPrint($"\u001b[33mLATEST RELEASE VERSION: {latestVersion}");
-                        SharpTimerConPrint($"\u001b[33mPLEASE CONSIDER UPDATING SOON!");
-                    }
-                    SharpTimerConPrint($"\u001b[33m----------------------------------------------------");
-                }
-            }
-            catch (Exception ex)
-            {
-                SharpTimerError($"An error occurred in CheckForUpdate: {ex.Message}");
-            }
-        }
 
         private void ADtimerServerRecord()
         {
@@ -151,18 +78,18 @@ namespace SharpTimer
             var adMessages = new List<string>() 
             {
                 $"{Localizer["prefix"]} {Localizer["ad_see_all_commands"]}",
-                $"{(enableReplays ? $"{Localizer["prefix"]} {Localizer["ad_replay_pb"]}" : "")}",
+                //$"{(enableReplays ? $"{Localizer["prefix"]} {Localizer["ad_replay_pb"]}" : "")}",
                 $"{(enableReplays ? $"{Localizer["prefix"]} {Localizer["ad_replay_sr"]}" : "")}",
                 $"{(enableReplays ? $"{Localizer["prefix"]} {Localizer["ad_replay_top"]}" : "")}",
                 $"{(enableReplays ? $"{Localizer["prefix"]} {Localizer["ad_replay_bonus"]}" : "")}",
-                $"{(enableReplays ? $"{Localizer["prefix"]} {Localizer["ad_replay_bonus_pb"]}" : "")}",
+                //$"{(enableReplays ? $"{Localizer["prefix"]} {Localizer["ad_replay_bonus_pb"]}" : "")}",
                 $"{(globalRanksEnabled ? $"{Localizer["prefix"]} {Localizer["ad_points"]}" : "")}",
                 $"{(respawnEnabled ? $"{Localizer["prefix"]} {Localizer["ad_respawn"]}" : "")}",
-                $"{(respawnEnabled ? $"{Localizer["prefix"]} {Localizer["ad_start_pos"]}" : "")}",
+                //$"{(respawnEnabled ? $"{Localizer["prefix"]} {Localizer["ad_start_pos"]}" : "")}",
                 $"{(topEnabled ? $"{Localizer["prefix"]} {Localizer["ad_top"]}" : "")}",
                 $"{(rankEnabled ? $"{Localizer["prefix"]} {Localizer["ad_rank"]}" : "")}",
-                $"{(cpEnabled ? $"{Localizer["prefix"]} {(currentMapName!.Contains("surf_") ? $"{Localizer["ad_save_loc"]}" : $"{Localizer["ad_cp"]}")}" : "")}",
-                $"{(cpEnabled ? $"{Localizer["prefix"]} {(currentMapName!.Contains("surf_") ? $"{Localizer["ad_load_loc"]}" : $"{Localizer["ad_tp"]}")}" : "")}",
+                //$"{(cpEnabled ? $"{Localizer["prefix"]} {(currentMapName!.Contains("surf_") ? $"{Localizer["ad_save_loc"]}" : $"{Localizer["ad_cp"]}")}" : "")}",
+                //$"{(cpEnabled ? $"{Localizer["prefix"]} {(currentMapName!.Contains("surf_") ? $"{Localizer["ad_load_loc"]}" : $"{Localizer["ad_tp"]}")}" : "")}",
                 $"{(goToEnabled ? $"{Localizer["prefix"]} {Localizer["ad_goto"]}" : "")}",
                 $"{(fovChangerEnabled ? $"{Localizer["prefix"]} {Localizer["ad_fov"]}" : "")}",
                 $"{Localizer["prefix"]} {Localizer["ad_sounds"]}",
@@ -637,7 +564,7 @@ namespace SharpTimer
             return sortedRecords;
         }
 
-        public static PlayerRecord GetRecordByPosition(Dictionary<string, PlayerRecord> sortedRecords, int position)
+        public static PlayerRecord? GetRecordByPosition(Dictionary<string, PlayerRecord> sortedRecords, int position)
         {
             if (position < 1 || position > sortedRecords.Count)
             {
@@ -923,8 +850,8 @@ namespace SharpTimer
                         }
                         using (var connection = OpenConnection())
                         {
-                            CheckTablesAsync();
-                            ExecuteMigrations(connection);
+                            _ = CheckTablesAsync();
+                            //ExecuteMigrations(connection);
                         }
                         sqlCheck = true;
                     }

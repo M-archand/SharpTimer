@@ -175,6 +175,18 @@ namespace SharpTimer
             }
         }
 
+        private string GetCurrentPlayerSpeed(CCSPlayerController player)
+        {
+            return Math.Round(
+                use2DSpeed ?
+                    Math.Sqrt(player.PlayerPawn.Value!.AbsVelocity.X * player.PlayerPawn.Value!.AbsVelocity.X +
+                            player.PlayerPawn.Value!.AbsVelocity.Y * player.PlayerPawn.Value!.AbsVelocity.Y)
+                : Math.Sqrt(player.PlayerPawn.Value!.AbsVelocity.X * player.PlayerPawn.Value!.AbsVelocity.X +
+                            player.PlayerPawn.Value!.AbsVelocity.Y * player.PlayerPawn.Value!.AbsVelocity.Y +
+                            player.PlayerPawn.Value!.AbsVelocity.Z * player.PlayerPawn.Value!.AbsVelocity.Z)
+            ).ToString("0000");
+        }
+
         private void RemovePlayerCollision(CCSPlayerController? player)
         {
             try
@@ -353,9 +365,11 @@ namespace SharpTimer
                 Dictionary<int, PlayerRecord> sortedRecords;
 
                 if (!global)
-                    sortedRecords = await GetSortedRecordsFromDatabase(0, bonusX, currentMapNamee, style);
+                    sortedRecords = await GetSortedRecordsFromDatabase(0, bonusX, currentMapNamee, style) 
+                                    ?? new Dictionary<int, PlayerRecord>();
                 else
-                    sortedRecords = await GetSortedRecordsFromGlobal(0, bonusX, currentMapNamee, style);
+                    sortedRecords = await GetSortedRecordsFromGlobal(0, bonusX, currentMapNamee, style) 
+                                    ?? new Dictionary<int, PlayerRecord>();
 
                 int placement = 1;
                 int totalPlayers = sortedRecords.Count;
@@ -382,6 +396,7 @@ namespace SharpTimer
                 return 0;
             }
         }
+
         public async Task<string> GetPlayerStagePlacementWithTotal(CCSPlayerController? player, string steamId, string playerName, int stage, bool getRankImg = false, bool getPlacementOnly = false, int bonusX = 0)
         {
             try

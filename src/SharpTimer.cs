@@ -1,18 +1,3 @@
-/*
-Copyright (C) 2024 Dea Brcka
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes;
@@ -34,7 +19,6 @@ namespace SharpTimer
         public override void Load(bool hotReload)
         {
             SharpTimerConPrint("Loading Plugin...");
-            CheckForUpdate();
 
             defaultServerHostname = ConVar.Find("hostname")!.StringValue;
             Server.ExecuteCommand($"execifexists SharpTimer/config.cfg");
@@ -83,10 +67,10 @@ namespace SharpTimer
                     if (player == null || player.IsBot || !player.IsValid || player.IsHLTV)
                         continue;
 
-                    if (!connectedPlayers.TryGetValue(player.Slot, out var connected))
+                    if (!connectedPlayers.TryGetValue(player.Slot, out var connected) || connected == null)
                         continue;
                     
-                    if (!playerTimers[player.Slot].HidePlayers)
+                    if (!playerTimers.TryGetValue(player.Slot, out var timer) || timer == null || !timer.HidePlayers)
                         continue;
 
                     foreach (var target in Utilities.GetPlayers())
@@ -94,11 +78,12 @@ namespace SharpTimer
                         if (target == null || target.IsHLTV || target.IsBot || !target.IsValid)
                             continue;
 
-                        var pawn = target.Pawn.Value!;
+                        var pawn = target.Pawn?.Value;
                         if (pawn is null)
                             continue;
 
-                        if (player.Pawn.Value?.As<CCSPlayerPawnBase>().PlayerState == CSPlayerState.STATE_OBSERVER_MODE)
+                        var playerPawn = player.Pawn.Value?.As<CCSPlayerPawnBase>().PlayerState;
+                        if (playerPawn == null || playerPawn == CSPlayerState.STATE_OBSERVER_MODE)
                             continue;
 
                         if (pawn == player.Pawn.Value)
@@ -221,9 +206,9 @@ namespace SharpTimer
                             {
                                 if (playerTimers[player.Slot].IsReplaying) StopReplay(player);
                             }
-                            catch (Exception ex)
+                            catch (Exception)
                             {
-                                // playerTimers for requested player does not exist
+                                SharpTimerDebug($"Error in RegisterEventHandler<EventPlayerTeam>");
                             }
                         });
                     }

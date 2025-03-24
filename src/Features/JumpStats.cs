@@ -473,7 +473,7 @@ namespace SharpTimer
                     value.Jumped = false;
                 }
             }
-            catch(Exception ex)
+            catch(Exception)
             {
                 // Suppress trigger_teleport null reference exceptions (the player has likely disconnected)
             }

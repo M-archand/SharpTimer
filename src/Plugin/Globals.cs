@@ -1,18 +1,3 @@
-/*
-Copyright (C) 2024 Dea Brcka
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
 using System.Text.Json;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Cvars;
@@ -23,12 +8,9 @@ namespace SharpTimer
 {
     public partial class SharpTimer
     {
-        public string compileTimeStamp = new DateTime(CompileTimeStamp.CompileTime, DateTimeKind.Utc).ToString();
-
         public override string ModuleName => "SharpTimer";
         public override string ModuleVersion => $"0.3.1w";
-        public override string ModuleAuthor => "dea https://github.com/deabb/";
-        public override string ModuleDescription => "A CS2 Timer Plugin";
+        public override string ModuleAuthor => "dea + rc";
 
         public Dictionary<int, PlayerTimerInfo> playerTimers = [];
         private Dictionary<int, PlayerJumpStats> playerJumpStats = [];
@@ -118,6 +100,7 @@ namespace SharpTimer
         public bool enableStageTimes = true;
         public bool ignoreJSON = false;
         public bool enableReplays = false;
+        public bool onlySRReplay = false;
         public bool enableSRreplayBot = false;
         public bool startKickingAllFuckingBotsExceptReplayOneIFuckingHateValveDogshitFuckingCompanySmile = false;
         public bool foundReplayBot = false;

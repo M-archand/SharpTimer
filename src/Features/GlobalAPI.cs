@@ -43,12 +43,12 @@ namespace SharpTimer
                 }
                 else
                 {
-                    SharpTimerError($"Failed to submit record. Status code: {response.StatusCode}");
+                    SharpTimerDebug($"Failed to submit record. Status code: {response.StatusCode}");
                 }
             }
             catch (Exception ex)
             {
-                SharpTimerError($"Error in SubmitRecordAsync: {ex.Message}");
+                SharpTimerDebug($"Error in SubmitRecordAsync: {ex.Message}");
             }
         }
 
@@ -92,7 +92,7 @@ namespace SharpTimer
             }
             catch (Exception ex)
             {
-                SharpTimerError($"Error in CheckAddonAsync: {ex.Message}");
+                SharpTimerDebug($"Error in CheckAddonAsync: {ex.Message}");
                 return false;
             }
         }
@@ -119,7 +119,7 @@ namespace SharpTimer
             cache.CachedGlobalPoints = sortedPoints;
         }
 
-        public async Task<List<PlayerPoints>> GetTopPointsAsync(int limit = 10)
+        public async Task<List<PlayerPoints>?> GetTopPointsAsync(int limit = 10)
         {
             if (apiKey == "")
                 return null;
@@ -166,13 +166,13 @@ namespace SharpTimer
                 }
                 else
                 {
-                    SharpTimerError($"Failed to get top points. Status code: {response.StatusCode}; Message: {response.Content}");
+                    SharpTimerDebug($"Failed to get top points. Status code: {response.StatusCode}; Message: {response.Content}");
                     return null;
                 }
             }
             catch (Exception ex)
             {
-                SharpTimerError($"Error in GetRecordIDAsync: {ex.Message}");
+                SharpTimerDebug($"Error in GetRecordIDAsync: {ex.Message}");
                 return null;
             }
         }
@@ -204,20 +204,20 @@ namespace SharpTimer
                         }
                         else
                         {
-                            SharpTimerError($"No record ID found");
+                            SharpTimerDebug($"No record ID found");
                             return 0;
                         }
                     }
                 }
                 else
                 {
-                    SharpTimerError($"Failed to retrieve record_id. Status code: {response.StatusCode}; Message: {response.Content}");
+                    SharpTimerDebug($"Failed to retrieve record_id. Status code: {response.StatusCode}; Message: {response.Content}");
                     return 0;
                 }
             }
             catch (Exception ex)
             {
-                SharpTimerError($"Error in GetRecordIDAsync: {ex.Message}");
+                SharpTimerDebug($"Error in GetRecordIDAsync: {ex.Message}");
                 return 0;
             }
         }
@@ -268,13 +268,13 @@ namespace SharpTimer
                 }
                 else
                 {
-                    SharpTimerError($"Failed to retrieve player rank. Status code: {response.StatusCode}; Message: {response.Content}");
+                    SharpTimerDebug($"Failed to retrieve player rank. Status code: {response.StatusCode}; Message: {response.Content}");
                     return (0, 0, 0);
                 }
             }
             catch (Exception ex)
             {
-                SharpTimerError($"Error in GetGlobalRankAsync: {ex.Message}");
+                SharpTimerDebug($"Error in GetGlobalRankAsync: {ex.Message}");
                 return (0, 0, 0);
             }
             return (0, 0, 0);
@@ -317,12 +317,12 @@ namespace SharpTimer
                 }
                 else
                 {
-                    SharpTimerError($"Failed to upload replay. Status code: {response.StatusCode}; Message: {response.Content}");
+                    SharpTimerDebug($"Failed to upload replay. Status code: {response.StatusCode}; Message: {response.Content}");
                 }
             }
             catch (Exception ex)
             {
-                SharpTimerError($"Error in SubmitReplayAsync: {ex.Message}");
+                SharpTimerDebug($"Error in SubmitReplayAsync: {ex.Message}");
             }
         }
 
@@ -347,7 +347,7 @@ namespace SharpTimer
             }
             catch (Exception ex)
             {
-                SharpTimerError($"Error in PrintWorldRecord: {ex.Message}");
+                SharpTimerDebug($"Error in PrintWorldRecord: {ex.Message}");
             }
         }
 
@@ -371,11 +371,11 @@ namespace SharpTimer
             }
             catch (Exception ex)
             {
-                SharpTimerError($"Error in PrintGlobalPoints: {ex.Message}");
+                SharpTimerDebug($"Error in PrintGlobalPoints: {ex.Message}");
             }
         }
 
-        public async Task<Dictionary<int, PlayerRecord>> GetSortedRecordsFromGlobal(int limit = 0, int bonusX = 0, string mapName = "", int style = 0)
+        public async Task<Dictionary<int, PlayerRecord>?> GetSortedRecordsFromGlobal(int limit = 0, int bonusX = 0, string mapName = "", int style = 0)
         {
             if (apiKey == "")
                 return null;
@@ -454,12 +454,12 @@ namespace SharpTimer
                     }
                     else
                     {
-                        SharpTimerError($"Failed to GetSortedRecordsFromGlobal. Status code: {response.StatusCode}");
+                        SharpTimerDebug($"Failed to GetSortedRecordsFromGlobal. Status code: {response.StatusCode}");
                     }
                 }
                 catch (Exception ex)
                 {
-                    SharpTimerError($"Error in GetSortedRecordsFromGlobal: {ex.Message}");
+                    SharpTimerDebug($"Error in GetSortedRecordsFromGlobal: {ex.Message}");
                 }
             }
             return [];
@@ -489,12 +489,12 @@ namespace SharpTimer
                 }
                 else
                 {
-                    SharpTimerError($"Failed to get global replay. Status code: {response.StatusCode}");
+                    SharpTimerDebug($"Failed to get global replay. Status code: {response.StatusCode}");
                 }
             }
             catch (Exception ex)
             {
-                SharpTimerError($"Error in GetReplayFromGlobal: {ex.Message}");
+                SharpTimerDebug($"Error in GetReplayFromGlobal: {ex.Message}");
             }
             return "";
         }
@@ -554,7 +554,7 @@ namespace SharpTimer
             }
             catch (Exception ex)
             {
-                SharpTimerError($"Error getting previous player {(bonusX != 0 ? $"bonus {bonusX} time" : "time")} from global: {ex.Message}");
+                SharpTimerDebug($"Error getting previous player {(bonusX != 0 ? $"bonus {bonusX} time" : "time")} from global: {ex.Message}");
             }
             return 0;
         }
@@ -585,7 +585,7 @@ namespace SharpTimer
                     return false;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }
@@ -621,7 +621,7 @@ namespace SharpTimer
                     return false;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }
