@@ -205,9 +205,12 @@ namespace SharpTimer
                             {
                                 _ = Task.Run(async () => await DumpPlayerStageTimesToJson(player, steamId, playerSlot));
                             }
-                            if (enableReplays == true && !enableDb)
+                            if (enableReplays == true)
                             {
-                                _ = Task.Run(async () => await DumpReplayToJson(player!, steamId, playerSlot, bonusX, playerTimers[player.Slot].currentStyle));
+                                if (useBinaryReplays)
+                                    _ = Task.Run(async () => await DumpReplayToBinary(player!, steamId, playerSlot, bonusX, playerTimers[player.Slot].currentStyle));
+                                else
+                                    _ = Task.Run(async () => await DumpReplayToJson(player!, steamId, playerSlot, bonusX, playerTimers[player.Slot].currentStyle));
                             }
                         }
                         else
@@ -215,7 +218,6 @@ namespace SharpTimer
                             if (!enableDb) await PrintMapTimeToChat(player, steamId, playerName, records[steamId].TimerTicks, timerTicks, bonusX, 0, playerTimers[player.Slot].currentStyle);
                         }
                     }
-
                 }
                 catch (Exception ex)
                 {
@@ -250,6 +252,7 @@ namespace SharpTimer
                     var (previousStageTime, previousStageSpeed) = await GetStageRecordFromDatabase(prevStage, playerSteamID);
                     var (srStageTime, srStageSpeed) = await GetStageRecordFromDatabase(prevStage, srSteamID);
 
+                    //TO-DO: Add player setting to enabled/disable printing time comparisons to chat
                     Server.NextFrame(() =>
                     {
                         if (!IsAllowedPlayer(player)) return;
@@ -258,7 +261,6 @@ namespace SharpTimer
 
                             if (playerTimer.CurrentMapStage == stageTrigger || playerTimer == null) return;
 
-                            //TO-DO: Add player setting to enabled/disable printing time comparisons to chat
                             if (previousStageTime != 0)
                             {
                                 player.PrintToChat($" {Localizer["prefix"]} Entering Stage: {stageTrigger}");

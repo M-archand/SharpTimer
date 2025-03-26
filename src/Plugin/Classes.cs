@@ -177,6 +177,7 @@ namespace SharpTimer
         public int TimesConnected { get; set; }
         public int TicksSinceLastCmd { get; set; }
         public int TicksSinceLastRankUpdate { get; set; }
+        public bool HideStageTimes { get; set; }
 
         //super special stuff for testers
         public bool IsTester { get; set; }
@@ -294,6 +295,7 @@ namespace SharpTimer
     }
 
     //Replay stuff
+    [Serializable]
     public class PlayerReplays
     {
         public int CurrentPlaybackFrame { get; set; }
@@ -311,6 +313,7 @@ namespace SharpTimer
         }
     }
 
+    [Serializable]
     public class IndexedReplayFrames
     {
         public int Index { get; set; }

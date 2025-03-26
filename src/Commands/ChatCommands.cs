@@ -297,8 +297,12 @@ namespace SharpTimer
 
             if (wr)
                 await ReadReplayFromGlobal(player, wrID, style, bonusX);
-            else
-                await ReadReplayFromJson(player, !self ? srSteamID : pbSteamID, playerSlot, bonusX, style);
+            else {
+                if (useBinaryReplays)
+                    await ReadReplayFromBinary(player, !self ? srSteamID : pbSteamID, playerSlot, bonusX, style);
+                else
+                    await ReadReplayFromJson(player, !self ? srSteamID : pbSteamID, playerSlot, bonusX, style);
+            }
 
             if (playerReplays[playerSlot].replayFrames.Count == 0) return;
 
@@ -564,6 +568,24 @@ namespace SharpTimer
             var steamID = player.SteamID.ToString();
 
             playerTimers[player.Slot].HideWeapon = !playerTimers[player.Slot].HideWeapon;
+            _ = Task.Run(async () => await SetPlayerStats(player, steamID, playerName, playerSlot));
+        }
+
+        [ConsoleCommand("css_hidetimes", "Toggles whether personal stage/cp times are printed to chat")]
+        [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
+        public void TogglePrintStageTimes(CCSPlayerController? player, CommandInfo command)
+        {
+            if (!IsAllowedPlayer(player))
+            {
+                if (!IsAllowedSpectator(player))
+                    return;
+            }
+            
+            var playerName = player!.PlayerName;
+            var playerSlot = player.Slot;
+            var steamID = player.SteamID.ToString();
+
+            playerTimers[player.Slot].HideStageTimes = !playerTimers[player.Slot].HideStageTimes;
             _ = Task.Run(async () => await SetPlayerStats(player, steamID, playerName, playerSlot));
         }
 

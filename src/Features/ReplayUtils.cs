@@ -4,6 +4,7 @@ using CounterStrikeSharp.API.Modules.Utils;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using System.Text.Json;
 using Vector = CounterStrikeSharp.API.Modules.Utils.Vector;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace SharpTimer
 {
@@ -194,6 +195,63 @@ namespace SharpTimer
                 }
             });
         }
+        
+        public async Task DumpReplayToBinary(CCSPlayerController player, string steamID, int playerSlot, int bonusX = 0, int style = 0)
+        {
+            await Task.Run(() =>
+            {
+                if (!IsAllowedPlayer(player))
+                {
+                    SharpTimerError($"Error in DumpReplayToBinary: Player not allowed or not on server anymore");
+                    return;
+                }
+
+                string fileName = $"{steamID}_replay.dat";
+                string playerReplaysDirectory;
+                if (style != 0) playerReplaysDirectory = Path.Join(gameDir, "csgo", "cfg", "SharpTimer", "PlayerReplayData", bonusX == 0 ? $"{currentMapName}" : $"{currentMapName}_bonus{bonusX}", GetNamedStyle(style));
+                else playerReplaysDirectory = Path.Join(gameDir, "csgo", "cfg", "SharpTimer", "PlayerReplayData", bonusX == 0 ? $"{currentMapName}" : $"{currentMapName}_bonus{bonusX}");
+                string playerReplaysPath = Path.Join(playerReplaysDirectory, fileName);
+
+                try
+                {
+                    if (!Directory.Exists(playerReplaysDirectory))
+                    {
+                        Directory.CreateDirectory(playerReplaysDirectory);
+                    }
+
+                    if (playerReplays[playerSlot].replayFrames.Count >= maxReplayFrames) return;
+
+                    var indexedReplayFrames = playerReplays[playerSlot].replayFrames
+                        .Select((frame, index) => new IndexedReplayFrames { Index = index, Frame = frame })
+                        .ToList();
+
+                    using Stream stream = new FileStream(playerReplaysPath, FileMode.Create);
+                    BinaryWriter writer = new BinaryWriter(stream);
+                    
+                    writer.Write(REPLAY_VERSION);
+                    
+                    foreach (var frame in indexedReplayFrames)
+                    {
+                        writer.Write(frame.Frame!.Position!.X);
+                        writer.Write(frame.Frame.Position!.Y);
+                        writer.Write(frame.Frame.Position!.Z);
+                        writer.Write(frame.Frame.Rotation!.Pitch);
+                        writer.Write(frame.Frame.Rotation!.Yaw);
+                        writer.Write(frame.Frame.Rotation!.Roll);
+                        writer.Write(frame.Frame.Speed!.X);
+                        writer.Write(frame.Frame.Speed!.Y);
+                        writer.Write(frame.Frame.Speed!.Z);
+                        writer.Write((int)frame.Frame.Buttons!);
+                        writer.Write((int)frame.Frame.Flags);
+                        writer.Write((int)frame.Frame.MoveType);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    SharpTimerError($"Error during serialization: {ex.Message}");
+                }
+            });
+        }
 
         public async Task<string> GetReplayJson(CCSPlayerController player, int playerSlot)
         {
@@ -223,6 +281,7 @@ namespace SharpTimer
 
         private async Task ReadReplayFromJson(CCSPlayerController player, string steamId, int playerSlot, int bonusX = 0, int style = 0)
         {
+            SharpTimerDebug($"Reading replay from JSON");
             string fileName = $"{steamId}_replay.json";
             string playerReplaysPath;
             if (style != 0) playerReplaysPath = Path.Join(gameDir, "csgo", "cfg", "SharpTimer", "PlayerReplayData", bonusX == 0 ? currentMapName : $"{currentMapName}_bonus{bonusX}", GetNamedStyle(style), fileName);
@@ -232,6 +291,7 @@ namespace SharpTimer
             {
                 if (File.Exists(playerReplaysPath))
                 {
+                    SharpTimerDebug($"Path: {playerReplaysPath}, creating stream");
                     var jsonString = await File.ReadAllTextAsync(playerReplaysPath);
                     if (!jsonString.Contains("PositionString"))
                     {
@@ -267,6 +327,76 @@ namespace SharpTimer
             catch (Exception ex)
             {
                 SharpTimerError($"Error during deserialization: {ex.Message}");
+                SharpTimerError($"Error during deserialization: {ex.StackTrace}");
+            }
+        }
+
+        private async Task ReadReplayFromBinary(CCSPlayerController player, string steamId, int playerSlot, int bonusX = 0, int style = 0)
+        {
+            SharpTimerDebug($"Reading replay from Binary");
+            string fileName = $"{steamId}_replay.dat";
+            string playerReplaysPath;
+            if (style != 0) playerReplaysPath = Path.Join(gameDir, "csgo", "cfg", "SharpTimer", "PlayerReplayData", bonusX == 0 ? currentMapName : $"{currentMapName}_bonus{bonusX}", GetNamedStyle(style), fileName);
+            else playerReplaysPath = Path.Join(gameDir, "csgo", "cfg", "SharpTimer", "PlayerReplayData", bonusX == 0 ? currentMapName : $"{currentMapName}_bonus{bonusX}", fileName);
+
+            try
+            {
+                if (!File.Exists(playerReplaysPath))
+                {
+                    SharpTimerError($"File does not exist: {playerReplaysPath}");
+                    Server.NextFrame(() => PrintToChat(player, Localizer["replay_dont_exist"]));
+                    return;
+                }
+                
+                SharpTimerDebug($"Path: {playerReplaysPath}, creating stream");
+                
+                using Stream stream = new FileStream(playerReplaysPath, FileMode.Open);
+                BinaryReader reader = new BinaryReader(stream);
+                
+                var version = reader.ReadInt32();
+                if (version != REPLAY_VERSION)
+                {
+                    SharpTimerError($"Unsupported replay version: {version}");
+                    Server.NextFrame(() => PrintToChat(player, $"Unsupported replay version: {version}"));
+                    return;
+                }
+                   
+                var replayFrames = new List<PlayerReplays.ReplayFrames>();
+                
+                await Server.NextFrameAsync(() => {
+                    while (reader.BaseStream.Position != reader.BaseStream.Length)
+                    {
+                            var position = new Vector(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+                            var rotation = new QAngle(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+                            var speed = new Vector(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+                            var buttons = (PlayerButtons)reader.ReadInt32();
+                            var flags = (uint)reader.ReadInt32();
+                            var moveType = (MoveType_t)reader.ReadInt32();
+                        
+                            replayFrames.Add(new PlayerReplays.ReplayFrames
+                            {
+                                Position = ReplayVector.GetVectorish(position),
+                                Rotation = ReplayQAngle.GetQAngleish(rotation),
+                                Speed    = ReplayVector.GetVectorish(speed),
+                                Buttons  = buttons,
+                                Flags    = flags,
+                                MoveType = moveType
+                            });
+                    }
+                });
+                
+                if (!playerReplays.TryGetValue(playerSlot, out PlayerReplays? value))
+                {
+                    value = new PlayerReplays();
+                    playerReplays[playerSlot] = value;
+                }
+                
+                value.replayFrames = replayFrames;
+            }
+            catch (Exception ex)
+            {
+                SharpTimerError($"Error during deserialization: {ex.Message}");
+                SharpTimerError($"Error during deserialization: {ex.StackTrace}");
             }
         }
 
@@ -404,6 +534,7 @@ namespace SharpTimer
             }
         }
 
+
         public async Task<bool> CheckSRReplay(string topSteamID = "x", int bonusX = 0, int style = 0)
         {
             var (srSteamID, srPlayerName, srTime) = ("null", "null", "null");
@@ -419,15 +550,21 @@ namespace SharpTimer
 
             if ((srSteamID == "null" || srPlayerName == "null" || srTime == "null") && topSteamID != "x") return false;
 
-            string fileName = $"{(topSteamID == "x" ? $"{srSteamID}" : $"{topSteamID}")}_replay.json";
+            string ext = useBinaryReplays ? "dat" : "json";
+            string fileName = $"{(topSteamID == "x" ? $"{srSteamID}" : $"{topSteamID}")}_replay.{ext}";
             string playerReplaysPath;
             if (style != 0) playerReplaysPath = Path.Join(gameDir, "csgo", "cfg", "SharpTimer", "PlayerReplayData", (bonusX == 0 ? currentMapName : $"{currentMapName}_bonus{bonusX}"), GetNamedStyle(style), fileName);
             else playerReplaysPath = Path.Join(gameDir, "csgo", "cfg", "SharpTimer", "PlayerReplayData", (bonusX == 0 ? currentMapName : $"{currentMapName}_bonus{bonusX}"), fileName);
 
             try
             {
-                if (File.Exists(playerReplaysPath))
-                {
+                if (File.Exists(playerReplaysPath)) {
+                    if (useBinaryReplays) {
+                        var reader = new BinaryReader(File.Open(playerReplaysPath, FileMode.Open));
+                        var version = reader.ReadInt32();
+                        
+                        return version == REPLAY_VERSION;
+                    }
                     var jsonString = await File.ReadAllTextAsync(playerReplaysPath);
                     if (!jsonString.Contains("PositionString"))
                     {

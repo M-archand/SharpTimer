@@ -17,6 +17,8 @@ namespace SharpTimer
         private int movementServices;
         private int movementPtr;
         private readonly CSPlayerState[] _oldPlayerState = new CSPlayerState[65];
+        public const int REPLAY_VERSION = 1;
+
         public override void Load(bool hotReload)
         {
             SharpTimerConPrint("Loading Plugin...");
@@ -207,9 +209,9 @@ namespace SharpTimer
                             {
                                 if (playerTimers[player.Slot].IsReplaying) StopReplay(player);
                             }
-                            catch (Exception)
+                            catch (Exception ex)
                             {
-                                SharpTimerDebug($"Error in RegisterEventHandler<EventPlayerTeam>");
+                                SharpTimerDebug($"Error in RegisterEventHandler<EventPlayerTeam>: {ex.Message}");
                             }
                         });
                     }
