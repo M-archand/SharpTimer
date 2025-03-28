@@ -170,7 +170,7 @@ namespace SharpTimer
             Server.NextFrame(() =>
             {
                 demos = Path.Join(gameDir, "csgo/demos");
-                if(!Directory.Exists(demos))
+                if (!Directory.Exists(demos))
                     Directory.CreateDirectory(demos);
 
                 var name = player.PlayerName.Replace(" ", "-").Replace("\\", "-").Replace("/", "-");
@@ -189,7 +189,7 @@ namespace SharpTimer
         {
             if (!IsAllowedPlayer(player)) return;
             demos = Path.Join(gameDir, "csgo/demos");
-            if(!Directory.Exists(demos))
+            if (!Directory.Exists(demos))
                 Directory.CreateDirectory(demos);
             int flaggedPlayers = 0;
             foreach (var file in Directory.GetFiles(demos))

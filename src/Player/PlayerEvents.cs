@@ -144,7 +144,7 @@ namespace SharpTimer
                     //schizo removing replay bots after last dc
                     AddTimer(5.0f, () =>
                     {
-                        if(Utilities.GetPlayers().Count == 0)
+                        if (Utilities.GetPlayers().Count == 0)
                             connectedReplayBots = [];
                     });
 

@@ -35,7 +35,7 @@ namespace SharpTimer
             int? tier;
             string? _;
             
-            if(disableRemoteData)
+            if (disableRemoteData)
                 (tier, _) = await FindMapInfoFromLocal(GetMapInfoSource(), mapname);
                 
             else

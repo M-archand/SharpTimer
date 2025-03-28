@@ -306,7 +306,7 @@ namespace SharpTimer
 
             if (playerReplays[playerSlot].replayFrames.Count == 0) return;
 
-            if (!wr) await GetReplayVIPGif(!self ? srSteamID : pbSteamID, playerSlot);
+            if (!wr) await GetReplayVIPGif (!self ? srSteamID : pbSteamID, playerSlot);
 
             playerTimers[playerSlot].IsReplaying = !playerTimers[playerSlot].IsReplaying;
             if (wr)
@@ -1852,7 +1852,7 @@ namespace SharpTimer
 
             playerTimers[player.Slot].TicksSinceLastCmd = 0;
             
-            if(playerTimers[player.Slot].currentStyle == 12)
+            if (playerTimers[player.Slot].currentStyle == 12)
                 playerTimers[player.Slot].PrevTimerTicks.Add(playerTimers[player.Slot].TimerTicks);
 
             // Get the player's current position and rotation
@@ -1912,7 +1912,7 @@ namespace SharpTimer
 
             playerTimers[player!.Slot].TicksSinceLastCmd = 0;
             
-            if(playerTimers[player.Slot].currentStyle == 12)
+            if (playerTimers[player.Slot].currentStyle == 12)
                 playerTimers[player.Slot].TimerTicks = playerTimers[player.Slot].PrevTimerTicks[playerTimers[player.Slot].CheckpointIndex];
 
             // Check if the player has any checkpoints
@@ -1988,7 +1988,7 @@ namespace SharpTimer
 
                 // Update the player's checkpoint index and timer ticks
                 playerTimers[player.Slot].CheckpointIndex = index;
-                if(playerTimers[player.Slot].currentStyle == 12)
+                if (playerTimers[player.Slot].currentStyle == 12)
                     playerTimers[player.Slot].TimerTicks = playerTimers[player.Slot].PrevTimerTicks[playerTimers[player.Slot].CheckpointIndex];
 
                 // Convert position and rotation strings to Vector and QAngle
@@ -2044,7 +2044,7 @@ namespace SharpTimer
 
                 // Update the player's checkpoint index and timer ticks
                 playerTimers[player.Slot].CheckpointIndex = index;
-                if(playerTimers[player.Slot].currentStyle == 12)
+                if (playerTimers[player.Slot].currentStyle == 12)
                     playerTimers[player.Slot].TimerTicks = playerTimers[player.Slot].PrevTimerTicks[playerTimers[player.Slot].CheckpointIndex];
 
                 // Convert position and rotation strings to Vector and QAngle

@@ -80,7 +80,7 @@ namespace SharpTimer
 
                 if (IsValidStartTriggerName(callerName))
                 {
-                    if(playerTimers.TryGetValue(playerSlot, out PlayerTimerInfo? playerTimer))
+                    if (playerTimers.TryGetValue(playerSlot, out PlayerTimerInfo? playerTimer))
                     {
                         playerTimer.inStartzone = true;
                     }
@@ -214,7 +214,7 @@ namespace SharpTimer
 
                 if (IsValidStartTriggerName(callerName) && !playerTimers[playerSlot].IsTimerBlocked)
                 {
-                    if(playerTimers.TryGetValue(playerSlot, out PlayerTimerInfo? playerTimer))
+                    if (playerTimers.TryGetValue(playerSlot, out PlayerTimerInfo? playerTimer))
                     {
                         playerTimer.inStartzone = false;
                     }

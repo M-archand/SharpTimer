@@ -668,7 +668,7 @@ namespace SharpTimer
                             playerPoints = timerTicks;
                             beatPB = true;
                             if (enableReplays && !onlySRReplay) {
-                                if(useBinaryReplays)
+                                if (useBinaryReplays)
                                     _ = Task.Run(async () => await DumpReplayToBinary(player!, steamId, playerSlot, bonusX, playerTimers[playerSlot].currentStyle));
                                 else
                                     _ = Task.Run(async () => await DumpReplayToJson(player!, steamId, playerSlot, bonusX, playerTimers[playerSlot].currentStyle));
@@ -768,7 +768,7 @@ namespace SharpTimer
                             if (IsAllowedPlayer(player)) Server.NextFrame(() => _ = Task.Run(async () => await PrintMapTimeToChat(player!, steamId, playerName, dBtimerTicks, timerTicks, bonusX, dBtimesFinished, style, prevSR)));
                             if (enableReplays && onlySRReplay
                                 && prevSR > timerTicks) {
-                                if(useBinaryReplays)
+                                if (useBinaryReplays)
                                     _ = Task.Run(async () => await DumpReplayToBinary(player!, steamId, playerSlot, bonusX, playerTimers[playerSlot].currentStyle));
                                 else
                                     _ = Task.Run(async () => await DumpReplayToJson(player!, steamId, playerSlot, bonusX, playerTimers[playerSlot].currentStyle));
@@ -2079,14 +2079,14 @@ namespace SharpTimer
             }
         }
 
-        public async Task GetReplayVIPGif(string steamId, int playerSlot)
+        public async Task GetReplayVIPGif (string steamId, int playerSlot)
         {
             Server.NextFrame(() => SharpTimerDebug($"Trying to get replay VIP Gif from database"));
             try
             {
                 if (await IsSteamIDaTester(steamId))
                 {
-                    playerTimers[playerSlot].VipReplayGif = await GetTesterBigGif(steamId);
+                    playerTimers[playerSlot].VipReplayGif = await GetTesterBigGif (steamId);
                     return;
                 }
 
@@ -3216,8 +3216,8 @@ namespace SharpTimer
                                     insertOrUpdateQuery = @"INSERT INTO PlayerRecords (SteamID, PlayerName, TimerTicks, FormattedTime, MapName, UnixStamp, TimesFinished, LastFinished, Style)
                                         VALUES (@SteamID, @PlayerName, @TimerTicks, @FormattedTime, @MapName, @UnixStamp, @TimesFinished, @LastFinished, @Style)
                                         ON DUPLICATE KEY UPDATE
-                                        TimerTicks = IF(@TimerTicks < TimerTicks, @TimerTicks, TimerTicks),
-                                        FormattedTime = IF(@TimerTicks < TimerTicks, @FormattedTime, FormattedTime)";
+                                        TimerTicks = if (@TimerTicks < TimerTicks, @TimerTicks, TimerTicks),
+                                        FormattedTime = if (@TimerTicks < TimerTicks, @FormattedTime, FormattedTime)";
                                     insertOrUpdateCommand = new MySqlCommand(insertOrUpdateQuery, (MySqlConnection)connection);
                                     break;
                                 case DatabaseType.PostgreSQL:

@@ -66,7 +66,7 @@ namespace SharpTimer
 
             if (!IsAllowedPlayer(player) || playerTimer.IsTimerRunning == false) return;
 
-            if(currentTicks == 0)
+            if (currentTicks == 0)
             {
                 PrintToChat(player, $"{ChatColors.LightRed}{Localizer["error_savingtime"]}");
                 playerTimer.IsTimerRunning = false;
@@ -144,7 +144,7 @@ namespace SharpTimer
 
             int currentTicks = playerTimers[player.Slot].BonusTimerTicks;
 
-            if(currentTicks == 0)
+            if (currentTicks == 0)
             {
                 PrintToChat(player, $"{ChatColors.LightRed}Error Saving Time: Player time is 0 ticks");
                 playerTimer.IsTimerRunning = false;

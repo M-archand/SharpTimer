@@ -515,7 +515,7 @@ namespace SharpTimer
                 var botSlot = bot.Slot;
                 var botName = bot.PlayerName;
                 
-                if(bot.IsHLTV)
+                if (bot.IsHLTV)
                     return;
 
                 AddTimer(3.0f, () =>

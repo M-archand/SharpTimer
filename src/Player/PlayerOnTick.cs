@@ -48,9 +48,9 @@ namespace SharpTimer
                         Vector playerSpeed = player.PlayerPawn!.Value!.AbsVelocity;
                         var hasWeapons = player.PlayerPawn?.Value?.WeaponServices?.MyWeapons?.Count > 0;
                         
-                        if(connectedAFKPlayers.ContainsKey(player.Slot))
+                        if (connectedAFKPlayers.ContainsKey(player.Slot))
                         {
-                            if(!playerSpeed.IsZero())
+                            if (!playerSpeed.IsZero())
                             {
                                 connectedAFKPlayers.Remove(player.Slot);
                                 playerTimer.AFKWarned = false;
@@ -59,26 +59,27 @@ namespace SharpTimer
                             else
                             {
                                 continue;
+
                             }
                         }
 
-                        if(playerTimer.AFKTicks >= afkSeconds*48 && !playerTimer.AFKWarned && afkWarning)
+                        if (playerTimer.AFKTicks >= afkSeconds*48 && !playerTimer.AFKWarned && afkWarning)
                         {
-                            player.PrintToChat($"{Localizer["prefix"]} {Localizer["afk_message"]}");
+                            //player.PrintToChat($"{Localizer["prefix"]} {Localizer["afk_message"]}");
                             playerTimer.AFKWarned = true;
                         }
                             
-                        if(playerTimer.AFKTicks >= afkSeconds*64)
+                        if (playerTimer.AFKTicks >= afkSeconds*64)
                             connectedAFKPlayers[player.Slot] = connectedPlayers[player.Slot];
 
-                        if(playerSpeed.IsZero())
+                        if (playerSpeed.IsZero())
                             playerTimer.AFKTicks++;
                         else
                             playerTimer.AFKTicks = 0;
 
                         if (!startzoneJumping && playerTimers[player.Slot].inStartzone)
                         {
-                            if((playerButtons & PlayerButtons.Jump) != 0 || playerTimer.MovementService!.OldJumpPressed)
+                            if ((playerButtons & PlayerButtons.Jump) != 0 || playerTimer.MovementService!.OldJumpPressed)
                             {
                                 player!.Pawn.Value!.AbsVelocity.Z = 0f;
                             }
@@ -121,7 +122,7 @@ namespace SharpTimer
                             }
                         }
                         
-                        if(playerTimer.currentStyle.Equals(4)) //check if 400vel
+                        if (playerTimer.currentStyle.Equals(4)) //check if 400vel
                         {
                             SetVelocity(player, player!.Pawn.Value!.AbsVelocity, 400);
                         }
@@ -151,7 +152,7 @@ namespace SharpTimer
 
                         if (jumpStatsEnabled == true) OnJumpStatTick(player, playerSpeed, player.Pawn?.Value!.CBodyComponent?.SceneNode!.AbsOrigin!, player.PlayerPawn?.Value.EyeAngles!, playerButtons);
                         if (StrafeHudEnabled == true) OnSyncTick(player, playerButtons, player.PlayerPawn?.Value.EyeAngles!);
-                        if(StrafeHudEnabled == true && playerTimers[player.Slot].inStartzone && playerTimer.Rotation.Count > 0) 
+                        if (StrafeHudEnabled == true && playerTimers[player.Slot].inStartzone && playerTimer.Rotation.Count > 0) 
                         { 
                             playerTimer.Sync = 100.00f;
                             playerTimer.Rotation.Clear();

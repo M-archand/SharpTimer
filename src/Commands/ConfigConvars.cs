@@ -1535,7 +1535,7 @@ namespace SharpTimer
         {
             string args = command.ArgString;
 
-            if(!isLinux)
+            if (!isLinux)
             {
                 enableStyles = false;
                 return;

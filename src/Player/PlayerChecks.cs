@@ -103,7 +103,7 @@ namespace SharpTimer
             }
         }
 
-        async Task<string> GetTesterBigGif(string steamId64)
+        async Task<string> GetTesterBigGif (string steamId64)
         {
             try
             {
@@ -126,7 +126,7 @@ namespace SharpTimer
             }
         }
 
-        async Task<string> GetTesterSmolGif(string steamId64)
+        async Task<string> GetTesterSmolGif (string steamId64)
         {
             try
             {
@@ -229,7 +229,7 @@ namespace SharpTimer
                     }
                     else if (isInsideStartBox)
                     {
-                        if(playerTimers.TryGetValue(player.Slot, out PlayerTimerInfo? playerTimer))
+                        if (playerTimers.TryGetValue(player.Slot, out PlayerTimerInfo? playerTimer))
                         {
                             playerTimer.inStartzone = true;
                             InvalidateTimer(player);
@@ -277,7 +277,7 @@ namespace SharpTimer
                             }
                             else if (isInsideBonusStartBox[bonus])
                             {
-                                if(playerTimers.TryGetValue(player.Slot, out PlayerTimerInfo? playerTimer))
+                                if (playerTimers.TryGetValue(player.Slot, out PlayerTimerInfo? playerTimer))
                                 {
                                     playerTimer.inStartzone = true;
                                 }
@@ -294,7 +294,7 @@ namespace SharpTimer
                             }
                             else if (!isInsideBonusStartBox[bonus])
                             {
-                                if(playerTimers.TryGetValue(player.Slot, out PlayerTimerInfo? playerTimer))
+                                if (playerTimers.TryGetValue(player.Slot, out PlayerTimerInfo? playerTimer))
                                 {
                                     playerTimer.inStartzone = false;
                                 }

@@ -140,10 +140,10 @@ namespace SharpTimer
 
         public void SetVelocity(CCSPlayerController player, Vector currentVel, int desiredVel)
         {
-            if(currentVel.X > desiredVel) player!.PlayerPawn.Value!.AbsVelocity.X = desiredVel;
-            if(currentVel.X < -desiredVel) player!.PlayerPawn.Value!.AbsVelocity.X = -desiredVel;
-            if(currentVel.Y > desiredVel) player!.PlayerPawn.Value!.AbsVelocity.Y = desiredVel;
-            if(currentVel.Y < -desiredVel) player!.PlayerPawn.Value!.AbsVelocity.Y = -desiredVel;
+            if (currentVel.X > desiredVel) player!.PlayerPawn.Value!.AbsVelocity.X = desiredVel;
+            if (currentVel.X < -desiredVel) player!.PlayerPawn.Value!.AbsVelocity.X = -desiredVel;
+            if (currentVel.Y > desiredVel) player!.PlayerPawn.Value!.AbsVelocity.Y = desiredVel;
+            if (currentVel.Y < -desiredVel) player!.PlayerPawn.Value!.AbsVelocity.Y = -desiredVel;
             //do not cap z velocity
         }
 
