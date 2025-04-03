@@ -1812,5 +1812,14 @@ namespace SharpTimer
 
             useBinaryReplays = bool.TryParse(args, out bool useBinaryReplaysValue) ? useBinaryReplaysValue : args != "0" && useBinaryReplays;
         }
+        
+        [ConsoleCommand("sharptimer_replays_use_binary", "Save replays as binary files instead of json. Default value: false")]
+        [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
+        public void SharpTimerReplaysUseDatabase(CCSPlayerController? player, CommandInfo command)
+        {
+            string args = command.ArgString;
+
+            useDatabaseReplays = bool.TryParse(args, out bool useDatabaseReplaysValue) ? useDatabaseReplaysValue : args != "0" && useDatabaseReplays;
+        }
     }
 }

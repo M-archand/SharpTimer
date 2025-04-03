@@ -102,6 +102,7 @@ namespace SharpTimer
         public bool ignoreJSON = false;
         public bool enableReplays = false;
         public bool useBinaryReplays = false;
+        public bool useDatabaseReplays = false;
         public bool onlySRReplay = false;
         public bool enableSRreplayBot = false;
         public bool startKickingAllFuckingBotsExceptReplayOneIFuckingHateValveDogshitFuckingCompanySmile = false;
