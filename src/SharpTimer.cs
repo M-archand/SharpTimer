@@ -54,9 +54,11 @@ namespace SharpTimer
 
             float randomf = new Random().Next(5, 31);
             if (apiKey != "")
-                AddTimer(randomf, () => CheckCvarsAndMaxVelo(), CounterStrikeSharp.API.Modules.Timers.TimerFlags.REPEAT);
+                AddTimer(randomf, () => CheckCvarsAndMaxVelo(), TimerFlags.REPEAT);
 
             currentMapName = Server.MapName;
+
+            RegisterListener<Listeners.OnMetamodAllPluginsLoaded>(InitializeTriggerHooks);
             
             RegisterListener<Listeners.CheckTransmit>((CCheckTransmitInfoList infoList) =>
             {
@@ -321,6 +323,22 @@ namespace SharpTimer
 
             RegisterListener<Listeners.OnTick>(PlayerOnTick);
 
+            AddTimer(1.0f, () =>
+            {
+                DamageHook();
+            });
+
+            AddTimer(1.0f, AssignPlayerScoreboards, TimerFlags.REPEAT);
+
+            AddCommandListener("say", OnPlayerChat);
+            AddCommandListener("say_team", OnPlayerChat);
+            AddCommandListener("jointeam", OnCommandJoinTeam);
+
+            SharpTimerConPrint("Plugin Loaded");
+        }
+
+        private void InitializeTriggerHooks()
+        {
             HookEntityOutput("trigger_multiple", "OnStartTouch", (CEntityIOOutput output, string name, CEntityInstance activator, CEntityInstance caller, CVariant value, float delay) =>
             {
                 TriggerMultipleOnStartTouch(activator, caller);
@@ -344,19 +362,6 @@ namespace SharpTimer
                 TriggerTeleportOnStartTouch(activator, caller);
                 return HookResult.Continue;
             });
-
-            AddTimer(1.0f, () =>
-            {
-                DamageHook();
-            });
-
-            AddTimer(1.0f, AssignPlayerScoreboards, TimerFlags.REPEAT);
-
-            AddCommandListener("say", OnPlayerChat);
-            AddCommandListener("say_team", OnPlayerChat);
-            AddCommandListener("jointeam", OnCommandJoinTeam);
-
-            SharpTimerConPrint("Plugin Loaded");
         }
         
         private void ApplyInfiniteClip(CCSPlayerController player)
