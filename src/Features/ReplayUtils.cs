@@ -5,6 +5,11 @@ using CounterStrikeSharp.API.Modules.Entities.Constants;
 using System.Text.Json;
 using Vector = CounterStrikeSharp.API.Modules.Utils.Vector;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Data.Common;
+using MySqlConnector;
+using Npgsql;
+using System.Data.SQLite;
+using static SharpTimer.PlayerReplays;
 
 namespace SharpTimer
 {
@@ -25,7 +30,7 @@ namespace SharpTimer
                 var flags = player.Pawn.Value.Flags;
                 var moveType = player.Pawn.Value.MoveType;
 
-                var ReplayFrame = new PlayerReplays.ReplayFrames
+                var ReplayFrame = new ReplayFrames
                 {
                     Position = currentPosition,
                     Rotation = currentRotation,
@@ -400,6 +405,202 @@ namespace SharpTimer
             }
         }
 
+        public static byte[] GetReplayBinaryData(PlayerReplays replay)
+        {
+            const int REPLAY_VERSION = 1;
+            using (var ms = new MemoryStream())
+            {
+                using (var writer = new BinaryWriter(ms))
+                {
+                    writer.Write(REPLAY_VERSION);
+                    foreach (var frame in replay.replayFrames)
+                    {
+                        if (frame.Position != null && frame.Rotation != null && frame.Speed != null)
+                        {
+                            writer.Write(frame.Position.X);
+                            writer.Write(frame.Position.Y);
+                            writer.Write(frame.Position.Z);
+                            
+                            writer.Write(frame.Rotation.Pitch);
+                            writer.Write(frame.Rotation.Yaw);
+                            writer.Write(frame.Rotation.Roll);
+                            
+                            writer.Write(frame.Speed.X);
+                            writer.Write(frame.Speed.Y);
+                            writer.Write(frame.Speed.Z);
+                            
+                            writer.Write((int)(frame.Buttons ?? default(PlayerButtons)));
+                            writer.Write((int)frame.Flags);
+                            writer.Write((int)frame.MoveType);
+                        }
+                    }
+                    writer.Flush();
+                    return ms.ToArray();
+                }
+            }
+        }
+
+        public async Task ReadReplayFromDatabase(CCSPlayerController player, string steamId, int playerSlot, int bonusX, int style)
+        {
+            // Determine the map name—if bonusX is non-zero, append bonus info.
+            string mapName = bonusX == 0 ? currentMapName! : $"{currentMapName}_bonus{bonusX}";
+            SharpTimerDebug($"ReadReplayFromDatabase was called & Computed map name for replay: {mapName}");
+            
+            try
+            {
+                using (var connection = await OpenConnectionAsync())
+                {
+                    DbCommand command = null!;
+                    string query = string.Empty;
+                    switch (dbType)
+                    {
+                        case DatabaseType.MySQL:
+                            query = "SELECT ReplayData FROM PlayerReplays WHERE SteamID = @SteamID AND MapName = @MapName AND Style = @Style";
+                            command = new MySqlCommand(query, (MySqlConnection)connection);
+                            break;
+                        case DatabaseType.PostgreSQL:
+                            query = @"SELECT ""ReplayData"" FROM ""PlayerReplays"" WHERE ""SteamID"" = @SteamID AND ""MapName"" = @MapName AND ""Style"" = @Style";
+                            command = new NpgsqlCommand(query, (NpgsqlConnection)connection);
+                            break;
+                        case DatabaseType.SQLite:
+                            query = "SELECT ReplayData FROM PlayerReplays WHERE SteamID = @SteamID AND MapName = @MapName AND Style = @Style";
+                            command = new SQLiteCommand(query, (SQLiteConnection)connection);
+                            break;
+                        default:
+                            throw new Exception("Unsupported database type");
+                    }
+                    
+                    // Set parameters using extension method
+                    command.AddParameterWithValue("@SteamID", steamId);
+                    command.AddParameterWithValue("@MapName", mapName);
+                    command.AddParameterWithValue("@Style", style);
+                    
+                    // Execute the query to get the replay data blob.
+                    object? result = await command.ExecuteScalarAsync();
+                    if (result == null || result == DBNull.Value)
+                    {
+                        SharpTimerError($"No replay data found for SteamID: {steamId}, Map: {mapName}");
+                        return;
+                    }
+                    
+                    byte[] replayBinaryData = (byte[])result;
+                    
+                    // Create a new PlayerReplays instance to load the frames
+                    PlayerReplays loadedReplay = new PlayerReplays();
+                    
+                    using (var ms = new MemoryStream(replayBinaryData))
+                    {
+                        using (var reader = new BinaryReader(ms))
+                        {
+                            // Read the replay version
+                            int version = reader.ReadInt32();
+                        
+                            // Loop while there is data available
+                            while (ms.Position < ms.Length)
+                            {
+                                // Read position
+                                ReplayVector position = new ReplayVector(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+
+                                // Read rotation
+                                ReplayQAngle rotation = new ReplayQAngle(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+
+                                // Read speed
+                                ReplayVector speed = new ReplayVector(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+                                
+                                // Read buttons, flags, and move type
+                                PlayerButtons buttons = (PlayerButtons)reader.ReadInt32();
+                                uint flags = (uint)reader.ReadInt32();
+                                MoveType_t moveType = (MoveType_t)reader.ReadInt32();
+
+                                // Create a new frame and add it to the replay
+                                ReplayFrames frame = new ReplayFrames
+                                {
+                                    Position = position,
+                                    Rotation = rotation,
+                                    Speed = speed,
+                                    Buttons = buttons,
+                                    Flags = flags,
+                                    MoveType = moveType
+                                };
+                                
+                                loadedReplay.replayFrames.Add(frame);
+                            }
+                        }
+                    }
+                    
+                    // Assign the loaded replay to the player's replay dictionary for playback
+                    playerReplays[playerSlot] = loadedReplay;
+                }
+            }
+            catch (Exception ex)
+            {
+                SharpTimerError($"Error reading replay from database: {ex.Message}");
+            }
+        }
+
+        public async Task DumpReplayToDatabase(CCSPlayerController player, string steamId, int playerSlot, int bonusX, int style)
+        {
+            // Obtain the binary replay data
+            byte[] replayBinaryData = GetReplayBinaryData(playerReplays[playerSlot]);
+            SharpTimerDebug($"DumpReplayToDatabase called with SteamID: {steamId}, bonusX: {bonusX}, style: {style}, currentMapName: {currentMapName}");
+            SharpTimerDebug($"Replay binary data length: {replayBinaryData.Length}");
+
+            SharpTimerDebug($"Replay binary data length: {replayBinaryData.Length}");
+            
+            
+            try
+            {
+                using (var connection = await OpenConnectionAsync())
+                {
+                    // Ensure the PlayerReplays table exists
+                    await CreatePlayerReplaysTableAsync(connection);
+                    
+                    DbCommand command = null!;
+                    string query = string.Empty;
+                    switch (dbType)
+                    {
+                        case DatabaseType.MySQL:
+                            query = @"
+                                INSERT INTO PlayerReplays (SteamID, MapName, Style, ReplayData)
+                                VALUES (@SteamID, @MapName, @Style, @ReplayData)
+                                ON DUPLICATE KEY UPDATE ReplayData = @ReplayData";
+                            command = new MySqlCommand(query, (MySqlConnection)connection);
+                            break;
+                        case DatabaseType.PostgreSQL:
+                            query = @"
+                                INSERT INTO ""PlayerReplays"" (""SteamID"", ""MapName"", ""Style"", ""ReplayData"")
+                                VALUES (@SteamID, @MapName, @Style, @ReplayData)
+                                ON CONFLICT (""SteamID"", ""MapName"", ""Style"") DO UPDATE SET ReplayData = @ReplayData";
+                            command = new NpgsqlCommand(query, (NpgsqlConnection)connection);
+                            break;
+                        case DatabaseType.SQLite:
+                            query = @"
+                                INSERT OR REPLACE INTO PlayerReplays (SteamID, MapName, Style, ReplayData)
+                                VALUES (@SteamID, @MapName, @Style, @ReplayData)";
+                            command = new SQLiteCommand(query, (SQLiteConnection)connection);
+                            break;
+                        default:
+                            throw new Exception("Unsupported database type");
+                    }
+                    
+                    // Set parameters
+                    command.AddParameterWithValue("@SteamID", steamId);
+                    string mapName = bonusX == 0 ? currentMapName! : $"{currentMapName}_bonus{bonusX}";
+                    SharpTimerDebug($"ReadReplayFromDatabase was called & Computed map name for replay: {mapName}");
+                    command.AddParameterWithValue("@MapName", mapName);
+                    command.AddParameterWithValue("@Style", style);
+                    command.AddParameterWithValue("@ReplayData", replayBinaryData);
+                    
+                    await command.ExecuteNonQueryAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                SharpTimerError($"Error saving replay to database: {ex.Message}");
+            }
+        }
+
+        /*
         private async Task ReadReplayFromGlobal(CCSPlayerController player, int recordId, int style, int bonusX = 0)
         {
             string currentMapFull = bonusX == 0 ? currentMapName! : $"{currentMapName}_bonus{bonusX}";
@@ -437,6 +638,7 @@ namespace SharpTimer
                 SharpTimerError($"Error during deserialization: {ex.Message}");
             }
         }
+        */
 
         private async Task SpawnReplayBot()
         {

@@ -295,11 +295,13 @@ namespace SharpTimer
                 return;
             }
 
-            if (wr)
-                await ReadReplayFromGlobal(player, wrID, style, bonusX);
+            /*if (wr)
+                await ReadReplayFromGlobal(player, wrID, style, bonusX);*/
             else {
                 if (useBinaryReplays)
                     await ReadReplayFromBinary(player, !self ? srSteamID : pbSteamID, playerSlot, bonusX, style);
+                else if (useDatabaseReplays)
+                    await ReadReplayFromDatabase(player, !self ? srSteamID : pbSteamID, playerSlot, bonusX, style);
                 else
                     await ReadReplayFromJson(player, !self ? srSteamID : pbSteamID, playerSlot, bonusX, style);
             }
