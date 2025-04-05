@@ -124,11 +124,11 @@ namespace SharpTimer
                     player!.PlayerPawn.Value!.AbsVelocity.Y = (float)adjustedY;
                     player!.PlayerPawn.Value!.AbsVelocity.Z = (float)adjustedZ;
 
-                    if (!forceNoDebug) SharpTimerDebug($"Adjusted Velo for {player.PlayerName} to {player.PlayerPawn.Value.AbsVelocity}");
+                    //if (!forceNoDebug) SharpTimerDebug($"Adjusted Velo for {player.PlayerName} to {player.PlayerPawn.Value.AbsVelocity}");
                 }
                 else
                 {
-                    if (!forceNoDebug) SharpTimerDebug($"Cannot adjust velocity for {player.PlayerName} because current speed is zero.");
+                    //if (!forceNoDebug) SharpTimerDebug($"Cannot adjust velocity for {player.PlayerName} because current speed is zero.");
                 }
             }
             catch (Exception ex)
