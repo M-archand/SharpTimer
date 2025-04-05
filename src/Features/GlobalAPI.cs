@@ -652,6 +652,7 @@ namespace SharpTimer
                     return (true, ConVar.Find("sv_maxvelocity")!.GetPrimitiveValue<float>(), ConVar.Find("sv_air_max_wishspeed")!.GetPrimitiveValue<float>());
                 }
                 //Checks failed, disable global api
+                /*
                 SharpTimerConPrint($"GLOBAL CHECK FAILED -- Current Values:");
                 SharpTimerConPrint($"sv_accelerate: {ConVar.Find("sv_accelerate")!.GetPrimitiveValue<float>()} [should be 10]");
                 SharpTimerConPrint($"sv_airaccelerate: {ConVar.Find("sv_airaccelerate")!.GetPrimitiveValue<float>()} [should be 150 for surf_ or 1000 for bhop_]");
@@ -670,6 +671,7 @@ namespace SharpTimer
                 SharpTimerConPrint($"Map is properly zoned?: {useTriggers} [should be true]");
                 SharpTimerConPrint($"Use checkpoint verification?: {useCheckpointVerification} [should be true]");
                 SharpTimerConPrint($"Using StripperCS2 on current map?: {Directory.Exists($"{gameDir}/addons/StripperCS2/maps/{Server.MapName}")} [should be false]");
+                */
 
                 globalDisabled = true;
                 globalChecksPassed = false;
