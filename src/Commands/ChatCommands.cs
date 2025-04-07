@@ -84,7 +84,7 @@ namespace SharpTimer
             if (ReplayCheck(player))
                 return;
 
-            PrintToChat(player, Localizer["available_replay_cmds"]);
+            //PrintToChat(player, Localizer["available_replay_cmds"]);
 
             _ = Task.Run(async () => await ReplayHandler(player, playerSlot, "1", "69", "unknown", 0, playerTimers[playerSlot].currentStyle));
         }
