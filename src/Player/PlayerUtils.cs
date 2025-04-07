@@ -64,10 +64,10 @@ namespace SharpTimer
             if (enableReplays)
             {
                 player.PrintToConsole($"{Localizer["console_replay"]}");
-                player.PrintToConsole($"{Localizer["console_replaytop"]}");
-                player.PrintToConsole($"{Localizer["console_replaypb"]}");
+                //player.PrintToConsole($"{Localizer["console_replaytop"]}");
+                //player.PrintToConsole($"{Localizer["console_replaypb"]}");
                 player.PrintToConsole($"{Localizer["console_replaybonus"]}");
-                player.PrintToConsole($"{Localizer["console_replaybonuspb"]}");
+                //player.PrintToConsole($"{Localizer["console_replaybonuspb"]}");
             }
 
             if (jumpStatsEnabled) player.PrintToConsole($"{Localizer["console_jumpstats"]}");
