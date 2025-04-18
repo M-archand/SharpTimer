@@ -295,7 +295,7 @@ namespace SharpTimer
                                                     ? $" <font class='horizontal-center' color='red'>◉ REPLAY {FormatTime(playerReplays[playerSlot].CurrentPlaybackFrame)}</font> <br>"
                                                     : "";
 
-                        string veloLine = $" {(playerTimer.IsTester ? playerTimer.TesterSmolGif : "")}<font class='fontSize-s' color='{tertiaryHUDcolor}'>Speed:</font> {(playerTimer.IsReplaying ? "<font class=''" : "<font class='fontSize-l horizontal-center'")} color='{playerVelColor}'>{formattedPlayerVel}</font> <font class='fontSize-s' color='white'>({formattedPlayerPre})</font>{(playerTimer.IsTester ? playerTimer.TesterSmolGif : "")} <br>";
+                        string veloLine = $"<font class='fontSize-s' color='{tertiaryHUDcolor}'>Speed:</font> {(playerTimer.IsReplaying ? "<font class=''" : "<font class='fontSize-l horizontal-center'")} color='{playerVelColor}'>{formattedPlayerVel}</font> <font class='fontSize-s' color='white'>({formattedPlayerPre})</font> <br>";
 
                         string syncLine = $"<font class='fontSize-s' color='{tertiaryHUDcolor}'>Sync:</font> <font class='fontSize-l horizontal-center color='{secondaryHUDcolor}'>{playerTimer.Sync:F2}%</font> <br>";
 
@@ -321,10 +321,7 @@ namespace SharpTimer
                                             (VelocityHudEnabled ? veloLine : "") +
                                             (StrafeHudEnabled && !playerTimer.IsReplaying ? syncLine : "") +
                                             infoLine : "") +
-                                            (keyEnabled && !playerTimer.IsReplaying ? keysLineNoHtml : "") +
-                                            ((playerTimer.IsTester && !playerTimer.IsReplaying) ? $"{(!keyEnabled ? "<br>" : "")}" + playerTimer.TesterBigGif : "") +
-                                            ((playerTimer.IsVip && !playerTimer.IsTester && !playerTimer.IsReplaying) ? $"{(!keyEnabled ? "<br><br>" : "")}" + $"<br><img src='https://files.catbox.moe/{playerTimer.VipBigGif}.gif'><br>" : "") +
-                                            ((playerTimer.IsReplaying && playerTimer.VipReplayGif != "x") ? playerTimer.VipReplayGif : "");
+                                            (keyEnabled && !playerTimer.IsReplaying ? keysLineNoHtml : "");
 
                         if (hudEnabled || keyEnabled)
                         {
@@ -410,7 +407,7 @@ namespace SharpTimer
                                                 ? $" <font class='horizontal-center' color='red'>◉ REPLAY {FormatTime(playerReplays[target.Slot].CurrentPlaybackFrame)}</font> <br>"
                                                 : "";
 
-                    string veloLine = $" {(playerTimer.IsTester ? playerTimer.TesterSmolGif : "")}<font class='fontSize-s' color='{tertiaryHUDcolor}'>Speed:</font> {(playerTimer.IsReplaying ? "<font class=''" : "<font class='fontSize-l horizontal-center'")} color='{secondaryHUDcolor}'>{formattedPlayerVel}</font><font class='fontSize-s' color='{tertiaryHUDcolor}'></font> <font class='fontSize-s' color='white'>({formattedPlayerPre})</font>{(playerTimer.IsTester ? playerTimer.TesterSmolGif : "")} <br>";
+                    string veloLine = $"<font class='fontSize-s' color='{tertiaryHUDcolor}'>Speed:</font> {(playerTimer.IsReplaying ? "<font class=''" : "<font class='fontSize-l horizontal-center'")} color='{secondaryHUDcolor}'>{formattedPlayerVel}</font><font class='fontSize-s' color='{tertiaryHUDcolor}'></font> <font class='fontSize-s' color='white'>({formattedPlayerPre}) <br>";
 
                     string syncLine = $"<font class='fontSize-s' color='{tertiaryHUDcolor}'>Sync:</font> <font class='fontSize-l horizontal-center color='{secondaryHUDcolor}'>{playerTimer.Sync:F2}%</font> <br>";//2f
 
@@ -437,10 +434,7 @@ namespace SharpTimer
                                         (VelocityHudEnabled ? veloLine : "") +
                                         (StrafeHudEnabled && !playerTimer.IsReplaying ? syncLine : "") +
                                         infoLine : "") +
-                                        (keyEnabled && !playerTimer.IsReplaying ? keysLineNoHtml : "") +
-                                        ((playerTimer.IsTester && !playerTimer.IsReplaying) ? playerTimer.TesterBigGif : "") +
-                                        ((playerTimer.IsVip && !playerTimer.IsTester && !playerTimer.IsReplaying) ? $"<br><img src='https://files.catbox.moe/{playerTimer.VipBigGif}.gif'><br>" : "") +
-                                        ((playerTimer.IsReplaying && playerTimer.VipReplayGif != "x") ? playerTimer.VipReplayGif : "");
+                                        (keyEnabled && !playerTimer.IsReplaying ? keysLineNoHtml : "");
 
                     if (hudEnabled || keyEnabled)
                     {
