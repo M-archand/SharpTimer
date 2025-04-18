@@ -284,7 +284,6 @@ namespace SharpTimer
                         }
 
                         string playerVelColor = useDynamicColor ? secondaryHUDcolorDynamic : secondaryHUDcolor;
-                        string formattedPlayerPre = Math.Round(ParseVector(playerTimer.PreSpeed ?? "0 0 0").Length2D()).ToString("000");
                         string playerTime = FormatTime(timerTicks);
                         string playerBonusTime = FormatTime(playerTimer.BonusTimerTicks);
                         string timerLine = isBonusTimerRunning
@@ -295,7 +294,7 @@ namespace SharpTimer
                                                     ? $" <font class='horizontal-center' color='red'>◉ REPLAY {FormatTime(playerReplays[playerSlot].CurrentPlaybackFrame)}</font> <br>"
                                                     : "";
 
-                        string veloLine = $"<font class='fontSize-s' color='{tertiaryHUDcolor}'>Speed:</font> {(playerTimer.IsReplaying ? "<font class=''" : "<font class='fontSize-l horizontal-center'")} color='{playerVelColor}'>{formattedPlayerVel}</font> <font class='fontSize-s' color='white'>({formattedPlayerPre})</font> <br>";
+                        string veloLine = $"<font class='fontSize-s' color='{tertiaryHUDcolor}'>Speed:</font> {(playerTimer.IsReplaying ? "<font class=''" : "<font class='fontSize-l horizontal-center'")} color='{playerVelColor}'>{formattedPlayerVel}</font> <br>";
 
                         string syncLine = $"<font class='fontSize-s' color='{tertiaryHUDcolor}'>Sync:</font> <font class='fontSize-l horizontal-center color='{secondaryHUDcolor}'>{playerTimer.Sync:F2}%</font> <br>";
 
@@ -396,7 +395,6 @@ namespace SharpTimer
                     string formattedPlayerVel = Math.Round(use2DSpeed ? playerSpeed.Length2D()
                                                                         : playerSpeed.Length())
                                                                         .ToString("0000");
-                    string formattedPlayerPre = Math.Round(ParseVector(playerTimer.PreSpeed ?? "0 0 0").Length2D()).ToString("000");
                     string playerTime = FormatTime(timerTicks);
                     string playerBonusTime = FormatTime(playerTimer.BonusTimerTicks);
                     string timerLine = isBonusTimerRunning
@@ -407,7 +405,7 @@ namespace SharpTimer
                                                 ? $" <font class='horizontal-center' color='red'>◉ REPLAY {FormatTime(playerReplays[target.Slot].CurrentPlaybackFrame)}</font> <br>"
                                                 : "";
 
-                    string veloLine = $"<font class='fontSize-s' color='{tertiaryHUDcolor}'>Speed:</font> {(playerTimer.IsReplaying ? "<font class=''" : "<font class='fontSize-l horizontal-center'")} color='{secondaryHUDcolor}'>{formattedPlayerVel}</font><font class='fontSize-s' color='{tertiaryHUDcolor}'></font> <font class='fontSize-s' color='white'>({formattedPlayerPre}) <br>";
+                    string veloLine = $"<font class='fontSize-s' color='{tertiaryHUDcolor}'>Speed:</font> {(playerTimer.IsReplaying ? "<font class=''" : "<font class='fontSize-l horizontal-center'")} color='{secondaryHUDcolor}'>{formattedPlayerVel}</font><font class='fontSize-s' color='{tertiaryHUDcolor}'></font> <br>";
 
                     string syncLine = $"<font class='fontSize-s' color='{tertiaryHUDcolor}'>Sync:</font> <font class='fontSize-l horizontal-center color='{secondaryHUDcolor}'>{playerTimer.Sync:F2}%</font> <br>";//2f
 
