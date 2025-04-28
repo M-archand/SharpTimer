@@ -39,6 +39,10 @@ namespace SharpTimer
                             continue;
                         }
 
+                        // Count every server tick the player remains in the start zone, to account for the startspeed bypass exploit
+                        if (playerTimer.inStartzone)
+                            playerTimer.TicksInStartZone++;
+
                         bool isOnBhopBlock = playerTimer.IsOnBhopBlock;
                         bool isTimerRunning = playerTimer.IsTimerRunning;
                         bool isBonusTimerRunning = playerTimer.IsBonusTimerRunning;

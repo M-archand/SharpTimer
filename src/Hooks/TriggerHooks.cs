@@ -82,6 +82,7 @@ namespace SharpTimer
                 {
                     if (playerTimers.TryGetValue(playerSlot, out PlayerTimerInfo? playerTimer))
                     {
+                        playerTimer.TicksInStartZone = 0;
                         playerTimer.inStartzone = true;
                     }
                     if (!playerTimers[playerSlot].IsTimerBlocked && playerTimer!.currentStyle != 12) // if in TAS style, dont wipe checkpoints onstart (wipe them on !r)
@@ -216,20 +217,33 @@ namespace SharpTimer
                 {
                     if (playerTimers.TryGetValue(playerSlot, out PlayerTimerInfo? playerTimer))
                     {
-                        playerTimer.inStartzone = false;
-                    }
-                    OnTimerStart(player);
-                    if (enableReplays) OnRecordingStart(player);
+                        const int MIN_TICKS = 64;
 
-                    if (((maxStartingSpeedEnabled == true && use2DSpeed == false && Math.Round(player.PlayerPawn.Value!.AbsVelocity.Length()) > maxStartingSpeed) ||
-                        (maxStartingSpeedEnabled == true && use2DSpeed == true && Math.Round(player.PlayerPawn.Value!.AbsVelocity.Length2D()) > maxStartingSpeed)) &&
-                        !currentMapOverrideMaxSpeedLimit!.Contains(callerName) && currentMapOverrideMaxSpeedLimit != null)
-                    {
-                        Action<CCSPlayerController?, float, bool> adjustVelocity = use2DSpeed ? AdjustPlayerVelocity2D : AdjustPlayerVelocity;
-                        adjustVelocity(player, maxStartingSpeed, false);
-                    }
+                        if (playerTimer.TicksInStartZone >= MIN_TICKS)
+                        {
+                            playerTimer.inStartzone = false;
+                            OnTimerStart(player);
+                            if (enableReplays) OnRecordingStart(player);
 
-                    SharpTimerDebug($"Player {playerName} left StartZone");
+                            if (((maxStartingSpeedEnabled == true && use2DSpeed == false 
+                                    && Math.Round(player.PlayerPawn.Value!.AbsVelocity.Length()) > maxStartingSpeed) ||
+                                (maxStartingSpeedEnabled == true && use2DSpeed == true  
+                                    && Math.Round(player.PlayerPawn.Value!.AbsVelocity.Length2D()) > maxStartingSpeed)) &&
+                                currentMapOverrideMaxSpeedLimit != null 
+                                && !currentMapOverrideMaxSpeedLimit.Contains(callerName))
+                            {
+                                Action<CCSPlayerController?, float, bool> adjustVelocity 
+                                    = use2DSpeed ? AdjustPlayerVelocity2D : AdjustPlayerVelocity;
+                                adjustVelocity(player, maxStartingSpeed, false);
+                            }         
+                        }
+                        else
+                        {
+                            SharpTimerDebug($"Player {playerName} left StartZone too soon ({playerTimer.TicksInStartZone} < {MIN_TICKS} ticks)");            
+                        }
+
+                        playerTimer.TicksInStartZone = 0;
+                    }
 
                     return HookResult.Continue;
                 }

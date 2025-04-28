@@ -107,6 +107,7 @@ namespace SharpTimer
         public int BonusTimerTicks { get; set; }
         public int BonusStage { get; set; }
         public bool inStartzone { get; set; }
+        public int TicksInStartZone { get; set; }
         public CurrentZoneInfo CurrentZoneInfo { get; set; } = new();
         public int currentStyle { get; set; }
         public bool changedStyle { get; set; }
