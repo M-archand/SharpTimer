@@ -44,11 +44,15 @@ namespace SharpTimer
                     return HookResult.Continue;
                 }
 
-                if (useStageTriggers == true && stageTriggers.ContainsKey(callerHandle) && playerTimers[playerSlot].IsTimerBlocked == false && playerTimers[playerSlot].IsTimerRunning == true)
+                if (useStageTriggers && stageTriggers.ContainsKey(callerHandle) && !playerTimers[playerSlot].IsTimerBlocked && playerTimers[playerSlot].IsTimerRunning)
                 {
                     if (stageTriggers[callerHandle] == 1)
                     {
                         playerTimers[playerSlot].CurrentMapStage = 1;
+                        InvalidateTimer(player, callerHandle);
+                        playerTimers[playerSlot].inStartzone      = true;
+                        playerTimers[playerSlot].TicksInStartZone = 0;
+
                         return HookResult.Continue;
                     }
                     else
