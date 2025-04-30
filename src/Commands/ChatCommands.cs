@@ -1564,6 +1564,12 @@ namespace SharpTimer
                     playerTimers[player.Slot].IsTimerBlocked = false;
                 });
                 PlaySound(player, respawnSound);
+
+                if (player != null && playerTimers.TryGetValue(player.Slot, out var timerInfo))
+                {
+                    timerInfo.inStartzone      = true;
+                    timerInfo.TicksInStartZone = 0;
+                }
             }
             catch (Exception ex)
             {
