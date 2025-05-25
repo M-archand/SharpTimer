@@ -3119,7 +3119,7 @@ namespace SharpTimer
 
                     await Task.WhenAll(tasks);
                 }
-                Server.NextFrame(() => PrintToChatAll("Points import completed"));
+                Server.NextFrame(() => PrintToChatAll("Points recalculation completed!"));
             }
             catch (Exception ex)
             {
