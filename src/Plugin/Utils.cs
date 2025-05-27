@@ -819,7 +819,7 @@ namespace SharpTimer
                     stageTriggerPoses.Clear();
 
                     KillServerCommandEnts();
-                    globalDisabled = false;
+                    //globalDisabled = false;
 
                     if (!sqlCheck)
                     {
@@ -855,7 +855,7 @@ namespace SharpTimer
                         }
                         sqlCheck = true;
                     }
-
+                    /*
                     if (Directory.Exists($"{gameDir}/addons/StripperCS2/maps/{Server.MapName}"))
                     {
                         globalDisabled = true;
@@ -867,6 +867,7 @@ namespace SharpTimer
 
                     _ = Task.Run(async () => await CacheGlobalPoints());
                     AddTimer(globalCacheInterval, async () => await CacheGlobalPoints(), TimerFlags.REPEAT);
+                    */
                 });
             }
             catch (Exception ex)
@@ -880,7 +881,7 @@ namespace SharpTimer
             try
             {
                 currentMapName = mapName;
-                currentAddonID = GetAddonID();
+                //currentAddonID = GetAddonID();
                 totalBonuses = new int[11];
                 bonusRespawnPoses.Clear();
                 bonusRespawnAngs.Clear();
@@ -1077,7 +1078,7 @@ namespace SharpTimer
                                 SharpTimerConPrint($"Found Fake Bonus {bonus} Trigger Corners: START {currentBonusStartC1[bonus]}, {currentBonusStartC2[bonus]} | END {currentBonusEndC1[bonus]}, {currentBonusEndC2[bonus]}");
 
                                 // Disable global for lackluster maps
-                                globalDisabled = true;
+                                //globalDisabled = true;
                             }
                             if (currentBonusStartC1[bonus] != null && currentBonusStartC2[bonus] != null && currentBonusEndC1[bonus] != null && currentBonusEndC2[bonus] != null)
                             {
@@ -1106,7 +1107,7 @@ namespace SharpTimer
                         SharpTimerConPrint($"Found Fake Trigger Corners: START {currentMapStartC1}, {currentMapStartC2} | END {currentMapEndC1}, {currentMapEndC2}");
 
                         // Disable global for lackluster maps
-                        globalDisabled = true;
+                        //globalDisabled = true;
                     }
 
                     if (!string.IsNullOrEmpty(mapInfo.MapStartTrigger) && !string.IsNullOrEmpty(mapInfo.MapEndTrigger))

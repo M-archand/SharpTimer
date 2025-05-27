@@ -10,7 +10,7 @@ namespace SharpTimer
     {
         public override string ModuleName => "SharpTimer";
         public override string ModuleVersion => $"0.3.1w";
-        public override string ModuleAuthor => "dea + rc";
+        public override string ModuleAuthor => "dea + rc + Marchand";
 
         public Dictionary<int, PlayerTimerInfo> playerTimers = [];
         private Dictionary<int, PlayerJumpStats> playerJumpStats = [];
@@ -148,11 +148,11 @@ namespace SharpTimer
         public double group5 = 50;
 
 
-        public bool globalChecksPassed = false;
-        public bool globalDisabled = false;
+        //public bool globalChecksPassed = false;
+        //public bool globalDisabled = true;
         public bool displayChatTags = true;
         public bool displayScoreboardTags = true;
-        public string customVIPTag = "[VIP] ";
+        public string customVIPTag = "[OWNER] ";
         public bool useTriggers = true;
         public bool useTriggersAndFakeZones = false;
 
@@ -262,7 +262,7 @@ namespace SharpTimer
         public string? PlayerStatsTable = "PlayerStats";
         public string? playerRecordsPath;
         public string? currentMapName;
-        public string? currentAddonID;
+        //public string? currentAddonID;
         public string? defaultServerHostname = ConVar.Find("hostname")?.StringValue;
 
         public bool discordWebhookEnabled = false;

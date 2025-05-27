@@ -53,8 +53,7 @@ namespace SharpTimer
             StateTransition.Hook(Hook_StateTransition, HookMode.Post);
 
             float randomf = new Random().Next(5, 31);
-            if (apiKey != "")
-                AddTimer(randomf, () => CheckCvarsAndMaxVelo(), TimerFlags.REPEAT);
+            //if (apiKey != "") AddTimer(randomf, () => CheckCvarsAndMaxVelo(), TimerFlags.REPEAT);
 
             currentMapName = Server.MapName;
 

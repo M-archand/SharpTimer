@@ -838,7 +838,8 @@ namespace SharpTimer
                                         await DumpReplayToJson(player!, steamId, playerSlot, bonusX, currentStyle));
                                 }
                             }
-                    
+
+                            /*
                             Server.NextFrame(async () =>
                             {
                                 var (hostname, ip) = GetHostnameAndIp();
@@ -853,7 +854,7 @@ namespace SharpTimer
                                 var prevPBTicks = await GetPreviousPlayerRecordFromGlobal(steamId, currentMapName!, playerName, bonusX, style);
                                 if (prevPBTicks > timerTicks || prevPBTicks == 0)
                                     beatGlobalPB = true;
-                                
+
                                 var record_payload = new List<Record>
                                 {
                                     new Record
@@ -876,7 +877,7 @@ namespace SharpTimer
                                     }
                                 };
 
-                                _ = Task.Run(async () => 
+                                _ = Task.Run(async () =>
                                 {
                                     await SubmitRecordAsync(record_payload); // submit the record to db to generate new record_id
                                 }).ContinueWith(async task =>                // THEN submit the replay using the record_id
@@ -886,7 +887,7 @@ namespace SharpTimer
                                     {
                                         var replay_payload = new ReplayData
                                         {
-                                            record_id = await GetRecordIDAsync(new { map_name = record_payload[0].map_name, unix_stamp = record_payload[0].unix_stamp}),
+                                            record_id = await GetRecordIDAsync(new { map_name = record_payload[0].map_name, unix_stamp = record_payload[0].unix_stamp }),
                                             map_name = currentMapNamee,
                                             style = style,
                                             hash = GetHash(),
@@ -897,6 +898,7 @@ namespace SharpTimer
                                     }
                                 });
                             });
+                            */
                         }
 
                     }
@@ -982,7 +984,8 @@ namespace SharpTimer
                                         await DumpReplayToJson(player!, steamId, playerSlot, bonusX, currentStyle));
                                 }
                             }
-                            
+
+                            /*
                             Server.NextFrame(async () =>
                             {
                                 var (hostname, ip) = GetHostnameAndIp();
@@ -994,7 +997,7 @@ namespace SharpTimer
                                 var prevPBTicks = await GetPreviousPlayerRecordFromGlobal(steamId, currentMapName!, playerName, bonusX, style);
                                 if (prevPBTicks > timerTicks || prevPBTicks == 0)
                                     beatGlobalPB = true;
-                                
+
                                 var record_payload = new List<Record>
                                 {
                                     new Record
@@ -1017,7 +1020,7 @@ namespace SharpTimer
                                     }
                                 };
 
-                                _ = Task.Run(async () => 
+                                _ = Task.Run(async () =>
                                 {
                                     await SubmitRecordAsync(record_payload); // submit the record to db to generate new record_id
                                 }).ContinueWith(async task =>                // THEN submit the replay using the record_id
@@ -1026,7 +1029,7 @@ namespace SharpTimer
                                     {
                                         var replay_payload = new ReplayData
                                         {
-                                            record_id = await GetRecordIDAsync(new { record_payload[0].map_name, record_payload[0].unix_stamp}),
+                                            record_id = await GetRecordIDAsync(new { record_payload[0].map_name, record_payload[0].unix_stamp }),
                                             map_name = currentMapNamee,
                                             style = style,
                                             hash = GetHash(),
@@ -1037,6 +1040,7 @@ namespace SharpTimer
                                     }
                                 });
                             });
+                            */
                         }
 
                     }
@@ -1965,10 +1969,10 @@ namespace SharpTimer
 
                 // now grab sortedrecords for getting total map completes and top10
                 var sortedRecords = new Dictionary<int, PlayerRecord>();
-                if (forGlobal)
-                    sortedRecords = await GetSortedRecordsFromGlobal(0, bonusX, mapname, style) ?? new Dictionary<int, PlayerRecord>();
-                else
-                    sortedRecords = await GetSortedRecordsFromDatabase(0, bonusX, mapname, style) ?? new Dictionary<int, PlayerRecord>();
+                //if (forGlobal)
+                    //sortedRecords = await GetSortedRecordsFromGlobal(0, bonusX, mapname, style) ?? new Dictionary<int, PlayerRecord>();
+                //else
+                sortedRecords = await GetSortedRecordsFromDatabase(0, bonusX, mapname, style) ?? new Dictionary<int, PlayerRecord>();
                 // Then calculate max points based on **map total** times finished
                 double maxPoints = await CalculateTier(sortedRecords.Count, mapname);
 
@@ -1999,7 +2003,7 @@ namespace SharpTimer
                 // If not in top 10, calculate groups based on percentile
                 if (!isTop10)
                 {
-                    newPoints += CalculateGroups(maxPoints, await GetPlayerMapPercentile(steamId, playerName, mapname, bonusX, style, forGlobal, timerTicks), forGlobal);
+                    newPoints += CalculateGroups(maxPoints, await GetPlayerMapPercentile(steamId, playerName, mapname, bonusX, style,/* forGlobal,*/ timerTicks)/*, forGlobal*/);
                 }
 
                 // if for global points, zero out style and bonus points

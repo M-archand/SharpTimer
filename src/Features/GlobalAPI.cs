@@ -1,3 +1,4 @@
+/*
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -13,10 +14,10 @@ namespace SharpTimer
     {
         private readonly HttpClient client = new HttpClient();
         RecordCache cache = new RecordCache();
-        
+
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private delegate IntPtr GetAddonNameDelegate(IntPtr thisPtr);
-        
+
         private string apiUrl = "https://stglobalapi.azurewebsites.net/api";
 
         public async Task SubmitRecordAsync(object payload)
@@ -103,7 +104,7 @@ namespace SharpTimer
 
             if (!players.Any())
                 return;
-            
+
             var sortedRecords = await GetSortedRecordsFromGlobal(10, 0, currentMapName!, 0);
             cache.CachedWorldRecords = sortedRecords;
         }
@@ -114,7 +115,7 @@ namespace SharpTimer
 
             if (!players.Any())
                 return;
-            
+
             var sortedPoints = await GetTopPointsAsync();
             cache.CachedGlobalPoints = sortedPoints;
         }
@@ -226,7 +227,7 @@ namespace SharpTimer
         {
             if (apiKey == "")
                 return (0, 0, 0);
-            
+
             try
             {
                 var payload = new
@@ -255,10 +256,10 @@ namespace SharpTimer
 
                             if (data.TryGetProperty("total_points", out var pointsElement))
                                 totalPoints = pointsElement.GetInt32();
-                    
+
                             if (data.TryGetProperty("rank", out var rankElement))
                                 rank = rankElement.GetInt32();
-                            
+
                             if (data.TryGetProperty("total_players", out var playersElement))
                                 totalPlayers = playersElement.GetInt32();
 
@@ -284,7 +285,7 @@ namespace SharpTimer
         {
             if (apiKey == "")
                 return;
-            
+
             var (points, rank, totalPlayers) = await GetGlobalRank(player);
             Server.NextFrame(() =>
             {
@@ -332,7 +333,7 @@ namespace SharpTimer
             {
                 if (cache.CachedWorldRecords is null)
                     _ = Task.Run(async () => await CacheWorldRecords());
-                
+
                 Server.NextFrame(() =>
                 {
                     PrintToChat(player, Localizer["current_wr", currentMapName!]);
@@ -357,7 +358,7 @@ namespace SharpTimer
             {
                 if (cache.CachedGlobalPoints is null)
                     _ = Task.Run(async () => await CacheGlobalPoints());
-                
+
                 Server.NextFrame(() =>
                 {
                     PrintToChat(player, Localizer["top_10_points"]);
@@ -382,7 +383,7 @@ namespace SharpTimer
 
             if (globalDisabled)
                 return null;
-            
+
             SharpTimerDebug($"Trying GetSortedRecordsFromGlobal {(bonusX != 0 ? $"bonus {bonusX}" : "")}");
             using (var connection = await OpenConnectionAsync())
             {
@@ -506,7 +507,7 @@ namespace SharpTimer
 
             if (globalDisabled)
                 return 0;
-            
+
             SharpTimerDebug($"Trying to get Previous {(bonusX != 0 ? $"bonus {bonusX} time" : "time")} from global for {playerName}");
             try
             {
@@ -671,7 +672,7 @@ namespace SharpTimer
                 SharpTimerConPrint($"Map is properly zoned?: {useTriggers} [should be true]");
                 SharpTimerConPrint($"Use checkpoint verification?: {useCheckpointVerification} [should be true]");
                 SharpTimerConPrint($"Using StripperCS2 on current map?: {Directory.Exists($"{gameDir}/addons/StripperCS2/maps/{Server.MapName}")} [should be false]");
-                */
+                
 
                 globalDisabled = true;
                 globalChecksPassed = false;
@@ -696,3 +697,4 @@ namespace SharpTimer
         }
     }
 }
+*/

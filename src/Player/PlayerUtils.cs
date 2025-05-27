@@ -334,7 +334,7 @@ namespace SharpTimer
                 return UnrankedTitle;
             }
         }
-        public async Task<double> GetPlayerMapPercentile(string steamId, string playerName, string mapname = "", int bonusX = 0, int style = 0, bool global = false, int timerTicks = 0)
+        public async Task<double> GetPlayerMapPercentile(string steamId, string playerName, string mapname = "", int bonusX = 0, int style = 0, /*bool global = false,*/int timerTicks = 0)
         {
             try
             {
@@ -346,22 +346,20 @@ namespace SharpTimer
 
                 int savedPlayerTime;
 
-                if (!global)
-                    savedPlayerTime = await GetPreviousPlayerRecordFromDatabase(steamId, currentMapNamee!, playerName, bonusX, style);
-                else
-                    savedPlayerTime = await GetPreviousPlayerRecordFromGlobal(steamId, currentMapNamee!, playerName, bonusX, style);
+                //if (!global)
+                savedPlayerTime = await GetPreviousPlayerRecordFromDatabase(steamId, currentMapNamee!, playerName, bonusX, style);
+                //else
+                    //savedPlayerTime = await GetPreviousPlayerRecordFromGlobal(steamId, currentMapNamee!, playerName, bonusX, style);
 
                 if (savedPlayerTime == 0)
                     savedPlayerTime = timerTicks;
 
                 Dictionary<int, PlayerRecord> sortedRecords;
 
-                if (!global)
-                    sortedRecords = await GetSortedRecordsFromDatabase(0, bonusX, currentMapNamee, style) 
-                                    ?? new Dictionary<int, PlayerRecord>();
-                else
-                    sortedRecords = await GetSortedRecordsFromGlobal(0, bonusX, currentMapNamee, style) 
-                                    ?? new Dictionary<int, PlayerRecord>();
+                //if (!global)
+                sortedRecords = await GetSortedRecordsFromDatabase(0, bonusX, currentMapNamee, style) ?? new Dictionary<int, PlayerRecord>();
+                //else
+                    //sortedRecords = await GetSortedRecordsFromGlobal(0, bonusX, currentMapNamee, style) ?? new Dictionary<int, PlayerRecord>();
 
                 int placement = 1;
                 int totalPlayers = sortedRecords.Count;

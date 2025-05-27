@@ -449,7 +449,7 @@ namespace SharpTimer
                 {
                     // map checkpoints are fucked, disable global and ring the bell of shame
                     SharpTimerDebug($"The map checkpoints are fucked and the porter should be ashamed");
-                    globalDisabled = true;
+                    //globalDisabled = true;
                 }
             }
 

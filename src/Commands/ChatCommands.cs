@@ -110,6 +110,7 @@ namespace SharpTimer
             _ = Task.Run(async () => await ReplayHandler(player, playerSlot, arg, "69", "unknown", 0, playerTimers[playerSlot].currentStyle));
         }
 
+        /*
         [ConsoleCommand("css_replaywr", "Replay a top 10 world record")]
         [CommandHelper(minArgs: 1, usage: "[1-10]", whoCanExecute: CommandUsage.CLIENT_ONLY)]
         public void ReplayTop10WRCommand(CCSPlayerController? player, CommandInfo command)
@@ -188,6 +189,7 @@ namespace SharpTimer
             var hash = GetHash();
             Server.NextFrame(() => player!.PrintToConsole($"ST HASH: {hash}"));
         }
+        */
 
         [ConsoleCommand("css_replayb", "Replay a top 10 server bonus record")]
         [ConsoleCommand("css_replaybonus", "Replay a top 10 server bonus record")]
@@ -267,6 +269,7 @@ namespace SharpTimer
                 {
                     (srSteamID, srPlayerName, srTime) = await GetMapRecordSteamID(bonusX, top10);
                 }
+                /*
                 if (wr)
                 {
                     var sortedRecords = await GetSortedRecordsFromGlobal(10, bonusX, currentMapName!, style);
@@ -284,6 +287,7 @@ namespace SharpTimer
                         return;
                     }
                 }
+                */
             }
 
             if ((srSteamID == "null" || srPlayerName == "null" || srTime == "null") && !self)
@@ -661,7 +665,7 @@ namespace SharpTimer
             _ = Task.Run(async () => await PrintTop10PlayerPoints(player));
         }
 
-
+        /*
         [ConsoleCommand("css_wr", "Prints world record for current map")]
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
         public void PrintWR(CCSPlayerController? player, CommandInfo command)
@@ -717,8 +721,9 @@ namespace SharpTimer
             playerTimers[player.Slot].TicksSinceLastCmd = 0;
 
             _ = Task.Run(async () => await PrintGlobalRankAsync(player));
-
         }
+        */
+        
         [ConsoleCommand("css_topbonus", "Prints top players of this map bonus")]
         [ConsoleCommand("css_btop", "alias for !topbonus")]
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
