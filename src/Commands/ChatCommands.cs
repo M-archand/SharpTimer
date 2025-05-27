@@ -415,7 +415,8 @@ namespace SharpTimer
             }
         }
 
-        [ConsoleCommand("css_hud", "Draws/Hides The timer HUD")]
+        [ConsoleCommand("css_hud", "Toggle HUD or set HUD style")]
+        [CommandHelper(minArgs: 0, usage: "[hudType]")]
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
         public void HUDSwitchCommand(CCSPlayerController? player, CommandInfo command)
         {
@@ -428,6 +429,7 @@ namespace SharpTimer
             var playerName = player!.PlayerName;
             var playerSlot = player.Slot;
             var steamID = player.SteamID.ToString();
+            var playerTimer = playerTimers[playerSlot];
 
             SharpTimerDebug($"{playerName} calling css_hud...");
 
@@ -436,18 +438,60 @@ namespace SharpTimer
 
             playerTimers[playerSlot].TicksSinceLastCmd = 0;
 
-            playerTimers[playerSlot].HideTimerHud = !playerTimers[playerSlot].HideTimerHud;
-
-            if (playerTimers[playerSlot].HideTimerHud)
-                PrintToChat(player, Localizer["hud_hidden"]);
-            else
-                PrintToChat(player, Localizer["hud_shown"]);
-
-            SharpTimerDebug($"Hide Timer HUD set to: {playerTimers[playerSlot].HideTimerHud} for {playerName}");
-
-            if (enableDb)
+            // If arg provided, change the HudType
+            if (command.ArgCount > 1)
             {
-                _ = Task.Run(async () => await SetPlayerStats(player, steamID, playerName, playerSlot));
+                var arg = command.ArgByIndex(1);
+                if (int.TryParse(arg, out int typeInt)
+                    && Enum.IsDefined(typeof(PlayerTimerInfo.HudType), typeInt))
+                {
+                    var newType = (PlayerTimerInfo.HudType)typeInt;
+
+                    _ = Task.Run(async () =>
+                    {
+                        using var conn = DatabaseUtils.GetOpenConnection();
+                        await conn.ExecuteAsync(
+                            @"UPDATE PlayerStats
+                                SET HudType = @HudType
+                            WHERE SteamID = @SteamID;",
+                            new { HudType = typeInt, SteamID = steamID }
+                        );
+                    });
+
+                    playerTimer.HudType = newType;
+                    player.PrintToChat($"HUD style set to {newType}.");
+                }
+                else
+                {
+                    player.PrintToChat("Invalid HUD type. Valid types: 1=Default, 2=Minimal, 3=Extended.");
+                }
+            }
+            // If no args, just toggle
+            else
+            {
+                bool newHide = !playerTimer.HideTimerHud;
+                playerTimer.HideTimerHud = newHide;
+
+                if (newHide)
+                    PrintToChat(player, Localizer["hud_hidden"]);
+                else
+                    PrintToChat(player, Localizer["hud_shown"]);
+
+                SharpTimerDebug($"Hide Timer HUD set to: {newHide} for {playerName}");
+
+                if (enableDb)
+                {
+                    _ = Task.Run(async () =>
+                    {
+                        using var conn = DatabaseUtils.GetOpenConnection();
+                        await conn.ExecuteAsync(
+                            @"UPDATE PlayerStats
+                                SET HideTimerHud = @HideTimerHud
+                            WHERE SteamID = @SteamID;",
+                            new { HideTimerHud = newHide, SteamID = steamID }
+                        );
+                    });
+                }
             }
         }
 
