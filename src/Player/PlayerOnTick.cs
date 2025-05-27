@@ -320,25 +320,24 @@ namespace SharpTimer
                                                 $"{((playerButtons & PlayerButtons.Jump) != 0 || playerTimer.MovementService!.OldJumpPressed ? "J" : "_")} " +
                                                 $"{((playerButtons & PlayerButtons.Duck) != 0 ? "C" : "_")}";
 
+                        Func<string> build = playerTimer.CurrentHudType switch
+                        {
+                            PlayerTimerInfo.HudType.Minimal     => () => timerLine,
+                            PlayerTimerInfo.HudType.Default     => () => timerLine + (VelocityHudEnabled ? veloLine : "") + (StrafeHudEnabled && !playerTimer.IsReplaying ? syncLine : "") + infoLine + (keyEnabled && !playerTimer.IsReplaying ? keysLineNoHtml : ""),
+                            PlayerTimerInfo.HudType.SpeedOnly   => () => veloLine,
+                            _                                   => () => timerLine + (VelocityHudEnabled ? veloLine : "") + (StrafeHudEnabled && !playerTimer.IsReplaying ? syncLine : "") + infoLine + (keyEnabled && !playerTimer.IsReplaying ? keysLineNoHtml : "")
+                        };
 
-                        string hudContent = (hudEnabled ? timerLine +
-                                            (VelocityHudEnabled ? veloLine : "") +
-                                            (StrafeHudEnabled && !playerTimer.IsReplaying ? syncLine : "") +
-                                            infoLine : "") +
-                                            (keyEnabled && !playerTimer.IsReplaying ? keysLineNoHtml : "");
-
+                        Action<string> printer = playerTimer.CurrentHudType switch
+                        {
+                            PlayerTimerInfo.HudType.Default => player.PrintToCenterHtml,
+                            _ => player.PrintToCenter
+                        };
 
                         if (hudEnabled)
                         {
-                            (string content, Action<string> printer) spec = playerTimer.HudType switch
-                            {
-                                PlayerTimerInfo.HudType.Minimal => (BuildHudMinimal(), player.PrintToCenter),
-                                PlayerTimerInfo.HudType.Default => (BuildHudDefault(), player.PrintToCenterHtml),
-                                PlayerTimerInfo.HudType.SpeedOnly => (BuildHudSpeedOnly(), player.PrintToCenterHtml),
-                                _ => (BuildHudDefault(), player.PrintToCenterHtml)
-                            };
-
-                            spec.printer(spec.content);
+                            var content = build();
+                            printer(content);
                         }
 
                         playerTimer.MovementService!.OldJumpPressed = false;
@@ -459,37 +458,6 @@ namespace SharpTimer
             {
                 if (ex.Message != "Invalid game event") SharpTimerError($"Error in SpectatorOnTick: {ex.Message}");
             }
-        }
-        
-        
-        private string BuildHudDefault(PlayerTimerInfo t)
-        {
-            var sb = new System.Text.StringBuilder();
-
-            sb.Append(t.TimerLine);
-
-            if (VelocityHudEnabled)
-                sb.Append(t.VeloLine);
-
-            if (StrafeHudEnabled && !t.IsReplaying)
-                sb.Append(t.SyncLine);
-
-            sb.Append(t.InfoLine);
-
-            if (KeyEnabled && !t.IsReplaying)
-                sb.Append(t.KeysLineNoHtml);
-                
-            return sb.ToString();
-        }
-
-        private string BuildHudMinimal(PlayerTimerInfo t)
-        {
-            return t.TimerLine;
-        }
-
-        private string BuildHudSpeedOnly(PlayerTimerInfo t)
-        {
-            return t.VeloLine;
         }
     }
 }

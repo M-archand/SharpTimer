@@ -1159,7 +1159,7 @@ namespace SharpTimer
                                     value.HidePlayers = hidePlayers;
                                     value.SoundsEnabled = soundsEnabled;
                                     value.PlayerFov = playerFov;
-                                    value.HudType = hudType;
+                                    value.CurrentHudType = (PlayerTimerInfo.HudType)hudType;
                                     value.IsVip = isVip;
                                     value.VipBigGif = bigGif;
                                     value.TimesConnected = timesConnected;
@@ -1637,7 +1637,7 @@ namespace SharpTimer
                                     upsertCommand!.AddParameterWithValue("@HideJS", value.HideJumpStats);
                                     upsertCommand!.AddParameterWithValue("@SoundsEnabled", value.SoundsEnabled);
                                     upsertCommand!.AddParameterWithValue("@PlayerFov", value.PlayerFov);
-                                    upsertCommand!.AddParameterWithValue("@HudType", value.HudType);
+                                    upsertCommand!.AddParameterWithValue("@HudType", value.CurrentHudType);
                                     upsertCommand!.AddParameterWithValue("@IsVip", isVip);
                                     upsertCommand!.AddParameterWithValue("@BigGifID", bigGif);
                                     upsertCommand!.AddParameterWithValue("@GlobalPoints", playerPoints);
@@ -1696,7 +1696,7 @@ namespace SharpTimer
                                     upsertCommand!.AddParameterWithValue("@HideJS", playerTimers[playerSlot].HideJumpStats);
                                     upsertCommand!.AddParameterWithValue("@SoundsEnabled", playerTimers[playerSlot].SoundsEnabled);
                                     upsertCommand!.AddParameterWithValue("@PlayerFov", playerTimers[playerSlot].PlayerFov);
-                                    upsertCommand!.AddParameterWithValue("@HudType", playerTimers[playerSlot].HudType);
+                                    upsertCommand!.AddParameterWithValue("@HudType", playerTimers[playerSlot].CurrentHudType);
                                     upsertCommand!.AddParameterWithValue("@IsVip", false);
                                     upsertCommand!.AddParameterWithValue("@BigGifID", "x");
                                     upsertCommand!.AddParameterWithValue("@GlobalPoints", 0);
@@ -1879,7 +1879,7 @@ namespace SharpTimer
                                     upsertCommand!.AddParameterWithValue("@HideJS", playerSlot != -1 && value!.HideJumpStats);
                                     upsertCommand!.AddParameterWithValue("@SoundsEnabled", playerSlot != -1 && value!.SoundsEnabled);
                                     upsertCommand!.AddParameterWithValue("@PlayerFov", playerSlot == -1 ? 0 : value!.PlayerFov);
-                                    upsertCommand!.AddParameterWithValue("@HudType", playerSlot == -1 ? 1 : value!.HudType);
+                                    upsertCommand!.AddParameterWithValue("@HudType", playerSlot == -1 ? 1 : value!.CurrentHudType);
                                     upsertCommand!.AddParameterWithValue("@IsVip", isVip);
                                     upsertCommand!.AddParameterWithValue("@BigGifID", bigGif);
                                     upsertCommand!.AddParameterWithValue("@GlobalPoints", newPoints);
@@ -1941,7 +1941,7 @@ namespace SharpTimer
                                     upsertCommand!.AddParameterWithValue("@HideJS", playerSlot != -1 && value!.HideJumpStats);
                                     upsertCommand!.AddParameterWithValue("@SoundsEnabled", playerSlot != -1 && value!.SoundsEnabled);
                                     upsertCommand!.AddParameterWithValue("@PlayerFov", playerSlot == -1 ? 0 : value!.PlayerFov);
-                                    upsertCommand!.AddParameterWithValue("@HudType", hudType == -1 ? 1 : value!.HudType);
+                                    upsertCommand!.AddParameterWithValue("@HudType", playerSlot == -1 ? 1 : value!.CurrentHudType);
                                     upsertCommand!.AddParameterWithValue("@IsVip", false);
                                     upsertCommand!.AddParameterWithValue("@BigGifID", "x");
                                     upsertCommand!.AddParameterWithValue("@GlobalPoints", newPoints);

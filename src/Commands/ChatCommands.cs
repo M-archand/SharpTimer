@@ -6,6 +6,7 @@ using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Utils;
 using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Admin;
+using Dapper;
 
 namespace SharpTimer
 {
@@ -416,8 +417,7 @@ namespace SharpTimer
         }
 
         [ConsoleCommand("css_hud", "Toggle HUD or set HUD style")]
-        [CommandHelper(minArgs: 0, usage: "[hudType]")]
-        [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
+        [CommandHelper(minArgs: 0, usage: "[hudType]", whoCanExecute: CommandUsage.CLIENT_ONLY)]
         public void HUDSwitchCommand(CCSPlayerController? player, CommandInfo command)
         {
             if (!IsAllowedPlayer(player))
@@ -449,7 +449,7 @@ namespace SharpTimer
 
                     _ = Task.Run(async () =>
                     {
-                        using var conn = DatabaseUtils.GetOpenConnection();
+                        using var conn = OpenConnection();
                         await conn.ExecuteAsync(
                             @"UPDATE PlayerStats
                                 SET HudType = @HudType
@@ -458,7 +458,7 @@ namespace SharpTimer
                         );
                     });
 
-                    playerTimer.HudType = newType;
+                    playerTimer.CurrentHudType = newType;
                     player.PrintToChat($"HUD style set to {newType}.");
                 }
                 else
@@ -483,7 +483,8 @@ namespace SharpTimer
                 {
                     _ = Task.Run(async () =>
                     {
-                        using var conn = DatabaseUtils.GetOpenConnection();
+                        using var conn = OpenConnection();
+
                         await conn.ExecuteAsync(
                             @"UPDATE PlayerStats
                                 SET HideTimerHud = @HideTimerHud
