@@ -134,6 +134,13 @@ namespace SharpTimer
         public string? CachedPB { get; set; }
         public string? CachedMapPlacement { get; set; }
         public Dictionary<int, PlayerBonusPlacementInfo> CachedBonusInfo { get; set; } = new();
+        public HudType CurrentType { get; set; } = HudType.Default;
+        public enum HudType
+        {
+            Default = 1,
+            Minimal = 2,
+            SpeedOnly = 3
+        }
 
         //logic
         public int? TicksInAir { get; set; }
