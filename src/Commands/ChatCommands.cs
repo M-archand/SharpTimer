@@ -412,7 +412,7 @@ namespace SharpTimer
             else if (player.Team != CsTeam.Spectator)
             {
                 player.ChangeTeam(CsTeam.Spectator);
-                player.PrintToChat($"{Localizer["prefix"]} You have been moved to Spectator.");
+                player.PrintToChat($" {Localizer["prefix"]} You have been moved to Spectator.");
             }
         }
 
@@ -459,11 +459,11 @@ namespace SharpTimer
                     });
 
                     playerTimer.CurrentHudType = newType;
-                    player.PrintToChat($"HUD style set to {newType}.");
+                    player.PrintToChat($" {Localizer["prefix"]} HUD style set to {newType}.");
                 }
                 else
                 {
-                    player.PrintToChat("Invalid HUD type. Valid types: 1=Default, 2=Minimal, 3=Extended.");
+                    player.PrintToChat($" {Localizer["prefix"]} Invalid HUD type. Valid types: 1=Default, 2=Timer+Speed, 3=Speed Only, 4=Timer Only");
                 }
             }
             // If no args, just toggle
