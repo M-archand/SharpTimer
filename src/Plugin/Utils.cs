@@ -161,7 +161,7 @@ namespace SharpTimer
         {
             TimeSpan timeSpan = TimeSpan.FromSeconds(ticks / 64.0);
 
-            string milliseconds = $"{(ticks % 64) * (1000.0 / 64.0):000}";
+            string milliseconds = $"{ticks % 64 * (1000.0 / 64.0):000}";
 
             int totalMinutes = (int)timeSpan.TotalMinutes;
             if (totalMinutes >= 60)
@@ -170,6 +170,21 @@ namespace SharpTimer
             }
 
             return $"{totalMinutes:D1}:{timeSpan.Seconds:D2}.{milliseconds}";
+        }
+
+        public static string FormatTimeShort(int ticks)
+        {
+            TimeSpan timeSpan = TimeSpan.FromSeconds(ticks / 64.0);
+
+            string hundredths = $"{ticks % 64 * (100.0 / 64.0):00}";
+
+            int totalMinutes = (int)timeSpan.TotalMinutes;
+            if (totalMinutes >= 60)
+            {
+                return $"{totalMinutes / 60:D1}:{totalMinutes % 60:D2}:{timeSpan.Seconds:D2}.{hundredths}";
+            }
+
+            return $"{totalMinutes:D1}:{timeSpan.Seconds:D2}.{hundredths}";
         }
 
         private static string FormatTimeDifference(int currentTicks, int previousTicks, bool noColor = false)
