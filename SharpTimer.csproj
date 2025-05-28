@@ -12,6 +12,7 @@
         <ExcludeAssets>runtime</ExcludeAssets>
         <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Dapper" Version="2.1.66" />
     <PackageReference Include="MySqlConnector" Version="2.4.0" />
     <PackageReference Include="Nexd.MySQL" Version="1.0.2" />
     <PackageReference Include="Npgsql" Version="9.0.3" />

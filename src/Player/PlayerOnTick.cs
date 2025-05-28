@@ -10,8 +10,8 @@ namespace SharpTimer
         public void PlayerOnTick()
         {
             try
-            {     
-                int currentTick = Server.TickCount;  
+            {
+                int currentTick = Server.TickCount;
                 foreach (CCSPlayerController player in connectedPlayers.Values)
                 {
                     if (player == null || !player.IsValid) continue;
@@ -51,7 +51,7 @@ namespace SharpTimer
                         PlayerButtons? playerButtons = player.Buttons;
                         Vector playerSpeed = player.PlayerPawn!.Value!.AbsVelocity;
                         var hasWeapons = player.PlayerPawn?.Value?.WeaponServices?.MyWeapons?.Count > 0;
-                        
+
                         if (connectedAFKPlayers.ContainsKey(player.Slot))
                         {
                             if (!playerSpeed.IsZero())
@@ -72,7 +72,7 @@ namespace SharpTimer
                             //player.PrintToChat($"{Localizer["prefix"]} {Localizer["afk_message"]}");
                             playerTimer.AFKWarned = true;
                         }
-                            
+
                         if (playerTimer.AFKTicks >= afkSeconds*64)
                             connectedAFKPlayers[player.Slot] = connectedPlayers[player.Slot];
 
@@ -125,7 +125,7 @@ namespace SharpTimer
                                 playerTimer.GivenWeapon = true;
                             }
                         }
-                        
+
                         if (playerTimer.currentStyle.Equals(4)) //check if 400vel
                         {
                             SetVelocity(player, player!.Pawn.Value!.AbsVelocity, 400);
@@ -156,8 +156,8 @@ namespace SharpTimer
 
                         if (jumpStatsEnabled == true) OnJumpStatTick(player, playerSpeed, player.Pawn?.Value!.CBodyComponent?.SceneNode!.AbsOrigin!, player.PlayerPawn?.Value.EyeAngles!, playerButtons);
                         if (StrafeHudEnabled == true) OnSyncTick(player, playerButtons, player.PlayerPawn?.Value.EyeAngles!);
-                        if (StrafeHudEnabled == true && playerTimers[player.Slot].inStartzone && playerTimer.Rotation.Count > 0) 
-                        { 
+                        if (StrafeHudEnabled == true && playerTimers[player.Slot].inStartzone && playerTimer.Rotation.Count > 0)
+                        {
                             playerTimer.Sync = 100.00f;
                             playerTimer.Rotation.Clear();
                         }//reset sync in startzone
@@ -185,7 +185,7 @@ namespace SharpTimer
                             var playerName = player.PlayerName;
                             var steamID = player.SteamID.ToString();
                             SharpTimerDebug($"{playerName} CachedMapPlacement is still null, calling rank handler once more");
-                            AddTimer(3.0f, () => { _ = Task.Run(async () => await RankCommandHandler(player, steamID, playerSlot, playerName, true, playerTimer.currentStyle)); });                           
+                            AddTimer(3.0f, () => { _ = Task.Run(async () => await RankCommandHandler(player, steamID, playerSlot, playerName, true, playerTimer.currentStyle)); });
                             playerTimer.IsRankPbReallyCached = true;
                         }
 
@@ -193,7 +193,7 @@ namespace SharpTimer
                         {
                             var playerName = player.PlayerName;
                             var steamID = player.SteamID.ToString();
-                            _ = Task.Run(async () => await RankCommandHandler(player, steamID, playerSlot, playerName, true, playerTimer.currentStyle));                           
+                            _ = Task.Run(async () => await RankCommandHandler(player, steamID, playerSlot, playerName, true, playerTimer.currentStyle));
                             playerTimer.changedStyle = false;
                         }
 
@@ -273,7 +273,7 @@ namespace SharpTimer
                                                                             : playerSpeed.Length())
                                                                             .ToString("0000");
                         int playerVel = int.Parse(formattedPlayerVel);
-                        
+
                         string secondaryHUDcolorDynamic = "LimeGreen";
                         int[] velocityThresholds = { 349, 699, 1049, 1399, 1749, 2099, 2449, 2799, 3149, 3499 };
                         string[] hudColors = { "LimeGreen", "Lime", "GreenYellow", "Yellow", "Gold", "Orange", "DarkOrange", "Tomato", "OrangeRed", "Red", "Crimson" };
@@ -288,10 +288,10 @@ namespace SharpTimer
                         }
 
                         string playerVelColor = useDynamicColor ? secondaryHUDcolorDynamic : secondaryHUDcolor;
-                        string playerTime = FormatTime(timerTicks);
-                        string playerBonusTime = FormatTime(playerTimer.BonusTimerTicks);
+                        string playerTime = FormatTimeShort(timerTicks);
+                        string playerBonusTime = FormatTimeShort(playerTimer.BonusTimerTicks);
                         string timerLine = isBonusTimerRunning
-                                            ? $" <font class='fontSize-s' color='{tertiaryHUDcolor}'>B{playerTimer.BonusStage} Timer:</font> <font class='fontSize-l horizontal-center' color='{primaryHUDcolor}'>{playerBonusTime}</font> <br>"
+                                            ? $" <font class='fontSize-s' color='{tertiaryHUDcolor}'>Timer:</font> <font class='fontSize-l horizontal-center' color='{primaryHUDcolor}'>{playerBonusTime}</font> <br>"
                                             : isTimerRunning
                                                 //? $" <font class='fontSize-s' color='{tertiaryHUDcolor}'>Timer: </font><font class='fontSize-l horizontal-center' color='{primaryHUDcolor}'>{playerTime}</font> <font color='white' class='fontSize-s'>({GetPlayerPlacement(player)})</font>{((playerTimer.CurrentMapStage != 0 && useStageTriggers == true) ? $" <font color='white' class='fontSize-s'> {playerTimer.CurrentMapStage}/{stageTriggerCount}</font>" : "")} <br>"
                                                 ? $" <font class='fontSize-s' color='{tertiaryHUDcolor}'>Timer: </font><font class='fontSize-l horizontal-center' color='{primaryHUDcolor}'>{playerTime}</font> {((playerTimer.CurrentMapStage != 0 && useStageTriggers == true) ? $" <font color='white' class='fontSize-s'> {playerTimer.CurrentMapStage}/{stageTriggerCount}</font>" : "")} <br>"
@@ -302,6 +302,10 @@ namespace SharpTimer
                         string veloLine = $"<font class='fontSize-s' color='{tertiaryHUDcolor}'>Speed:</font> {(playerTimer.IsReplaying ? "<font class=''" : "<font class='fontSize-l horizontal-center'")} color='{playerVelColor}'>{formattedPlayerVel}</font> <br>";
 
                         string syncLine = $"<font class='fontSize-s' color='{tertiaryHUDcolor}'>Sync:</font> <font class='fontSize-l horizontal-center color='{secondaryHUDcolor}'>{playerTimer.Sync:F2}%</font> <br>";
+
+                        string timerLine2 = $"           Timer: {playerTime}         ";
+
+                        string veloLine2 = $"       Speed: {formattedPlayerVel}      ";
 
                         string infoLine = "";
                         if (playerTimer.CurrentZoneInfo.InBonusStartZone)
@@ -320,18 +324,27 @@ namespace SharpTimer
                                                 $"{((playerButtons & PlayerButtons.Jump) != 0 || playerTimer.MovementService!.OldJumpPressed ? "J" : "_")} " +
                                                 $"{((playerButtons & PlayerButtons.Duck) != 0 ? "C" : "_")}";
 
-
-                        string hudContent = (hudEnabled ? timerLine +
-                                            (VelocityHudEnabled ? veloLine : "") +
-                                            (StrafeHudEnabled && !playerTimer.IsReplaying ? syncLine : "") +
-                                            infoLine : "") +
-                                            (keyEnabled && !playerTimer.IsReplaying ? keysLineNoHtml : "");
-
-                        if (hudEnabled || keyEnabled)
+                        Func<string> build = playerTimer.CurrentHudType switch
                         {
-                            player.PrintToCenterHtml(hudContent);
+                            PlayerTimerInfo.HudType.Default     => () => timerLine + (VelocityHudEnabled ? veloLine : "") + (StrafeHudEnabled && !playerTimer.IsReplaying ? syncLine : "") + infoLine + (keyEnabled && !playerTimer.IsReplaying ? keysLineNoHtml : ""),
+                            PlayerTimerInfo.HudType.Minimal     => () => timerLine2 + veloLine2,
+                            PlayerTimerInfo.HudType.SpeedOnly   => () => veloLine2,
+                            PlayerTimerInfo.HudType.TimerOnly   => () => timerLine2,
+                            _                                   => () => timerLine + (VelocityHudEnabled ? veloLine : "") + (StrafeHudEnabled && !playerTimer.IsReplaying ? syncLine : "") + infoLine + (keyEnabled && !playerTimer.IsReplaying ? keysLineNoHtml : "")
+                        };
+
+                        Action<string> printer = playerTimer.CurrentHudType switch
+                        {
+                            PlayerTimerInfo.HudType.Default => player.PrintToCenterHtml,
+                            _ => player.PrintToCenter
+                        };
+
+                        if (hudEnabled)
+                        {
+                            var content = build();
+                            printer(content);
                         }
-                        
+
                         playerTimer.MovementService!.OldJumpPressed = false;
                     }
                 }
@@ -344,18 +357,18 @@ namespace SharpTimer
 
         private string GetMainMapInfoLine(PlayerTimerInfo playerTimer)
         {
-           return !playerTimer.IsReplaying
-                        ? $"<font class='fontSize-s' color='white'>" +
+            return !playerTimer.IsReplaying
+                         ? $"<font class='fontSize-s' color='white'>" +
 
-                          $"{playerTimer.CachedPB} " +
-                          $"({playerTimer.CachedMapPlacement})" +
-                          $"{(RankIconsEnabled ? $" |</font> <img src='{playerTimer.RankHUDIcon}'><font class='fontSize-s' color='white'>" : "")}" +
-                          $"{(enableStyles ? $" | {GetNamedStyle(playerTimer.currentStyle)}" : "")}" +
-                          $"{((MapTierHudEnabled && currentMapTier != null) ? $" | Tier: {currentMapTier}" : "")}" +
-                          $"{((MapTypeHudEnabled && currentMapType != null) ? $" | {currentMapType}" : "")}" +
-                          $"{((MapNameHudEnabled && currentMapType == null && currentMapTier == null) ? $" | {currentMapName}" : "")}" +
-                          $"</font>"
-                        : $" <font class='fontSize-s' color='white'>{playerTimer.ReplayHUDString}</font>";
+                           $"{playerTimer.CachedPB} " +
+                           $"({playerTimer.CachedMapPlacement})" +
+                           $"{(RankIconsEnabled ? $" |</font> <img src='{playerTimer.RankHUDIcon}'><font class='fontSize-s' color='white'>" : "")}" +
+                           $"{(enableStyles ? $" | {GetNamedStyle(playerTimer.currentStyle)}" : "")}" +
+                           $"{((MapTierHudEnabled && currentMapTier != null) ? $" | Tier: {currentMapTier}" : "")}" +
+                           $"{((MapTypeHudEnabled && currentMapType != null) ? $" | {currentMapType}" : "")}" +
+                           $"{((MapNameHudEnabled && currentMapType == null && currentMapTier == null) ? $" | {currentMapName}" : "")}" +
+                           $"</font>"
+                         : $" <font class='fontSize-s' color='white'>{playerTimer.ReplayHUDString}</font>";
         }
 
         private string GetBonusInfoLine(PlayerTimerInfo playerTimer)
@@ -400,10 +413,10 @@ namespace SharpTimer
                     string formattedPlayerVel = Math.Round(use2DSpeed ? playerSpeed.Length2D()
                                                                         : playerSpeed.Length())
                                                                         .ToString("0000");
-                    string playerTime = FormatTime(timerTicks);
-                    string playerBonusTime = FormatTime(playerTimer.BonusTimerTicks);
+                    string playerTime = FormatTimeShort(timerTicks);
+                    string playerBonusTime = FormatTimeShort(playerTimer.BonusTimerTicks);
                     string timerLine = isBonusTimerRunning
-                                        ? $" <font class='fontSize-s' color='{tertiaryHUDcolor}'>B{playerTimer.BonusStage} Timer:</font> <font class='fontSize-l horizontal-center' color='{primaryHUDcolor}'>{playerBonusTime}</font> <br>"
+                                        ? $" <font class='fontSize-s' color='{tertiaryHUDcolor}'>Timer:</font> <font class='fontSize-l horizontal-center' color='{primaryHUDcolor}'>{playerBonusTime}</font> <br>"
                                         : isTimerRunning
                                             //? $" <font class='fontSize-s' color='{tertiaryHUDcolor}'>Timer: </font><font class='fontSize-l horizontal-center' color='{primaryHUDcolor}'>{playerTime}</font> <font color='white' class='fontSize-s'>({GetPlayerPlacement(target)})</font>{((playerTimer.CurrentMapStage != 0 && useStageTriggers == true) ? $" <font color='white' class='fontSize-s'> {playerTimer.CurrentMapStage}/{stageTriggerCount}</font>" : "")} <br>"
                                             ? $" <font class='fontSize-s' color='{tertiaryHUDcolor}'>Timer: </font><font class='fontSize-l horizontal-center' color='{primaryHUDcolor}'>{playerTime}</font> {((playerTimer.CurrentMapStage != 0 && useStageTriggers == true) ? $" <font color='white' class='fontSize-s'> {playerTimer.CurrentMapStage}/{stageTriggerCount}</font>" : "")} <br>"
@@ -414,6 +427,10 @@ namespace SharpTimer
                     string veloLine = $"<font class='fontSize-s' color='{tertiaryHUDcolor}'>Speed:</font> {(playerTimer.IsReplaying ? "<font class=''" : "<font class='fontSize-l horizontal-center'")} color='{secondaryHUDcolor}'>{formattedPlayerVel}</font><font class='fontSize-s' color='{tertiaryHUDcolor}'></font> <br>";
 
                     string syncLine = $"<font class='fontSize-s' color='{tertiaryHUDcolor}'>Sync:</font> <font class='fontSize-l horizontal-center color='{secondaryHUDcolor}'>{playerTimer.Sync:F2}%</font> <br>";//2f
+
+                    string timerLine2 = $"           Timer: {playerBonusTime}         ";
+
+                    string veloLine2 = $"       Speed: {formattedPlayerVel}      ";
 
                     string infoLine = "";
                     if (playerTimer.CurrentZoneInfo.InBonusStartZone)
@@ -432,18 +449,28 @@ namespace SharpTimer
                                             $"{((playerButtons & PlayerButtons.Jump) != 0 || playerTimer.MovementService!.OldJumpPressed ? "J" : "_")} " +
                                             $"{((playerButtons & PlayerButtons.Duck) != 0 ? "C" : "_")}";
 
-                    if (playerTimer.MovementService!.OldJumpPressed == true) playerTimer.MovementService.OldJumpPressed = false;
-
-                    string hudContent = (hudEnabled ? timerLine +
-                                        (VelocityHudEnabled ? veloLine : "") +
-                                        (StrafeHudEnabled && !playerTimer.IsReplaying ? syncLine : "") +
-                                        infoLine : "") +
-                                        (keyEnabled && !playerTimer.IsReplaying ? keysLineNoHtml : "");
-
-                    if (hudEnabled || keyEnabled)
+                    Func<string> build = playerTimer.CurrentHudType switch
                     {
-                        player.PrintToCenterHtml(hudContent);
+                        PlayerTimerInfo.HudType.Default     => () => timerLine + (VelocityHudEnabled ? veloLine : "") + (StrafeHudEnabled && !playerTimer.IsReplaying ? syncLine : "") + infoLine + (keyEnabled && !playerTimer.IsReplaying ? keysLineNoHtml : ""),
+                        PlayerTimerInfo.HudType.Minimal     => () => timerLine2 + veloLine2,
+                        PlayerTimerInfo.HudType.SpeedOnly   => () => veloLine2,
+                        PlayerTimerInfo.HudType.TimerOnly   => () => timerLine2,
+                        _                                   => () => timerLine + (VelocityHudEnabled ? veloLine : "") + (StrafeHudEnabled && !playerTimer.IsReplaying ? syncLine : "") + infoLine + (keyEnabled && !playerTimer.IsReplaying ? keysLineNoHtml : "")
+                    };
+
+                    Action<string> printer = playerTimer.CurrentHudType switch
+                    {
+                        PlayerTimerInfo.HudType.Default => player.PrintToCenterHtml,
+                        _ => player.PrintToCenter
+                    };
+
+                    if (hudEnabled)
+                    {
+                        var content = build();
+                        printer(content);
                     }
+                    
+                    if (playerTimer.MovementService!.OldJumpPressed == true) playerTimer.MovementService.OldJumpPressed = false;
                 }
             }
             catch (Exception ex)
