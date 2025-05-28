@@ -139,7 +139,8 @@ namespace SharpTimer
         {
             Default = 1,
             Minimal = 2,
-            SpeedOnly = 3
+            SpeedOnly = 3,
+            TimerOnly = 4
         }
 
         //logic
