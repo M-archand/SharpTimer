@@ -10,6 +10,8 @@ using Npgsql;
 using System.Data.Common;
 using System.Data.SQLite;
 using System.Text.RegularExpressions;
+using CounterStrikeSharp.API.Modules.Timers;
+using CounterStrikeSharp.API.Modules.Utils;
 
 namespace SharpTimer
 {
@@ -1971,22 +1973,37 @@ namespace SharpTimer
             SharpTimerDebug($"Trying to calculate player points for {playerName}");
             try
             {
-                if (mapname == "") mapname = currentMapName!;
+                if (mapname == "")
+                    mapname = currentMapName!;
 
-                double newPoints;
+                // First calculate baseline map completion points based on tier
+                double newPoints = CalculateCompletion(forGlobal);
 
-                // First calculate basic map completion points based on tier
-                newPoints = CalculateCompletion(forGlobal);
+                // Bonus AND Style → zero for all runs
+                if (bonusX != 0 && style != 0)
+                    return 0;
 
-                // now grab sortedrecords for getting total map completes and top10
-                var sortedRecords = new Dictionary<int, PlayerRecord>();
-                //if (forGlobal)
-                    //sortedRecords = await GetSortedRecordsFromGlobal(0, bonusX, mapname, style) ?? new Dictionary<int, PlayerRecord>();
-                //else
-                sortedRecords = await GetSortedRecordsFromDatabase(0, bonusX, mapname, style) ?? new Dictionary<int, PlayerRecord>();
-                // Then calculate max points based on **map total** times finished
+                // One of bonus/style → baseline only
+                if (bonusX != 0 || style != 0)
+                {
+                    // if forGlobal, this will fall through to the forGlobal block below,
+                    // but for non-global it returns baseline immediately:
+                    if (!forGlobal)
+                        return (int)Math.Round(newPoints);
+                }
+
+                // Global-points guard: zero only on bonus+style
+                if (forGlobal)
+                {
+                    if (bonusX != 0 && style != 0)
+                        return 0;
+                    return (int)Math.Round(newPoints);
+                }
+
+                // Standard run (bonusX==0 && style==0) → apply Top-10 / Group bonuses
+                var sortedRecords = await GetSortedRecordsFromDatabase(0, bonusX, mapname, style)
+                                    ?? new Dictionary<int, PlayerRecord>();
                 double maxPoints = await CalculateTier(sortedRecords.Count, mapname);
-
 
                 int rank = 1;
                 bool isTop10 = false;
@@ -2014,42 +2031,24 @@ namespace SharpTimer
                 // If not in top 10, calculate groups based on percentile
                 if (!isTop10)
                 {
-                    newPoints += CalculateGroups(maxPoints, await GetPlayerMapPercentile(steamId, playerName, mapname, bonusX, style,/* forGlobal,*/ timerTicks)/*, forGlobal*/);
+                    newPoints += CalculateGroups(
+                        maxPoints,
+                        await GetPlayerMapPercentile(steamId, playerName, mapname, bonusX, style, timerTicks)
+                    );
                 }
 
-                // if for global points, zero out style and bonus points
-                if (forGlobal)
-                {
-                    if (style != 0)
-                        newPoints = 0;
-                    if (bonusX != 0)
-                        newPoints = 0;
-                    newPoints = Math.Round(newPoints);
-                    return (int)newPoints;
-                }
-
-                // Apply style multiplier if enabled
-                if (enableStylePoints)
-                    newPoints *= GetStyleMultiplier(style);
-
-                // Apply bonus multiplier if bonus completion
-                if (bonusX != 0)
-                    newPoints *= globalPointsBonusMultiplier;
-
-                // Hastily round the new points to prevent 123.4567890123456789 points
+                // Round & import-mode check
                 newPoints = Math.Round(newPoints);
-
-                // Zero out new points if style points are disabled and player is using styles
-                if (!enableStylePoints && style != 0)
-                    newPoints = 0;
-
-                // 0 completions is an easy identifier for importpoints
                 if (completions == 0)
                     return (int)newPoints;
 
                 // Zero out new points if player has exceeded max completions and has not set a pb
-                if (globalPointsMaxCompletions > 0 && await PlayerCompletions(steamId, bonusX, style) > globalPointsMaxCompletions && !beatPB)
+                if (globalPointsMaxCompletions > 0
+                    && await PlayerCompletions(steamId, bonusX, style) > globalPointsMaxCompletions
+                    && !beatPB)
+                {
                     newPoints = 0;
+                }
 
                 return (int)newPoints;
             }
@@ -3123,18 +3122,40 @@ namespace SharpTimer
         {
             try
             {
-                Server.NextFrame(() => PrintToChatAll("Points import initialized"));
-                var sortedRecords = await GetAllSortedRecordsFromDatabase();
-                
-                int batchSize = 10;
-                for (int i = 0; i < sortedRecords.Count; i += batchSize)
-                {
-                    var batch = sortedRecords.Skip(i).Take(batchSize);
-                    var tasks = batch.Select(record => SavePlayerPoints(record.SteamID!, record.PlayerName!, -1, record.TimerTicks, 0, false, 0, 0, 0, record.MapName!, true));
+                Server.NextFrame(() => PrintToChatAll($"{Localizer["prefix"]} {ChatColors.LightRed}Points recalculation initialized."));
 
-                    await Task.WhenAll(tasks);
+                // Loop through each style
+                var styles = Enumerable.Range(0, 13).ToArray();
+
+                foreach (var styleValue in styles)
+                {
+                    // Fetch only runs of that style
+                    var sortedRecords = await GetAllSortedRecordsFromDatabase(limit: 0, bonusX: 0, style: styleValue);
+
+                    const int batchSize = 10;
+                    for (int i = 0; i < sortedRecords.Count; i += batchSize)
+                    {
+                        var batch = sortedRecords.Skip(i).Take(batchSize);
+                        var tasks = batch.Select(record =>
+                            SavePlayerPoints(
+                                record.SteamID!,
+                                record.PlayerName!,
+                                playerSlot: -1,
+                                timerTicks: record.TimerTicks,
+                                oldTicks: 0,
+                                beatPB: false,
+                                bonusX: 0,
+                                style: styleValue,
+                                completions: 0,
+                                mapname: record.MapName!,
+                                import: true
+                            )
+                        );
+                        await Task.WhenAll(tasks);
+                    }
                 }
-                Server.NextFrame(() => PrintToChatAll("Points recalculation completed!"));
+
+                Server.NextFrame(() => PrintToChatAll($"{Localizer["prefix"]} {ChatColors.Lime}Points recalculation completed!"));
             }
             catch (Exception ex)
             {
@@ -3148,6 +3169,7 @@ namespace SharpTimer
         public void ResetPlayerPointsCommand(CCSPlayerController? player, CommandInfo command)
         {
             _ = Task.Run(ResetPlayerPoints);
+            player?.PrintToChat($"{Localizer["prefix"]} Points have been reset!");
         }
 
         public async Task ResetPlayerPoints()
