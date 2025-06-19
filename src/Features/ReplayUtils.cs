@@ -691,8 +691,8 @@ namespace SharpTimer
                                     tempPlayer.PlayerPawn.Value!.Bot!.IsSleeping = true;
                                     tempPlayer.PlayerPawn.Value!.Bot!.AllowActive = true;
                                     tempPlayer.RemoveWeapons();
-                                    tempPlayer!.Pawn.Value!.Collision.CollisionAttribute.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_DISSOLVING;
-                                    tempPlayer!.Pawn.Value!.Collision.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_DISSOLVING;
+                                    tempPlayer!.Pawn.Value!.Collision.CollisionAttribute.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_DEBRIS;
+                                    tempPlayer!.Pawn.Value!.Collision.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_DEBRIS;
                                     Utilities.SetStateChanged(tempPlayer, "CCollisionProperty", "m_CollisionGroup");
                                     Utilities.SetStateChanged(tempPlayer, "CCollisionProperty", "m_collisionAttribute");
                                     SharpTimerDebug($"Removed Collison for replay bot!");

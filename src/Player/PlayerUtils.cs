@@ -187,8 +187,8 @@ namespace SharpTimer
                 {
                     if (removeCollisionEnabled == false || !IsAllowedPlayer(player)) return;
 
-                    player!.Pawn.Value!.Collision.CollisionAttribute.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_DISSOLVING;
-                    player!.Pawn.Value!.Collision.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_DISSOLVING;
+                    player!.Pawn.Value!.Collision.CollisionAttribute.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_DEBRIS;
+                    player!.Pawn.Value!.Collision.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_DEBRIS;
 
                     Utilities.SetStateChanged(player, "CCollisionProperty", "m_CollisionGroup");
                     Utilities.SetStateChanged(player, "CCollisionProperty", "m_collisionAttribute");

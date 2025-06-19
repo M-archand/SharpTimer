@@ -216,7 +216,7 @@ namespace SharpTimer
 
                         if (removeCollisionEnabled == true)
                         {
-                            if (player.PlayerPawn!.Value.Collision.CollisionGroup != (byte)CollisionGroup.COLLISION_GROUP_DISSOLVING || player.PlayerPawn.Value.Collision.CollisionAttribute.CollisionGroup != (byte)CollisionGroup.COLLISION_GROUP_DISSOLVING)
+                            if (player.PlayerPawn!.Value.Collision.CollisionGroup != (byte)CollisionGroup.COLLISION_GROUP_DEBRIS || player.PlayerPawn.Value.Collision.CollisionAttribute.CollisionGroup != (byte)CollisionGroup.COLLISION_GROUP_DEBRIS)
                             {
                                 SharpTimerDebug($"{player.PlayerName} has wrong collision group... RemovePlayerCollision");
                                 RemovePlayerCollision(player);
