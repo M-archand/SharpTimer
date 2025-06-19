@@ -930,11 +930,14 @@ namespace SharpTimer
 
                 Server.NextFrame(() =>
                 {
-                    if (!IsAllowedClient(player)) return;
-                    playerTimers[playerSlot].RankHUDIcon = $"{(!string.IsNullOrEmpty(rankIcon) ? $" {rankIcon}" : "")}";
-                    playerTimers[playerSlot].CachedPB = $"{(pbTicks != 0 ? $" {FormatTime(pbTicks)}" : "")}";
-                    playerTimers[playerSlot].CachedRank = ranking;
-                    playerTimers[playerSlot].CachedMapPlacement = mapPlacement;
+                    if (!IsAllowedClient(player))
+                        return;
+                    if (!playerTimers.TryGetValue(playerSlot, out PlayerTimerInfo? timerInfo))
+                        return;
+                    timerInfo.RankHUDIcon = $"{(!string.IsNullOrEmpty(rankIcon) ? $" {rankIcon}" : "")}";
+                    timerInfo.CachedPB = $"{(pbTicks != 0 ? $" {FormatTime(pbTicks)}" : "")}";
+                    timerInfo.CachedRank = ranking;
+                    timerInfo.CachedMapPlacement = mapPlacement;
                     cachedPlacements.Remove(playerSlot);
 
                     if (displayScoreboardTags) AddScoreboardTagToPlayer(player!, ranking);
