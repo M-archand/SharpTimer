@@ -615,7 +615,22 @@ namespace SharpTimer
                     {
                         timeDifference = $"[{FormatTimeDifference(newticks, prevSR)}{ChatColors.White}] ";
                     }
-                    PrintToChatAll(Localizer["new_stage_server_record", playerName]);
+
+                    // Check the map type
+                    if (useStageTriggers) // Staged map
+                    {
+                        PrintToChatAll(Localizer["new_stage_server_record", playerName]);
+                    }
+                    else if (useCheckpointTriggers) // Linear map
+                    {
+                        PrintToChatAll(Localizer["new_cp_server_record", playerName]);
+                    }
+                    else
+                    {
+                        // Fallback: no triggers detected, treat as a staged map
+                        PrintToChatAll(Localizer["new_stage_server_record", playerName]);
+                    }
+
                     if (stageSoundAll) SendCommandToEveryone($"play {srSound}");
                     else PlaySound(player, srSound);
                     PrintToChatAll(Localizer["timer_time", newTime, timeDifference]);
