@@ -763,7 +763,6 @@ namespace SharpTimer
             {
                 return currentMapName switch
                 {
-                    var name when name!.StartsWith("kz_") => Path.Join(gameDir, "csgo", "cfg", "SharpTimer", "MapData", "local_data", "kz_.json")!,
                     var name when name!.StartsWith("bhop_") => Path.Join(gameDir, "csgo", "cfg", "SharpTimer", "MapData", "local_data", "bhop_.json")!,
                     var name when name!.StartsWith("surf_") => Path.Join(gameDir, "csgo", "cfg", "SharpTimer", "MapData", "local_data", "surf_.json"),
                     _ => null
@@ -771,7 +770,6 @@ namespace SharpTimer
             }
             return currentMapName switch
             {
-                var name when name!.StartsWith("kz_") => remoteKZDataSource!,
                 var name when name!.StartsWith("bhop_") => remoteBhopDataSource!,
                 var name when name!.StartsWith("surf_") => remoteSurfDataSource!,
                 _ => null

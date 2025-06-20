@@ -410,7 +410,7 @@ namespace SharpTimer
         public int GlobalPoints { get; set; }
     }
 
-    // KZ checkpoints
+    // Checkpoints
     public class PlayerCheckpoint
     {
         public string? PositionString { get; set; }

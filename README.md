@@ -73,7 +73,7 @@ SharpTimer is a "simple" Surf/KZ/Bhop/MG/Deathrun/etc. CS2 Timer plugin using Co
 </details>
 
 <details> 
-  <summary>KZ Checkpoint system (disabled by default, check config)</summary>
+  <summary>Checkpoint system (disabled by default, check config)</summary>
    <img src="https://i.imgur.com/USX5i8C.png"><br>
    <img src="https://i.imgur.com/kWiHOlz.png"><br>
    <img src="https://i.imgur.com/lXwXNN7.png"><br>
