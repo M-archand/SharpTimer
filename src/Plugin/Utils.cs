@@ -1373,7 +1373,7 @@ namespace SharpTimer
             currentMapOverrideStageRequirement = false;
 
             globalPointsMultiplier = 1.0f;
-            startKickingAllFuckingBotsExceptReplayOneIFuckingHateValveDogshitFuckingCompanySmile = false;
+            kickAllOtherBots = false;
         }
 
         public async Task<JsonDocument?> LoadJson(string path)

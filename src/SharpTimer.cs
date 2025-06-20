@@ -192,7 +192,7 @@ namespace SharpTimer
 
                     if (player.IsValid && player.IsBot)
                     {
-                        if (startKickingAllFuckingBotsExceptReplayOneIFuckingHateValveDogshitFuckingCompanySmile)
+                        if (kickAllOtherBots)
                         {
                             AddTimer(4.0f, () =>
                             {

@@ -105,7 +105,7 @@ namespace SharpTimer
         public bool useDatabaseReplays = false;
         public bool onlySRReplay = false;
         public bool enableSRreplayBot = false;
-        public bool startKickingAllFuckingBotsExceptReplayOneIFuckingHateValveDogshitFuckingCompanySmile = false;
+        public bool kickAllOtherBots = false;
         public bool foundReplayBot = false;
         public string replayBotName = "";
         public int maxReplayFrames = 19200;

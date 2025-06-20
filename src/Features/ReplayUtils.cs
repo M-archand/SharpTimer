@@ -648,7 +648,7 @@ namespace SharpTimer
 
                 Server.NextFrame(() =>
                 {
-                    startKickingAllFuckingBotsExceptReplayOneIFuckingHateValveDogshitFuckingCompanySmile = false;
+                    kickAllOtherBots = false;
                     foreach (CCSPlayerController bot in connectedReplayBots.Values.ToList())
                     {
                         if (bot != null)
@@ -697,7 +697,7 @@ namespace SharpTimer
                                     Utilities.SetStateChanged(tempPlayer, "CCollisionProperty", "m_collisionAttribute");
                                     SharpTimerDebug($"Removed Collison for replay bot!");
                                     foundReplayBot = true;
-                                    startKickingAllFuckingBotsExceptReplayOneIFuckingHateValveDogshitFuckingCompanySmile = true;
+                                    kickAllOtherBots = true;
                                 }
                             }
                         }
