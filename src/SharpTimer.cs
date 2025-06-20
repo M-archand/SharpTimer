@@ -208,11 +208,12 @@ namespace SharpTimer
                             InvalidateTimer(player);
                             try
                             {
-                                if (playerTimers[player.Slot].IsReplaying) StopReplay(player);
+                                if (playerTimers.TryGetValue(player.Slot, out var data) && data.IsReplaying)
+                                    StopReplay(player);
                             }
                             catch (Exception ex)
                             {
-                                SharpTimerDebug($"Error in RegisterEventHandler<EventPlayerTeam>: {ex.Message}");
+                                SharpTimerError($"Error in RegisterEventHandler<EventPlayerTeam>: {ex.Message}");
                             }
                         });
                     }
