@@ -79,7 +79,7 @@ namespace SharpTimer
 
                     foreach (var target in Utilities.GetPlayers())
                     {
-                        if (target == null || target.IsHLTV || target.IsBot || !target.IsValid)
+                        if (target == null || target.IsHLTV || !target.IsValid)
                             continue;
 
                         var pawn = target.Pawn?.Value;
