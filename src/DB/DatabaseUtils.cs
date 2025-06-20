@@ -1983,16 +1983,19 @@ namespace SharpTimer
                 if (bonusX != 0 && style != 0)
                     return 0;
 
-                // One of bonus/style → baseline only
-                if (bonusX != 0 || style != 0)
+                // Bonus only → baseline only
+                if (bonusX != 0)
+                    return (int)Math.Round(newPoints);
+
+                // Style only → baseline × multiplier (for non-global)
+                if (style != 0 && !forGlobal)
                 {
-                    // if forGlobal, this will fall through to the forGlobal block below,
-                    // but for non-global it returns baseline immediately:
-                    if (!forGlobal)
-                        return (int)Math.Round(newPoints);
+                    if (enableStylePoints)
+                        newPoints *= GetStyleMultiplier(style);
+                    return (int)Math.Round(newPoints);
                 }
 
-                // Global-points guard: zero only on bonus+style
+                // Global‐points guard (zero only on bonus+style, otherwise baseline)
                 if (forGlobal)
                 {
                     if (bonusX != 0 && style != 0)
