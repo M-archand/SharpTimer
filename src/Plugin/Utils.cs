@@ -80,7 +80,7 @@ namespace SharpTimer
                 $"{Localizer["prefix"]} {Localizer["ad_see_all_commands"]}",
                 //$"{(enableReplays ? $"{Localizer["prefix"]} {Localizer["ad_replay_pb"]}" : "")}",
                 $"{(enableReplays ? $"{Localizer["prefix"]} {Localizer["ad_replay_sr"]}" : "")}",
-                $"{(enableReplays ? $"{Localizer["prefix"]} {Localizer["ad_replay_top"]}" : "")}",
+                //$"{(enableReplays ? $"{Localizer["prefix"]} {Localizer["ad_replay_top"]}" : "")}",
                 $"{(enableReplays ? $"{Localizer["prefix"]} {Localizer["ad_replay_bonus"]}" : "")}",
                 //$"{(enableReplays ? $"{Localizer["prefix"]} {Localizer["ad_replay_bonus_pb"]}" : "")}",
                 $"{(globalRanksEnabled ? $"{Localizer["prefix"]} {Localizer["ad_points"]}" : "")}",
