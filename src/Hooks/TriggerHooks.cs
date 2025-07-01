@@ -89,6 +89,12 @@ namespace SharpTimer
                         playerTimer.TicksInStartZone = 0;
                         playerTimer.inStartzone = true;
                     }
+                    if (!playerTimers[playerSlot].IsNoclip)
+                    {
+                        playerTimers[playerSlot].IsTimerBlocked = false;
+                        SharpTimerDebug($"[noclip] unblocked timer for {playerName} on start trigger {callerName}");
+                        PrintToChat(player, Localizer["timer_enabled"]);
+                    }
                     if (!playerTimers[playerSlot].IsTimerBlocked && playerTimer!.currentStyle != 12) // if in TAS style, dont wipe checkpoints onstart (wipe them on !r)
                     {
                         playerCheckpoints.Remove(playerSlot);
