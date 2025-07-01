@@ -15,6 +15,7 @@
     "no_records_available_bonus": "Aikoja ei saatavilla Boonukselle {0} kentällä {1}",
     "records_map": "#{0}: {lime}{1} {default}- {2} {lime}{3}",
     "new_server_record": "{lime}{0} {white}on asettanut uuden Palvelin Ennätyksen!",
+    "new_cp_server_record": "{lime}{0} {white}set a new checkpoint record!",
     "new_server_record_bonus": "{lime}{0} {white}on asettanut uuden Boonus {1} Palvelin Ennätyksen!",
     "new_pb_record": "{lime}{0} {white}on asettanut uuden Kenttä Ennätyksen!",
     "new_pb_record_bonus": "{lime}{0} {white}on asettanut uuden Boonus {0} Ennätyksen!",
