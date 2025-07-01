@@ -1310,7 +1310,6 @@ namespace SharpTimer
             Server.NextFrame(() => RespawnPlayer(player, true));
         }
 
-        [ConsoleCommand("css_noclip", "Noclip")]
         [ConsoleCommand("css_nc", "Noclip")]
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
         public void NoclipCommand(CCSPlayerController? player, CommandInfo command)
@@ -1324,16 +1323,7 @@ namespace SharpTimer
 
             SharpTimerDebug($"{playerName} calling css_noclip...");
 
-            if (CommandCooldown(player))
-                return;
-
-            if (IsTimerBlocked(player))
-                return;
-
-            playerTimers[slot].IsTimerRunning = false;
-            playerTimers[slot].TimerTicks = 0;
-            playerTimers[slot].IsBonusTimerRunning = false;
-            playerTimers[slot].BonusTimerTicks = 0;
+            QuietStopTimer(player);
 
             if (playerTimers[slot].IsNoclip)
             {
@@ -1341,6 +1331,7 @@ namespace SharpTimer
                 Schema.SetSchemaValue(pawn.Handle, "CBaseEntity", "m_nActualMoveType", 2); // walk
                 Utilities.SetStateChanged(pawn, "CBaseEntity", "m_MoveType");
                 playerTimers[slot].IsNoclip = false;
+                PrintToChat(player, "noclip disabled");
             }
             else
             {
@@ -1348,6 +1339,8 @@ namespace SharpTimer
                 Schema.SetSchemaValue(pawn.Handle, "CBaseEntity", "m_nActualMoveType", 8); // noclip
                 Utilities.SetStateChanged(pawn, "CBaseEntity", "m_MoveType");
                 playerTimers[slot].IsNoclip = true;
+                PrintToChat(player, Localizer["timer_disabled"]);
+                PrintToChat(player, "noclip enabled");
             }
         }
 
