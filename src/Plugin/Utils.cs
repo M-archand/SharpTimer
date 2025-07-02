@@ -1318,6 +1318,39 @@ namespace SharpTimer
                         DrawWireframe3D(startRight, startLeft, startBeamColor);
                         DrawWireframe3D(endRight, endLeft, endBeamColor);
                     }
+                    
+                    // DRAW BONUS ZONE BEAMS
+                    (Vector? startRight, Vector? startLeft, Vector? endRight, Vector? endLeft) GetBonusBounds(string startName, string endName)
+                    {
+                        var prevStart = currentMapStartTrigger;
+                        var prevEnd = currentMapEndTrigger;
+
+                        currentMapStartTrigger = startName;
+                        currentMapEndTrigger = endName;
+                        var bounds = FindTriggerBounds();
+                        currentMapStartTrigger = prevStart;
+                        currentMapEndTrigger = prevEnd;
+                        return bounds;
+                    }
+                    
+                    void DrawOneBonus(string startName, string endName)
+                    {
+                        var (startRight, startLeft, endRight, endLeft) = GetBonusBounds(startName, endName);
+                        if (startRight == null || startLeft == null || endRight == null || endLeft == null)
+                        {
+                            SharpTimerDebug($"[bonus] missing bounds for {startName}/{endName}");
+                            return;
+                        }
+                        DrawWireframe3D(startRight, startLeft, startBeamColor);
+                        DrawWireframe3D(endRight, endLeft, endBeamColor);
+                        SharpTimerDebug($"[Bonus] Drew beams for {startName}/{endName}");
+                    }
+
+                    for (int i = 1; i <= 10; i++)
+                    {
+                        DrawOneBonus($"b{i}_start", $"b{i}_end");
+                        DrawOneBonus($"bonus{i}_start", $"bonus{i}_end");
+                    }
 
                     useTriggers = true;
                 }
