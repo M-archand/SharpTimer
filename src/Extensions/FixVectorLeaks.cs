@@ -211,7 +211,7 @@ public struct QAngle_t : IAdditionOperators<QAngle_t, QAngle_t, QAngle_t>,
 
     public readonly override string ToString()
     {
-        return $"{X:n2} {Y:n2} {Z:n2}";
+        return $"{X:F2} {Y:F2} {Z:F2}";
     }
 
     public static QAngle_t operator +(QAngle_t a, QAngle_t b)
