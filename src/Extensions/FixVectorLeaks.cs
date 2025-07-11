@@ -94,7 +94,7 @@ public struct Vector_t : IAdditionOperators<Vector_t, Vector_t, Vector_t>,
 
     public readonly override string ToString()
     {
-        return $"{X:n2} {Y:n2} {Z:n2}";
+        return $"{X:F2} {Y:F2} {Z:F2}";
     }
 
     public static Vector_t operator +(Vector_t a, Vector_t b)
