@@ -1185,7 +1185,7 @@ namespace SharpTimer
             playerTimers[slot].IsBonusTimerRunning = false;
             playerTimers[slot].BonusTimerTicks = 0;
 
-            if (playerTimers[slot].IsNoclip)
+            if (pawn.MoveType == MoveType_t.MOVETYPE_NOCLIP)
             {
                 pawn.MoveType = MoveType_t.MOVETYPE_WALK;
                 Schema.SetSchemaValue(pawn.Handle, "CBaseEntity", "m_nActualMoveType", 2); // walk
@@ -1197,7 +1197,9 @@ namespace SharpTimer
                 pawn.MoveType = MoveType_t.MOVETYPE_NOCLIP;
                 Schema.SetSchemaValue(pawn.Handle, "CBaseEntity", "m_nActualMoveType", 8); // noclip
                 Utilities.SetStateChanged(pawn, "CBaseEntity", "m_MoveType");
-                playerTimers[slot].IsNoclip = true;
+
+                if (!AdminManager.PlayerHasPermissions(player, "@css/cheats"))
+                    playerTimers[slot].IsNoclip = true;
             }
         }
 
