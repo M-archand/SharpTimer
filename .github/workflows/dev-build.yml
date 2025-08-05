@@ -31,16 +31,9 @@ jobs:
         if [ -z "$VERSION" ]; then VERSION="dev"; fi
         echo "version=$VERSION" >> $GITHUB_OUTPUT
     
-    - name: Zip Build directory
-      run: |
-        zip -r SharpTimer_${{ steps.get_version.outputs.version }}.zip Build
-    
-    - name: List files after zip
-      run: ls -lh
-    
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: SharpTimer_${{ steps.get_version.outputs.version }}
-        path: SharpTimer_${{ steps.get_version.outputs.version }}.zip
+        path: Build/
         retention-days: 30
