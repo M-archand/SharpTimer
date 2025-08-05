@@ -1,0 +1,147 @@
+name: Dev Update Only
+
+on:
+  push:
+    branches: [ dev ]
+    paths:
+      - 'src/**'
+  workflow_dispatch:
+    inputs:
+      update_type:
+        description: 'Update type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+        - patch
+        - minor
+        - major
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET 8.0
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Get current version
+      id: get_current_version
+      run: |
+        CURRENT_VERSION=$(grep -oP 'ModuleVersion\s*=>\s*\$?"\K[^"]+' src/Plugin/Globals.cs | head -n1)
+        echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+        echo "Current version: $CURRENT_VERSION"
+
+    - name: Calculate new version
+      id: calculate_new_version
+      run: |
+        CURRENT_VERSION="${{ steps.get_current_version.outputs.current_version }}"
+        UPDATE_TYPE="${{ github.event.inputs.update_type }}"
+        
+        # Parse version components (e.g., 0.3.1y -> 0, 3, 1, y)
+        IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
+        MAJOR="${VERSION_PARTS[0]}"
+        MINOR="${VERSION_PARTS[1]}"
+        
+        # Handle patch version with letter (e.g., 1y -> 1, y)
+        PATCH_WITH_LETTER="${VERSION_PARTS[2]}"
+        PATCH_NUM=$(echo "$PATCH_WITH_LETTER" | grep -o '[0-9]*')
+        PATCH_LETTER=$(echo "$PATCH_WITH_LETTER" | grep -o '[a-zA-Z]*')
+        
+        # Calculate new version based on update type
+        if [ "$UPDATE_TYPE" = "patch" ]; then
+          if [ -z "$PATCH_LETTER" ]; then
+            # No letter, increment number
+            NEW_PATCH_NUM=$((PATCH_NUM + 1))
+            NEW_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH_NUM}"
+          else
+            # Has letter, go to next letter
+            NEXT_LETTER=$(echo "$PATCH_LETTER" | tr 'a-y' 'b-z' | tr 'A-Y' 'B-Z')
+            if [ "$NEXT_LETTER" = "$PATCH_LETTER" ]; then
+              # If at 'z', increment number and reset to 'a'
+              NEW_PATCH_NUM=$((PATCH_NUM + 1))
+              NEW_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH_NUM}a"
+            else
+              NEW_VERSION="${MAJOR}.${MINOR}.${PATCH_NUM}${NEXT_LETTER}"
+            fi
+          fi
+        elif [ "$UPDATE_TYPE" = "minor" ]; then
+          NEW_MINOR=$((MINOR + 1))
+          NEW_VERSION="${MAJOR}.${NEW_MINOR}.0a"
+        elif [ "$UPDATE_TYPE" = "major" ]; then
+          NEW_MAJOR=$((MAJOR + 1))
+          NEW_VERSION="${NEW_MAJOR}.0.0a"
+        fi
+        
+        echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+        echo "Update type: $UPDATE_TYPE"
+        echo "Current version: $CURRENT_VERSION"
+        echo "New version: $NEW_VERSION"
+
+    - name: Update version in Globals.cs
+      run: |
+        NEW_VERSION="${{ steps.calculate_new_version.outputs.new_version }}"
+        sed -i "s/ModuleVersion => \"[^\"]*\"/ModuleVersion => \"$NEW_VERSION\"/" src/Plugin/Globals.cs
+        echo "Updated ModuleVersion to: $NEW_VERSION"
+
+    - name: Restore dependencies
+      run: |
+        echo "Restoring dependencies..."
+        dotnet restore SharpTimer-main.sln --verbosity normal
+        echo "Dependencies restored successfully"
+
+    - name: Build updated projects
+      run: |
+        echo "Building SharpTimerAPI..."
+        dotnet build SharpTimerAPI/SharpTimerAPI.csproj --configuration Debug --no-restore
+        echo "Building SharpTimer Plugin..."
+        dotnet build src/SharpTimer.csproj --configuration Debug --no-restore \
+          -p:CopyLocalLockFileAssemblies=false \
+          -p:SkipCopyCfgFolder=true \
+          -p:SkipCopygamedataFolder=true \
+          -p:SkipCopyLangFolder=true \
+          -p:SkipCopyBDFolder=true
+
+    - name: Upload updated artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: SharpTimer_${{ steps.calculate_new_version.outputs.new_version }}
+        path: Build/
+        retention-days: 30
+
+    - name: Create update summary
+      run: |
+        echo "## 🔄 Dev Update Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📈 Version Update:" >> $GITHUB_STEP_SUMMARY
+        echo "- **Previous Version**: \`${{ steps.get_current_version.outputs.current_version }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **New Version**: \`${{ steps.calculate_new_version.outputs.new_version }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Update Type**: \`${{ github.event.inputs.update_type }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📦 Available Download:" >> $GITHUB_STEP_SUMMARY
+        echo "- `SharpTimer_${{ steps.calculate_new_version.outputs.new_version }}.zip`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 🔍 Update Details:" >> $GITHUB_STEP_SUMMARY
+        echo "- **Branch**: \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Git Commit**: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build Date**: $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 💡 Version Rules:" >> $GITHUB_STEP_SUMMARY
+        echo "- **patch**: Increment letter (0.3.1y → 0.3.1z → 0.3.2a)" >> $GITHUB_STEP_SUMMARY
+        echo "- **minor**: Increment minor version (0.3.1y → 0.4.0a)" >> $GITHUB_STEP_SUMMARY
+        echo "- **major**: Increment major version (0.3.1y → 1.0.0a)" >> $GITHUB_STEP_SUMMARY
+
+    - name: Commit version update
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add src/Plugin/Globals.cs
+        git commit -m "Update version to ${{ steps.calculate_new_version.outputs.new_version }} (via GitHub Actions)"
+        git push origin dev
