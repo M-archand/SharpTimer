@@ -27,16 +27,14 @@ jobs:
     - name: Get version from ModuleVersion
       id: get_version
       run: |
-        grep 'ModuleVersion' src/Plugin/Globals.cs || echo "No match"
-        VERSION=$(grep -oP 'ModuleVersion\\s*=>\\s*\\$?\"\\K[^\"]+' src/Plugin/Globals.cs | head -n1)
-        echo "Extracted VERSION: $VERSION"
+        VERSION=$(grep -oP 'ModuleVersion\s*=>\s*\$?"\K[^"]+' src/Plugin/Globals.cs | head -n1)
         if [ -z "$VERSION" ]; then VERSION="dev"; fi
         echo "version=$VERSION" >> $GITHUB_OUTPUT
-
+    
     - name: Zip Build directory
       run: |
-        zip -r SharpTimer_${{ steps.get_version.outputs.version }}.zip Build
-
+        cd Build && zip -r ../SharpTimer_${VERSION}.zip .
+    
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
