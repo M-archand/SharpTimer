@@ -1,0 +1,174 @@
+name: Debug Build SharpTimer
+
+on:
+  push:
+    branches: [ dev ]
+  workflow_dispatch:
+    inputs:
+      verbose_logging:
+        description: 'Enable verbose logging'
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  debug-build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET 8.0
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Show .NET version
+      run: dotnet --version
+
+    - name: Show system info
+      run: |
+        echo "System Information:"
+        uname -a
+        echo "Available memory:"
+        free -h
+        echo "Disk space:"
+        df -h
+
+    - name: Restore dependencies with verbose output
+      run: |
+        echo "Restoring dependencies..."
+        dotnet restore SharpTimer-main.sln --verbosity detailed
+        echo "Dependencies restored successfully"
+
+    - name: Build SharpTimerAPI (Debug)
+      run: |
+        echo "Building SharpTimerAPI in Debug mode..."
+        dotnet build SharpTimerAPI/SharpTimerAPI.csproj --configuration Debug --no-restore --verbosity detailed
+        echo "SharpTimerAPI build completed"
+        ls -la Build/shared/SharpTimerAPI/
+
+    - name: Build SharpTimer Plugin (Debug)
+      run: |
+        echo "Building SharpTimer Plugin in Debug mode..."
+        dotnet build src/SharpTimer.csproj --configuration Debug --no-restore --verbosity detailed
+        echo "SharpTimer Plugin build completed"
+        ls -la Build/plugins/SharpTimer/
+
+    - name: Build SharpTimer-Example (Debug)
+      run: |
+        echo "Building SharpTimer-Example in Debug mode..."
+        dotnet build SharpTimerAPI-Example/SharpTimer-Example.csproj --configuration Debug --no-restore --verbosity detailed
+        echo "SharpTimer-Example build completed"
+        ls -la SharpTimerAPI-Example/bin/Debug/net8.0/
+
+    - name: Create detailed build info
+      run: |
+        echo "=== Build Information ===" > build_info.txt
+        echo "Build Date: $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> build_info.txt
+        echo "Build Type: Debug" >> build_info.txt
+        echo "Git Commit: ${{ github.sha }}" >> build_info.txt
+        echo "Git Ref: ${{ github.ref }}" >> build_info.txt
+        echo "Repository: ${{ github.repository }}" >> build_info.txt
+        echo "Workflow Run: ${{ github.run_id }}" >> build_info.txt
+        echo "Runner: ${{ runner.os }}" >> build_info.txt
+        echo "DotNet Version: $(dotnet --version)" >> build_info.txt
+        echo "" >> build_info.txt
+        echo "=== File Sizes ===" >> build_info.txt
+        echo "SharpTimerAPI.dll: $(stat -c%s Build/shared/SharpTimerAPI/SharpTimerAPI.dll 2>/dev/null || echo 'N/A') bytes" >> build_info.txt
+        echo "SharpTimer.dll: $(stat -c%s Build/plugins/SharpTimer/SharpTimer.dll 2>/dev/null || echo 'N/A') bytes" >> build_info.txt
+        echo "SharpTimer-Example.dll: $(stat -c%s SharpTimerAPI-Example/bin/Debug/net8.0/SharpTimer-Example.dll 2>/dev/null || echo 'N/A') bytes" >> build_info.txt
+
+    - name: Package SharpTimerAPI (Debug)
+      run: |
+        echo "Packaging SharpTimerAPI..."
+        mkdir -p artifacts/SharpTimerAPI-Debug
+        cp -r Build/shared/SharpTimerAPI/* artifacts/SharpTimerAPI-Debug/
+        cp build_info.txt artifacts/SharpTimerAPI-Debug/
+        cd artifacts
+        tar -czf SharpTimerAPI-Debug.tar.gz SharpTimerAPI-Debug/
+        zip -r SharpTimerAPI-Debug.zip SharpTimerAPI-Debug/
+        echo "SharpTimerAPI packaged successfully"
+        ls -la SharpTimerAPI-Debug.*
+
+    - name: Package SharpTimer Plugin (Debug)
+      run: |
+        echo "Packaging SharpTimer Plugin..."
+        mkdir -p artifacts/SharpTimer-Plugin-Debug
+        cp -r Build/plugins/SharpTimer/* artifacts/SharpTimer-Plugin-Debug/
+        cp build_info.txt artifacts/SharpTimer-Plugin-Debug/
+        cd artifacts
+        tar -czf SharpTimer-Plugin-Debug.tar.gz SharpTimer-Plugin-Debug/
+        zip -r SharpTimer-Plugin-Debug.zip SharpTimer-Plugin-Debug/
+        echo "SharpTimer Plugin packaged successfully"
+        ls -la SharpTimer-Plugin-Debug.*
+
+    - name: Package SharpTimer-Example (Debug)
+      run: |
+        echo "Packaging SharpTimer-Example..."
+        mkdir -p artifacts/SharpTimer-Example-Debug
+        cp -r SharpTimerAPI-Example/bin/Debug/net8.0/* artifacts/SharpTimer-Example-Debug/
+        cp build_info.txt artifacts/SharpTimer-Example-Debug/
+        cd artifacts
+        tar -czf SharpTimer-Example-Debug.tar.gz SharpTimer-Example-Debug/
+        zip -r SharpTimer-Example-Debug.zip SharpTimer-Example-Debug/
+        echo "SharpTimer-Example packaged successfully"
+        ls -la SharpTimer-Example-Debug.*
+
+    - name: Upload SharpTimerAPI Debug artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: SharpTimerAPI-Debug
+        path: |
+          artifacts/SharpTimerAPI-Debug.tar.gz
+          artifacts/SharpTimerAPI-Debug.zip
+        retention-days: 30
+
+    - name: Upload SharpTimer Plugin Debug artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: SharpTimer-Plugin-Debug
+        path: |
+          artifacts/SharpTimer-Plugin-Debug.tar.gz
+          artifacts/SharpTimer-Plugin-Debug.zip
+        retention-days: 30
+
+    - name: Upload SharpTimer-Example Debug artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: SharpTimer-Example-Debug
+        path: |
+          artifacts/SharpTimer-Example-Debug.tar.gz
+          artifacts/SharpTimer-Example-Debug.zip
+        retention-days: 30
+
+    - name: Build Summary
+      run: |
+        echo "## 🐛 Debug Build Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### ✅ Successfully Built:" >> $GITHUB_STEP_SUMMARY
+        echo "- **SharpTimerAPI**: Debug version built and packaged" >> $GITHUB_STEP_SUMMARY
+        echo "- **SharpTimer Plugin**: Debug version built and packaged" >> $GITHUB_STEP_SUMMARY
+        echo "- **SharpTimer-Example**: Debug version built and packaged" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📦 Available Downloads:" >> $GITHUB_STEP_SUMMARY
+        echo "- `SharpTimerAPI-Debug.tar.gz` - API库 (tar.gz格式)" >> $GITHUB_STEP_SUMMARY
+        echo "- `SharpTimerAPI-Debug.zip` - API库 (zip格式)" >> $GITHUB_STEP_SUMMARY
+        echo "- `SharpTimer-Plugin-Debug.tar.gz` - 主插件 (tar.gz格式)" >> $GITHUB_STEP_SUMMARY
+        echo "- `SharpTimer-Plugin-Debug.zip` - 主插件 (zip格式)" >> $GITHUB_STEP_SUMMARY
+        echo "- `SharpTimer-Example-Debug.tar.gz` - 示例插件 (tar.gz格式)" >> $GITHUB_STEP_SUMMARY
+        echo "- `SharpTimer-Example-Debug.zip` - 示例插件 (zip格式)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 🔍 Build Details:" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build Type**: Debug (包含调试信息)" >> $GITHUB_STEP_SUMMARY
+        echo "- **Git Commit**: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Branch**: \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build Date**: $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 💡 Usage:" >> $GITHUB_STEP_SUMMARY
+        echo "1. 下载对应的压缩包" >> $GITHUB_STEP_SUMMARY
+        echo "2. 解压到你的CS2服务器目录" >> $GITHUB_STEP_SUMMARY
+        echo "3. 重启服务器或重新加载插件" >> $GITHUB_STEP_SUMMARY 
