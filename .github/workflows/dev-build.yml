@@ -24,7 +24,7 @@ jobs:
     - name: Get version from ModuleVersion
       id: get_version
       run: |
-        VERSION=$(grep -oP '\[ModuleVersion\("([^"]+)' src/Plugin/Plugin.cs | sed -E 's/\\[ModuleVersion\\("//' | head -n1)
+        VERSION=$(grep -oP 'ModuleVersion\s*=>\s*\$\?"([^"]+)' src/Plugin/Globals.cs | sed -E 's/.*=>\s*\$\?"//' | sed 's/"//g' | head -n1)
         if [ -z "$VERSION" ]; then VERSION="dev"; fi
         echo "version=$VERSION" >> $GITHUB_OUTPUT
 
