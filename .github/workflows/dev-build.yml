@@ -1,9 +1,12 @@
-name: Simple Dev Build
+name: Dev Build With runtime
 
 on:
-  push:
-    branches: [ dev ]
-  workflow_dispatch:
+    workflow_dispatch:
+      inputs:
+        dummy:
+          description: 'Only runs on dev branch'
+          required: false
+          default: ''
 
 jobs:
   build-and-zip:
@@ -34,6 +37,6 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: SharpTimer_${{ steps.get_version.outputs.version }}
+        name: SharpTimer_with_runtime_${{ steps.get_version.outputs.version }}
         path: Build/
         retention-days: 30
