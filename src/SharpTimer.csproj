@@ -53,6 +53,16 @@
         SkipUnchangedFiles="true" />
     </Target>
 
+    <Target Name="CopyBDFolder" AfterTargets="Build">
+    <ItemGroup>
+        <BDFiles Include="$(ProjectDir)..\src\DB\Migrations\**\*.*" />
+    </ItemGroup>
+    <Copy
+        SourceFiles="@(BDFiles)"
+        DestinationFiles="@(BDFiles->'$(OutputPath)\Database\Migrations\%(RecursiveDir)%(Filename)%(Extension)')"
+        SkipUnchangedFiles="true" />
+    </Target>
+
     <Target Name="ExcludeStoreApiFiles" AfterTargets="Build">
 		<Delete Files="$(OutputPath)SharpTimer.pdb" />
 		<Delete Files="$(OutputPath)SharpTimerAPI.dll" />
