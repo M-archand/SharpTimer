@@ -1,0 +1,40 @@
+name: Simple Dev Build
+
+on:
+  push:
+    branches: [ dev ]
+  workflow_dispatch:
+
+jobs:
+  build-and-zip:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 8.0
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Build (Debug)
+      run: dotnet build SharpTimer-main.sln --configuration Debug
+
+    - name: Get version from ModuleVersion
+      id: get_version
+      run: |
+        VERSION=$(grep -oP '\[ModuleVersion\("([^"]+)' src/Plugin/Plugin.cs | sed -E 's/\\[ModuleVersion\\("//' | head -n1)
+        if [ -z "$VERSION" ]; then VERSION="dev"; fi
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+    - name: Zip Build directory
+      run: |
+        zip -r SharpTimer_${{ steps.get_version.outputs.version }}.zip Build
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: SharpTimer_${{ steps.get_version.outputs.version }}
+        path: SharpTimer_${{ steps.get_version.outputs.version }}.zip
+        retention-days: 30
