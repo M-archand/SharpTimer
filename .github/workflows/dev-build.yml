@@ -21,8 +21,11 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    - name: Build (Debug)
-      run: dotnet build SharpTimer-main.sln --configuration Debug
+    - name: Build SharpTimerAPI
+      run: dotnet build SharpTimerAPI/SharpTimerAPI.csproj --configuration Debug
+      
+    - name: Build SharpTimer Plugin
+      run: dotnet build src/SharpTimer.csproj --configuration Debug
 
     - name: List Plugin directory
       run: ls -l src/Plugin/Globals.cs
