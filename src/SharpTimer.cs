@@ -53,11 +53,14 @@ public partial class SharpTimer : BasePlugin
         if (apiKey != "")
             AddTimer(randomf, () => CheckCvarsAndMaxVelo(), TimerFlags.REPEAT);
 
-        Server.NextFrame(async () =>
+        if (apiKey != "")
         {
-            int serverId = await GetServerIDAsync(Utils.GetIPAndPort().Item1, Utils.GetIPAndPort().Item2);
-            CacheServerID(serverId);
-        });
+            Server.NextFrame(async () =>
+            {
+                int serverId = await GetServerIDAsync(Utils.GetIPAndPort().Item1, Utils.GetIPAndPort().Item2);
+                CacheServerID(serverId);
+            });
+        }
 
         currentMapName = Server.MapName;
 
@@ -372,12 +375,15 @@ public partial class SharpTimer : BasePlugin
                 playerPawn.Teleport(currentRespawnPos);
         });
 
-        Server.NextFrame(async () =>
+        if (apiKey != "")
         {
-            await UpdatePlayerAsync((long)player.SteamID, player.PlayerName);
-            int playerId = await GetPlayerIDAsync((long)player.SteamID);
-            CachePlayerID(player, playerId);
-        });
+            Server.NextFrame(async () =>
+            {
+                await UpdatePlayerAsync((long)player.SteamID, player.PlayerName);
+                int playerId = await GetPlayerIDAsync((long)player.SteamID);
+                CachePlayerID(player, playerId);
+            });
+        }
 
         if (playerTimers.TryGetValue(player.Slot, out var playerTimer))
         {

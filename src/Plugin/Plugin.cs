@@ -98,19 +98,6 @@ public partial class SharpTimer
                     globalDisabled = true;
                     Utils.LogError("OverrideDisableTelehop detected for current map; disabling globalapi");
                 }
-
-                _ = Task.Run(async () => await CacheWorldRecords());
-                AddTimer(globalCacheInterval, async () => await CacheWorldRecords(), TimerFlags.REPEAT | TimerFlags.STOP_ON_MAPCHANGE);
-
-                _ = Task.Run(async () => await CacheGlobalPoints());
-                AddTimer(globalCacheInterval, async () => await CacheGlobalPoints(), TimerFlags.REPEAT | TimerFlags.STOP_ON_MAPCHANGE);
-
-                Server.NextFrame(async () =>
-                {
-                    long addonID = GetAddonID();
-                    int mapId = await GetMapIDAsync(addonID);
-                    await CacheMapData(mapId, addonID, mapName);
-                });
             });
         }
         catch (Exception ex)
@@ -553,6 +540,21 @@ public partial class SharpTimer
 
                 useTriggers = true;
             }
+            
+            if (apiKey != "")
+            {
+                Server.NextFrame(async () =>
+                {
+                    long addonID = GetAddonID();
+                    int mapId = await GetMapIDAsync(addonID);
+                    await CacheMapData(mapId, addonID, mapName);
+                    await CacheWorldRecords(true);
+                    await CacheGlobalPoints(true);
+                });
+                
+                AddTimer(globalCacheInterval, async () => await CacheWorldRecords(), TimerFlags.REPEAT | TimerFlags.STOP_ON_MAPCHANGE);
+                AddTimer(globalCacheInterval, async () => await CacheGlobalPoints(), TimerFlags.REPEAT | TimerFlags.STOP_ON_MAPCHANGE);
+            }
 
             Utils.LogDebug($"useTriggers: {useTriggers}!");
         }
@@ -584,6 +586,7 @@ public partial class SharpTimer
         entityCache.Triggers.Clear();
         entityCache.InfoTeleportDestinations.Clear();
         entityCache.UpdateCache();
+        ClearGlobalCache();
 
         useTriggers = true;
         useTriggersAndFakeZones = false;

@@ -334,22 +334,32 @@ namespace SharpTimer
             }
         }
 
-        public async Task CacheWorldRecords()
+        public void ClearGlobalCache()
+        {
+            recordCache.CachedWorldRecords = new Dictionary<int, GlobalRecord>();
+            recordCache.CachedGlobalPoints = new List<PlayerPoints>();
+            mapCache.MapID = 0;
+            mapCache.AddonID = 0;
+            mapCache.MapName = "";
+            mapCache.Verified = false;
+        }
+
+        public async Task CacheWorldRecords(bool initial = false)
         {
             IEnumerable<CCSPlayerController> players = Utilities.FindAllEntitiesByDesignerName<CCSPlayerController>("cs_player_controller");
 
-            if (!players.Any())
+            if (!players.Any() && !initial)
                 return;
             
             var sortedRecords = await GetSortedRecordsFromGlobal("Normal", "Standard", 0, 10);
             recordCache.CachedWorldRecords = sortedRecords;
         }
 
-        public async Task CacheGlobalPoints()
+        public async Task CacheGlobalPoints(bool initial = false)
         {
             IEnumerable<CCSPlayerController> players = Utilities.FindAllEntitiesByDesignerName<CCSPlayerController>("cs_player_controller");
 
-            if (!players.Any())
+            if (!players.Any() && !initial)
                 return;
             
             var sortedPoints = await GetTopPointsAsync();
@@ -358,16 +368,25 @@ namespace SharpTimer
 
         public void CachePlayerID (CCSPlayerController player, int playerId)
         {
+            if (apiKey == "")
+                return;
+            
             playerCache.PlayerID[player] = playerId;
         }
 
         public void CacheServerID(int serverId)
         {
+            if (apiKey == "")
+                return;
+            
             serverCache.ServerID = serverId;
         }
         
         public async Task CacheMapData(int mapId, long addonId, string mapName)
         {
+            if (apiKey == "")
+                return;
+            
             mapCache.MapID = mapId;
             mapCache.AddonID = addonId;
             mapCache.MapName = mapName;

@@ -965,12 +965,9 @@ namespace SharpTimer
                             Server.NextFrame(async () =>
                             {
                                 bool globalCheck = CheckCvarsAndMaxVelo();
-                                if (!globalCheck)
+                                if (!globalCheck || apiKey == "" || globalDisabled || !mapCache.Verified)
                                     return;
-                                if (apiKey == "")
-                                    return;
-                                if (globalDisabled)
-                                    return;
+
 
                                 DateTimeOffset timeCreated = DateTimeOffset.UtcNow;
                                 int playerId = playerCache.PlayerID[player];
@@ -1099,6 +1096,9 @@ namespace SharpTimer
 
                             Server.NextFrame(async () =>
                             {
+                                if (!mapCache.Verified)
+                                    return;
+                                
                                 DateTimeOffset timeCreated = DateTimeOffset.UtcNow;
                                 int playerId = playerCache.PlayerID[player];
 
