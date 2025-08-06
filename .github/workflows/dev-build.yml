@@ -1,6 +1,8 @@
 name: Dev Build With runtime
 
 on:
+    push:
+        branches: [ dev ]
     workflow_dispatch:
       inputs:
         dummy:
