@@ -4,7 +4,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
 		<GenerateDependencyFile>false</GenerateDependencyFile>
-		<OutputPath>$(ProjectDir)..\Build\plugins\SharpTimer-Example\</OutputPath>
+		<OutputPath>$(ProjectDir)..\Build\addons\counterstrikesharp\plugins\SharpTimer-Example\</OutputPath>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     </PropertyGroup>
 
