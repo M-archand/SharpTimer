@@ -45,8 +45,26 @@ namespace SharpTimer
 
     public class RecordCache
     {
-        public Dictionary<int, PlayerRecord>? CachedWorldRecords { get; set; }
-        public List<PlayerPoints>? CachedGlobalPoints { get; set; }
+        public Dictionary<int, GlobalRecord>? CachedWorldRecords { get; set; } = new();
+        public List<PlayerPoints>? CachedGlobalPoints { get; set; } = new();
+    }
+
+    public class PlayerCache
+    {
+        public Dictionary<CCSPlayerController, int> PlayerID { get; set; } = new();
+    }
+
+    public class ServerCache
+    {
+        public int ServerID { get; set; }
+    }
+
+    public class MapCache
+    {
+        public int MapID { get; set; }
+        public long AddonID { get; set; }
+        public string MapName { get; set; }
+        public bool Verified { get; set; }
     }
 
     // MapData JSON
@@ -336,6 +354,20 @@ namespace SharpTimer
         public string? MapName { get; set; }
         public int TimerTicks { get; set; }
         public bool Replay { get; set; }
+    }
+    
+    public class GlobalRecord
+    {
+        public int player_id { get; set; }
+        public string player_name { get; set; }
+        public int server_id { get; set; }
+        public int map_id { get; set; }
+        public int bonus { get; set; }
+        public string mode { get; set; }
+        public string style { get; set; }
+        public decimal time { get; set; }
+        public DateTimeOffset created_on { get; set; }
+        public bool replay { get; set; }
     }
 
     public class Record

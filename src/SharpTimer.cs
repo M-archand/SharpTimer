@@ -23,6 +23,7 @@ using CounterStrikeSharp.API.Modules.UserMessages;
 using CounterStrikeSharp.API.Core.Capabilities;
 using System.Runtime.InteropServices;
 using System.Drawing;
+using CounterStrikeSharp.API.Modules.Memory;
 using FixVectorLeak;
 
 namespace SharpTimer;
@@ -52,12 +53,18 @@ public partial class SharpTimer : BasePlugin
         if (apiKey != "")
             AddTimer(randomf, () => CheckCvarsAndMaxVelo(), TimerFlags.REPEAT);
 
+        Server.NextFrame(async () =>
+        {
+            int serverId = await GetServerIDAsync(Utils.GetIPAndPort().Item1, Utils.GetIPAndPort().Item2);
+            CacheServerID(serverId);
+        });
+
         currentMapName = Server.MapName;
 
         string recordsFileName = $"SharpTimer/PlayerRecords/";
         playerRecordsPath = Path.Join(gameDir + "/csgo/cfg", recordsFileName);
 
-        isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? true : false;
+        isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 
         movementServices = isLinux ? 0 : 3;
         movementPtr = isLinux ? 1 : 2;
@@ -200,12 +207,14 @@ public partial class SharpTimer : BasePlugin
                 }
                 if ((playerTimers[player.Slot].IsTimerRunning || playerTimers[player.Slot].IsBonusTimerRunning) && playerTimers[player.Slot].currentStyle.Equals(11) && usingUse) //parachute
                 {
-                    player.Pawn.Value!.GravityScale = 0.2f;
+                    Schema.SetSchemaValue(player!.Pawn.Value!.Handle, "CBaseEntity", "m_flActualGravityScale", 0.2f);
+                    Utilities.SetStateChanged(player!.Pawn.Value!, "CBaseEntity", "m_flActualGravityScale");
                     return HookResult.Changed;
                 }
                 if ((playerTimers[player.Slot].IsTimerRunning || playerTimers[player.Slot].IsBonusTimerRunning) && playerTimers[player.Slot].currentStyle.Equals(11) && !usingUse) //parachute
                 {
-                    player.Pawn.Value!.GravityScale = 1f;
+                    Schema.SetSchemaValue(player!.Pawn.Value!.Handle, "CBaseEntity", "m_flActualGravityScale", 1f);
+                    Utilities.SetStateChanged(player!.Pawn.Value!, "CBaseEntity", "m_flActualGravityScale");
                     return HookResult.Changed;
                 }
                 return HookResult.Changed;
@@ -361,6 +370,13 @@ public partial class SharpTimer : BasePlugin
         {
             if (spawnOnRespawnPos == true && currentRespawnPos != null)
                 playerPawn.Teleport(currentRespawnPos);
+        });
+
+        Server.NextFrame(async () =>
+        {
+            await UpdatePlayerAsync((long)player.SteamID, player.PlayerName);
+            int playerId = await GetPlayerIDAsync((long)player.SteamID);
+            CachePlayerID(player, playerId);
         });
 
         if (playerTimers.TryGetValue(player.Slot, out var playerTimer))

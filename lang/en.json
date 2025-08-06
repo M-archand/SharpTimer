@@ -48,6 +48,7 @@
   "gained_points": "{lime}{0} {default}gained {green}+{1} {default}Points {grey}({2})",
   "total_gpoints": "Total Global Points",
   "grank": "Global Rank",
+  "global_unranked": "You are currently unranked!",
   "top_10_points": "Top 10 Players with the most points:",
   "top_10_points_list": "#{0}: {lime}{1} {default}: {lime}{2} {default}points",
 

@@ -104,6 +104,13 @@ public partial class SharpTimer
 
                 _ = Task.Run(async () => await CacheGlobalPoints());
                 AddTimer(globalCacheInterval, async () => await CacheGlobalPoints(), TimerFlags.REPEAT | TimerFlags.STOP_ON_MAPCHANGE);
+
+                Server.NextFrame(async () =>
+                {
+                    long addonID = GetAddonID();
+                    int mapId = await GetMapIDAsync(addonID);
+                    await CacheMapData(mapId, addonID, mapName);
+                });
             });
         }
         catch (Exception ex)
@@ -119,7 +126,6 @@ public partial class SharpTimer
             Utils.LogDebug($"Loading MapData on RoundStart...");
 
             currentMapName = mapName;
-            currentAddonID = GetAddonID();
             totalBonuses = new int[11];
 
             string recordsFileName = $"SharpTimer/PlayerRecords/";

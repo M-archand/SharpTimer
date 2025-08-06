@@ -129,7 +129,8 @@ namespace SharpTimer
             _ = Task.Run(async () => await ReplayHandler(player, slot, arg, "69", "unknown", 0, playerTimers[slot].currentStyle));
         }
 
-        [ConsoleCommand("css_replaywr", "Replay a top 10 world record")]
+        //TODO: Implement binary replay formatting and re-enable global replays
+        /*[ConsoleCommand("css_replaywr", "Replay a top 10 world record")]
         [CommandHelper(minArgs: 1, usage: "[1-10]", whoCanExecute: CommandUsage.CLIENT_ONLY)]
         public void ReplayTop10WRCommand(CCSPlayerController? player, CommandInfo command)
         {
@@ -149,7 +150,7 @@ namespace SharpTimer
             string arg = command.ArgByIndex(1);
 
             _ = Task.Run(async () => await ReplayHandler(player, slot, arg, "69", "unknown", 0, playerTimers[slot].currentStyle, true));
-        }
+        }*/
 
         [ConsoleCommand("css_gc", "Globalcheck")]
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
@@ -176,7 +177,7 @@ namespace SharpTimer
             else
                 Server.NextFrame(() => Utils.PrintToChat(player, $"[GC] {ChatColors.Green}Valid ST build"));
 
-            var validAddon = await CheckAddonAsync();
+            var validAddon = await CheckAddonAsync(mapCache.AddonID);
             if (!validAddon)
                 Server.NextFrame(() => Utils.PrintToChat(player, $"[GC] {ChatColors.LightRed}Map is not verified!"));
             else
@@ -184,7 +185,7 @@ namespace SharpTimer
             
             Server.NextFrame(() =>
             {
-                var (globalCheck, maxVel, maxWish) = CheckCvarsAndMaxVelo();
+                bool globalCheck = CheckCvarsAndMaxVelo();
                 if (!globalCheck)
                     Utils.PrintToChat(player, $"[GC] {ChatColors.LightRed}Cvar Check Failed");
                 else
@@ -287,14 +288,15 @@ namespace SharpTimer
                 else
                     (srSteamID, srPlayerName, srTime) = await GetMapRecordSteamID(bonusX, top10);
 
-                if (wr)
+                //TODO: global replays
+                /*if (wr)
                 {
                     var sortedRecords = await GetSortedRecordsFromGlobal(10, bonusX, currentMapName!, style);
                     wrID = sortedRecords[top10-1].RecordID;
                     wrSteamID = sortedRecords[top10-1].SteamID;
                     wrPlayerName = sortedRecords[top10-1].PlayerName;
                     wrTime = Utils.FormatTime(sortedRecords[top10-1].TimerTicks);
-                }
+                }*/
             }
 
             if ((srSteamID == "null" || srPlayerName == "null" || srTime == "null") && !self)

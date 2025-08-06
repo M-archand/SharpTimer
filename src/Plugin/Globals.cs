@@ -292,7 +292,6 @@ namespace SharpTimer
         public string? PlayerStatsTable = "PlayerStats";
         public string? playerRecordsPath;
         public string? currentMapName;
-        public string? currentAddonID;
         public string? defaultServerHostname = ConVar.Find("hostname")?.StringValue;
 
         public bool discordWebhookEnabled = false;

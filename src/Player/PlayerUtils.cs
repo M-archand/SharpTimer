@@ -371,22 +371,14 @@ namespace SharpTimer
                 else
                     currentMapNamee = bonusX == 0 ? mapname! : $"{mapname}_bonus{bonusX}";
 
-                int savedPlayerTime;
-
-                if (!global)
-                    savedPlayerTime = await GetPreviousPlayerRecordFromDatabase(steamId, currentMapNamee!, playerName, bonusX, style);
-                else
-                    savedPlayerTime = await GetPreviousPlayerRecordFromGlobal(steamId, currentMapNamee!, playerName, bonusX, style);
-
+                int savedPlayerTime = await GetPreviousPlayerRecordFromDatabase(steamId, currentMapNamee!, playerName, bonusX, style);
+                
                 if (savedPlayerTime == 0)
                     savedPlayerTime = timerTicks;
 
                 Dictionary<int, PlayerRecord> sortedRecords;
-
-                if (!global)
-                    sortedRecords = await GetSortedRecordsFromDatabase(0, bonusX, currentMapNamee, style);
-                else
-                    sortedRecords = await GetSortedRecordsFromGlobal(0, bonusX, currentMapNamee, style);
+                
+                sortedRecords = await GetSortedRecordsFromDatabase(0, bonusX, currentMapNamee, style);
 
                 int placement = 1;
                 int totalPlayers = sortedRecords.Count;
@@ -410,6 +402,46 @@ namespace SharpTimer
             catch (Exception ex)
             {
                 Utils.LogError($"Error in GetPlayerMapPercentile: {ex}");
+                return 0;
+            }
+        }
+        public async Task<double> GetPlayerGlobalMapPercentile(int playerId, string mode, string style, int bonus, decimal time)
+        {
+            try
+            {
+                decimal savedPlayerTime;
+                
+                savedPlayerTime = await GetPreviousPlayerRecordFromGlobal(playerId, mode, style, bonus);
+
+                if (savedPlayerTime == 0)
+                    savedPlayerTime = time;
+
+                Dictionary<int, GlobalRecord> sortedRecords;
+                
+                sortedRecords = await GetSortedRecordsFromGlobal(style, mode, bonus);
+
+                int placement = 1;
+                int totalPlayers = sortedRecords.Count;
+
+                if (totalPlayers > 0)
+                {
+                    placement = sortedRecords.Count(kv => kv.Value.time < savedPlayerTime) + 1;
+
+                    if (placement > totalPlayers)
+                    {
+                        placement = totalPlayers;
+                    }
+                }
+
+                double percentage = totalPlayers == 0 ? 100 : (double)placement / totalPlayers * 100;
+
+                Utils.LogDebug($"Player ID: {playerId}, Placement: {placement}, Total Players: {totalPlayers}, Percentage: {percentage}th");
+
+                return percentage;
+            }
+            catch (Exception ex)
+            {
+                Utils.LogError($"Error in GetPlayerGlobalMapPercentile: {ex}");
                 return 0;
             }
         }

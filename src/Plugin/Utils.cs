@@ -168,6 +168,30 @@ namespace SharpTimer
 
             return $"{totalMinutes:D1}:{timeSpan.Seconds:D2}.{milliseconds}";
         }
+        
+        public string FormatDecimalTime(decimal time)
+        {
+            int totalMilliseconds = (int)(time * 1000);
+            int hours = totalMilliseconds / 3600000;
+            int minutes = (totalMilliseconds % 3600000) / 60000;
+            int seconds = (totalMilliseconds % 60000) / 1000;
+            int milliseconds = totalMilliseconds % 1000;
+
+            if (hours > 0)
+                return $"{hours}:{minutes:D2}:{seconds:D2}.{milliseconds:D3}";
+
+            return $"{minutes:D2}:{seconds:D2}.{milliseconds:D3}";
+        }
+        
+        public decimal TicksToDecimal(int ticks)
+        {
+            return Math.Round(ticks / 64.0m, 3);
+        }
+        
+        public int DecimalToTicks(decimal time)
+        {
+            return (int)Math.Round(time * 64);
+        }
 
         public string FormatTimeDifference(int currentTicks, int previousTicks, bool noColor = false)
         {
@@ -876,12 +900,12 @@ namespace SharpTimer
             }
         }
 
-        public (string, string) GetHostnameAndIp()
+        public (string, int) GetIPAndPort()
         {
-            string ip = $"{GetServerIp()}:{ConVar.Find("hostport")!.GetPrimitiveValue<int>()}";
-            string hostname = ConVar.Find("hostname")!.StringValue;
+            string ip = $"{GetServerIp()}";
+            int port = ConVar.Find("hostport")!.GetPrimitiveValue<int>();
 
-            return (hostname, ip);
+            return (ip, port);
         }
 
         public void PrintToChat(CCSPlayerController player, string message)
