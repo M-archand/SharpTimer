@@ -264,8 +264,7 @@ namespace SharpTimer
                         "FormattedTime VARCHAR(255) DEFAULT ''",
                         "UnixStamp INT DEFAULT 0",
                         "LastFinished INT DEFAULT 0",
-                        "TimesFinished INT DEFAULT 0",
-                        "Style INT DEFAULT 0"
+                        "TimesFinished INT DEFAULT 0"
                     ];
                     playerStats =
                     [
@@ -302,8 +301,7 @@ namespace SharpTimer
                         @"""FormattedTime"" VARCHAR(255) DEFAULT ''",
                         @"""UnixStamp"" INT DEFAULT 0",
                         @"""LastFinished"" INT DEFAULT 0",
-                        @"""TimesFinished"" INT DEFAULT 0",
-                        @"""Style"" INT DEFAULT 0"
+                        @"""TimesFinished"" INT DEFAULT 0"
                     ];
                     playerStats =
                     [
@@ -340,8 +338,7 @@ namespace SharpTimer
                         "FormattedTime TEXT DEFAULT ''",
                         "UnixStamp INT DEFAULT 0",
                         "LastFinished INT DEFAULT 0",
-                        "TimesFinished INT DEFAULT 0",
-                        "Style INT DEFAULT 0"
+                        "TimesFinished INT DEFAULT 0"
                     ];
                     playerStats =
                     [
@@ -418,8 +415,7 @@ namespace SharpTimer
                                             UnixStamp INT,
                                             TimesFinished INT,
                                             LastFinished INT,
-                                            Style INT,
-                                            PRIMARY KEY (MapName, SteamID, Style)
+                                            PRIMARY KEY (MapName, SteamID)
                                         )";
                     createTableCommand = new MySqlCommand(createTableQuery, (MySqlConnection)connection);
                     break;
@@ -433,8 +429,7 @@ namespace SharpTimer
                                             ""UnixStamp"" INT,
                                             ""TimesFinished"" INT,
                                             ""LastFinished"" INT,
-                                            ""Style"" INT,
-                                            PRIMARY KEY (""MapName"", ""SteamID"", ""Style"")
+                                            PRIMARY KEY (""MapName"", ""SteamID"")
                                         )";
                     createTableCommand = new NpgsqlCommand(createTableQuery, (NpgsqlConnection)connection);
                     break;
@@ -448,8 +443,7 @@ namespace SharpTimer
                                             UnixStamp INT,
                                             TimesFinished INT,
                                             LastFinished INT,
-                                            Style INT,
-                                            PRIMARY KEY (MapName, SteamID, Style)
+                                            PRIMARY KEY (MapName, SteamID)
                                         )";
                     createTableCommand = new SQLiteCommand(createTableQuery, (SQLiteConnection)connection);
                     break;
@@ -645,8 +639,6 @@ namespace SharpTimer
                                             PlayerFov INT,
                                             IsVip BOOL,
                                             BigGifID VARCHAR(16),
-                                            HideWeapon BOOL,
-                                            HidePlayers BOOL,
                                             PRIMARY KEY (SteamID)
                                         )";
                     command = new MySqlCommand(query, (MySqlConnection)connection);
@@ -664,8 +656,6 @@ namespace SharpTimer
                                             ""PlayerFov"" INT,
                                             ""IsVip"" BOOL,
                                             ""BigGifID"" VARCHAR(16),
-                                            ""HideWeapon"" BOOL,
-                                            ""HidePlayers"" BOOL,
                                             PRIMARY KEY (""SteamID"")
                                         )";
                     command = new NpgsqlCommand(query, (NpgsqlConnection)connection);
@@ -682,9 +672,7 @@ namespace SharpTimer
                                             SoundsEnabled INTEGER,
                                             PlayerFov INTEGER,
                                             IsVip INTEGER,
-                                            BigGifID TEXT,
-                                            HideWeapon INTEGER,
-                                            HidePlayers INTEGER
+                                            BigGifID TEXT
                                         )";
                     command = new SQLiteCommand(query, (SQLiteConnection)connection);
                     break;
