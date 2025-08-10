@@ -5,6 +5,7 @@
   // Timer
   "timer_time": "时间: [{lime}{0}{default}] {1}",
   "timer_style": "风格: [{lime}{0}{default}]",
+  "timer_mode": "模式: [{lime}{0}{default}]",
   "stop_using_timer": "先用 {lime}!timer{default} 停止你的计时器!",
   "timer_enabled": "计时器: {green}启用",
   "timer_disabled": "计时器: {red}禁用",
@@ -48,6 +49,7 @@
   "gained_points": "{lime}{0} {default}获得了 {green}+{1} {default}积分 {grey}({2})",
   "total_gpoints": "全球总积分",
   "grank": "全球排名",
+  "global_unranked": "你目前未排名!",
   "top_10_points": "前10名拥有最多积分的玩家:",
   "top_10_points_list": "#{0}: {lime}{1} {default}: {lime}{2} {default}积分",
 
@@ -88,6 +90,13 @@
   "styles_disabled": "当前服务器上已禁用风格",
   "styles_not_supported": "本地记录当前不支持风格 :(",
   "styles_moving": "{lightred}移动时无法改变样式",
+
+  // Modes
+  "modes_list": "模式 {0}. {lime}{1}",
+  "mode_example": "例如: {lime}/mode arcade",
+  "mode_set": "模式已设置为: {lime}{0}",
+  "mode_not_found": "模式 {0} 不存在",
+  "modes_moving": "{lightred}移动时无法改变模式",
 
   // Checkpoints
   "checkpoint_set": "{0} 已设置! {lime}#{1}",
