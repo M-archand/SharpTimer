@@ -264,7 +264,8 @@ namespace SharpTimer
                         "FormattedTime VARCHAR(255) DEFAULT ''",
                         "UnixStamp INT DEFAULT 0",
                         "LastFinished INT DEFAULT 0",
-                        "TimesFinished INT DEFAULT 0"
+                        "TimesFinished INT DEFAULT 0",
+                        "Style INT DEFAULT 0"
                     ];
                     playerStats =
                     [
@@ -301,7 +302,8 @@ namespace SharpTimer
                         @"""FormattedTime"" VARCHAR(255) DEFAULT ''",
                         @"""UnixStamp"" INT DEFAULT 0",
                         @"""LastFinished"" INT DEFAULT 0",
-                        @"""TimesFinished"" INT DEFAULT 0"
+                        @"""TimesFinished"" INT DEFAULT 0",
+                        @"""Style"" INT DEFAULT 0"
                     ];
                     playerStats =
                     [
@@ -338,7 +340,8 @@ namespace SharpTimer
                         "FormattedTime TEXT DEFAULT ''",
                         "UnixStamp INT DEFAULT 0",
                         "LastFinished INT DEFAULT 0",
-                        "TimesFinished INT DEFAULT 0"
+                        "TimesFinished INT DEFAULT 0",
+                        "Style INT DEFAULT 0"
                     ];
                     playerStats =
                     [
@@ -415,7 +418,8 @@ namespace SharpTimer
                                             UnixStamp INT,
                                             TimesFinished INT,
                                             LastFinished INT,
-                                            PRIMARY KEY (MapName, SteamID)
+                                            Style INT,
+                                            PRIMARY KEY (MapName, SteamID, Style)
                                         )";
                     createTableCommand = new MySqlCommand(createTableQuery, (MySqlConnection)connection);
                     break;
@@ -429,7 +433,8 @@ namespace SharpTimer
                                             ""UnixStamp"" INT,
                                             ""TimesFinished"" INT,
                                             ""LastFinished"" INT,
-                                            PRIMARY KEY (""MapName"", ""SteamID"")
+                                            ""Style"" INT,
+                                            PRIMARY KEY (""MapName"", ""SteamID"", ""Style"")
                                         )";
                     createTableCommand = new NpgsqlCommand(createTableQuery, (NpgsqlConnection)connection);
                     break;
@@ -443,7 +448,8 @@ namespace SharpTimer
                                             UnixStamp INT,
                                             TimesFinished INT,
                                             LastFinished INT,
-                                            PRIMARY KEY (MapName, SteamID)
+                                            Style INT,
+                                            PRIMARY KEY (MapName, SteamID, Style)
                                         )";
                     createTableCommand = new SQLiteCommand(createTableQuery, (SQLiteConnection)connection);
                     break;

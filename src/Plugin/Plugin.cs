@@ -79,11 +79,14 @@ public partial class SharpTimer
                         dbType = DatabaseType.SQLite;
                         enableDb = true;
                     }
-                    using (var connection = OpenConnection())
+                    _ = Task.Run(async () =>
                     {
-                        _ = CheckTablesAsync();
-                        ExecuteMigrations(connection);
-                    }
+                        using (var connection = OpenConnection())
+                        {
+                            await CheckTablesAsync();
+                            ExecuteMigrations(connection);
+                        }
+                    });
                     sqlCheck = true;
                 }
 
