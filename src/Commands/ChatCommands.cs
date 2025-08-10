@@ -260,7 +260,7 @@ namespace SharpTimer
             _ = Task.Run(async () => await ReplayHandler(player, slot, "self", steamID, playerName, bonusX, playerTimers[slot].currentStyle));
         }
 
-        public async Task ReplayHandler(CCSPlayerController player, int slot, string arg = "1", string pbSteamID = "69", string playerName = "unknown", int bonusX = 0, int style = 0, bool wr = false)
+        public async Task ReplayHandler(CCSPlayerController player, int slot, string arg = "1", string pbSteamID = "69", string playerName = "unknown", int bonusX = 0, int style = 0, bool wr = false, string mode = "")
         {
             bool self = false;
 
@@ -311,7 +311,7 @@ namespace SharpTimer
             if (wr)
                 await ReadReplayFromGlobal(player, wrID, style, bonusX);
             else
-                await ReadReplayFromJson(player, !self ? srSteamID : pbSteamID, slot, bonusX, style);
+                await ReadReplayFromJson(player, !self ? srSteamID : pbSteamID, slot, bonusX, style, mode);
 
             if (playerReplays[slot].replayFrames.Count == 0) return;
 
@@ -712,7 +712,7 @@ namespace SharpTimer
 
                     bool showReplays = false;
                     if (enableReplays == true)
-                        showReplays = Task.Run(() => CheckSRReplay(kvp.Value.SteamID!, bonusX)).Result;
+                        showReplays = Task.Run(() => CheckSRReplay(kvp.Value.SteamID!, bonusX, 0, "Standard")).Result;
 
                     string replayIndicator = enableReplays ? (showReplays ? $"{ChatColors.Red}◉" : "") : "";
 
@@ -744,7 +744,7 @@ namespace SharpTimer
             _ = Task.Run(async () => await RankCommandHandler(player, steamID, slot, playerName, false, playerTimers[slot].currentStyle));
         }
 
-        public async Task RankCommandHandler(CCSPlayerController? player, string steamId, int slot, string playerName, bool sendRankToHUD = false, int style = 0)
+        public async Task RankCommandHandler(CCSPlayerController? player, string steamId, int slot, string playerName, bool sendRankToHUD = false, int style = 0, string mode = "")
         {
             if (player!.IsBot || player.SteamID.ToString() == "0")
                 return;
@@ -762,19 +762,19 @@ namespace SharpTimer
                 string ranking, rankIcon, mapPlacement, serverPoints = "", serverPlacement = "";
                 bool useGlobalRanks = enableDb && globalRanksEnabled;
 
-                ranking = useGlobalRanks ? await GetPlayerServerPlacement(player, steamId, playerName) : await GetPlayerMapPlacementWithTotal(player, steamId, playerName, false, false, 0, style);
-                rankIcon = useGlobalRanks ? await GetPlayerServerPlacement(player, steamId, playerName, true) : await GetPlayerMapPlacementWithTotal(player, steamId, playerName, true, false, 0, style);
-                mapPlacement = await GetPlayerMapPlacementWithTotal(player, steamId, playerName, false, true, 0, style);
+                ranking = useGlobalRanks ? await GetPlayerServerPlacement(player, steamId, playerName) : await GetPlayerMapPlacementWithTotal(player, steamId, playerName, false, false, 0, style, false, mode);
+                rankIcon = useGlobalRanks ? await GetPlayerServerPlacement(player, steamId, playerName, true) : await GetPlayerMapPlacementWithTotal(player, steamId, playerName, true, false, 0, style, false, mode);
+                mapPlacement = await GetPlayerMapPlacementWithTotal(player, steamId, playerName, false, true, 0, style, false, mode);
 
                 foreach (var bonusRespawnPose in bonusRespawnPoses)
                 {
                     var bonusNumber = bonusRespawnPose.Key;
-                    var bonusPbTicks = enableDb ? await GetPreviousPlayerRecordFromDatabase(steamId, currentMapName!, playerName, bonusNumber, style) : await GetPreviousPlayerRecord(steamId, bonusNumber);
+                    var bonusPbTicks = enableDb ? await GetPreviousPlayerRecordFromDatabase(steamId, currentMapName!, playerName, bonusNumber, style, mode) : await GetPreviousPlayerRecord(steamId, bonusNumber);
 
                     /// Skip this bonus since the player doesn't have a saved time
                     if (bonusPbTicks <= 0) continue;
 
-                    var bonusPlacement = await GetPlayerMapPlacementWithTotal(player, steamId, playerName, false, true, bonusNumber, style);
+                    var bonusPlacement = await GetPlayerMapPlacementWithTotal(player, steamId, playerName, false, true, bonusNumber, style, false, mode);
 
                     Utils.LogDebug($"Adding bonus info for Bonus {bonusNumber}");
                     Utils.LogDebug($"PbTicks: {bonusPbTicks}");
@@ -793,7 +793,7 @@ namespace SharpTimer
                     serverPlacement = await GetPlayerServerPlacement(player, steamId, playerName, false, true, false);
                 }
 
-                int pbTicks = enableDb ? await GetPreviousPlayerRecordFromDatabase(steamId, currentMapName!, playerName, 0, style) : await GetPreviousPlayerRecord(steamId, 0);
+                int pbTicks = enableDb ? await GetPreviousPlayerRecordFromDatabase(steamId, currentMapName!, playerName, 0, style, mode) : await GetPreviousPlayerRecord(steamId, 0);
 
                 Server.NextFrame(() =>
                 {

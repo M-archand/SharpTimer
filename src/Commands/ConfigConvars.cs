@@ -808,6 +808,91 @@ namespace SharpTimer
 
             apiKey = $"{args}";
         }
+        
+        [ConsoleCommand("sharptimer_default_mode", "Set default mode for all players on connect")]
+        [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
+        public void SharpTimerDefaultModeConvar(CCSPlayerController? player, CommandInfo command)
+        {
+            string args = command.ArgString.Trim();
+
+            if (TryParseMode(args.ToLower(), out Mode newMode))
+            {
+                defaultMode = newMode;
+                Server.PrintToConsole($"Default mode set to: {GetModeName(defaultMode)}");
+            }
+            else
+            {
+                Server.PrintToConsole($"Invalid mode: {args}");
+            }
+        }
+        
+        [ConsoleCommand("sharptimer_mode_multiplier_standard", "Point modifier for standard mode. Default value: 1")]
+        [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
+        public void SharpTimerStandardModeMultiplierConvar(CCSPlayerController? player, CommandInfo command)
+        {
+            string args = command.ArgString;
+
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double pointModifier) && pointModifier is >= 0 and <= 2)
+            {
+                standardModeModifier = pointModifier;
+                Utils.LogDebug($"SharpTimer standard mode point modifier set to {pointModifier}.");
+            }
+            else
+            {
+                Utils.LogError("Invalid standard mode point modifier. Please provide a positive integer.");
+            }
+        }
+        
+        [ConsoleCommand("sharptimer_mode_multiplier_85t", "Point modifier for 85t mode. Default value: 0.9")]
+        [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
+        public void SharpTimer85tModeMultiplierConvar(CCSPlayerController? player, CommandInfo command)
+        {
+            string args = command.ArgString;
+
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double pointModifier) && pointModifier is >= 0 and <= 2)
+            {
+                _85tModeModifier = pointModifier;
+                Utils.LogDebug($"SharpTimer 85t mode point modifier set to {pointModifier}.");
+            }
+            else
+            {
+                Utils.LogError("Invalid 85t mode point modifier. Please provide a positive integer.");
+            }
+        }
+        
+        [ConsoleCommand("sharptimer_mode_multiplier_arcade", "Point modifier for arcade mode. Default value: 0.8")]
+        [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
+        public void SharpTimerArcadeModeMultiplierConvar(CCSPlayerController? player, CommandInfo command)
+        {
+            string args = command.ArgString;
+
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double pointModifier) && pointModifier is >= 0 and <= 2)
+            {
+                arcadeModeModifier = pointModifier;
+                Utils.LogDebug($"SharpTimer arcade mode point modifier set to {pointModifier}.");
+            }
+            else
+            {
+                Utils.LogError("Invalid arcade mode point modifier. Please provide a positive integer.");
+            }
+        }
+        
+        [ConsoleCommand("sharptimer_mode_multiplier_source", "Point modifier for source mode. Default value: 1.1")]
+        [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
+        public void SharpTimerSourceModeMultiplierConvar(CCSPlayerController? player, CommandInfo command)
+        {
+            string args = command.ArgString;
+
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double pointModifier) && pointModifier is >= 0 and <= 2)
+            {
+                sourceModeModifier = pointModifier;
+                Utils.LogDebug($"SharpTimer source mode point modifier set to {pointModifier}.");
+            }
+            else
+            {
+                Utils.LogError("Invalid source mode point modifier. Please provide a positive integer.");
+            }
+        }
 
         [ConsoleCommand("sharptimer_enable_checkpoint_verification", "Enable or disable checkpoint verification system. Default value: true")]
         [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]

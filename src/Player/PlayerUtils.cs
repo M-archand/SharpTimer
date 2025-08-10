@@ -333,7 +333,7 @@ namespace SharpTimer
             }
         }
 
-        public async Task<string> GetPlayerMapPlacementWithTotal(CCSPlayerController? player, string steamId, string playerName, bool getRankImg = false, bool getPlacementOnly = false, int bonusX = 0, int style = 0, bool getPercentileOnly = false)
+        public async Task<string> GetPlayerMapPlacementWithTotal(CCSPlayerController? player, string steamId, string playerName, bool getRankImg = false, bool getPlacementOnly = false, int bonusX = 0, int style = 0, bool getPercentileOnly = false, string mode = "")
         {
             try
             {
@@ -342,12 +342,12 @@ namespace SharpTimer
 
                 string currentMapNamee = bonusX == 0 ? currentMapName! : $"{currentMapName}_bonus{bonusX}";
 
-                int savedPlayerTime = await GetPreviousPlayerRecordFromDatabase(steamId, currentMapName!, playerName, bonusX, style);
+                int savedPlayerTime = await GetPreviousPlayerRecordFromDatabase(steamId, currentMapName!, playerName, bonusX, style, mode);
 
                 if (savedPlayerTime == 0)
                     return getRankImg ? UnrankedIcon : UnrankedTitle;
 
-                Dictionary<int, PlayerRecord> sortedRecords = await GetSortedRecordsFromDatabase(0, bonusX, currentMapNamee, style);
+                Dictionary<int, PlayerRecord> sortedRecords = await GetSortedRecordsFromDatabase(0, bonusX, currentMapNamee, style, mode);
 
                 int placement = sortedRecords.Count(kv => kv.Value.TimerTicks < savedPlayerTime) + 1;
                 int totalPlayers = sortedRecords.Count;
@@ -361,7 +361,7 @@ namespace SharpTimer
                 return UnrankedTitle;
             }
         }
-        public async Task<double> GetPlayerMapPercentile(string steamId, string playerName, string mapname = "", int bonusX = 0, int style = 0, bool global = false, int timerTicks = 0)
+        public async Task<double> GetPlayerMapPercentile(string steamId, string playerName, string mapname = "", int bonusX = 0, int style = 0, bool global = false, int timerTicks = 0, string mode = "")
         {
             try
             {
@@ -371,14 +371,14 @@ namespace SharpTimer
                 else
                     currentMapNamee = bonusX == 0 ? mapname! : $"{mapname}_bonus{bonusX}";
 
-                int savedPlayerTime = await GetPreviousPlayerRecordFromDatabase(steamId, currentMapNamee!, playerName, bonusX, style);
+                int savedPlayerTime = await GetPreviousPlayerRecordFromDatabase(steamId, currentMapNamee!, playerName, bonusX, style, mode);
                 
                 if (savedPlayerTime == 0)
                     savedPlayerTime = timerTicks;
 
                 Dictionary<int, PlayerRecord> sortedRecords;
                 
-                sortedRecords = await GetSortedRecordsFromDatabase(0, bonusX, currentMapNamee, style);
+                sortedRecords = await GetSortedRecordsFromDatabase(0, bonusX, currentMapNamee, style, mode);
 
                 int placement = 1;
                 int totalPlayers = sortedRecords.Count;
@@ -643,7 +643,7 @@ namespace SharpTimer
             }
         }
 
-        public async Task PrintMapTimeToChat(CCSPlayerController player, string steamID, string playerName, int oldticks, int newticks, int bonusX = 0, int timesFinished = 0, int style = 0, int prevSR = 0)
+        public async Task PrintMapTimeToChat(CCSPlayerController player, string steamID, string playerName, int oldticks, int newticks, int bonusX = 0, int timesFinished = 0, int style = 0, int prevSR = 0, string mode = "")
         {
             if (!IsAllowedPlayer(player))
             {
@@ -651,7 +651,7 @@ namespace SharpTimer
                 return;
             }
 
-            string ranking = await GetPlayerMapPlacementWithTotal(player, steamID, playerName, false, true, bonusX, style);
+            string ranking = await GetPlayerMapPlacementWithTotal(player, steamID, playerName, false, true, bonusX, style, false, mode);
 
             bool newSR = Utils.GetNumberBeforeSlash(ranking) == 1 && (oldticks > newticks || oldticks == 0);
             bool beatPB = oldticks > newticks;
@@ -700,7 +700,8 @@ namespace SharpTimer
 
                 Utils.PrintToChatAll(Localizer["timer_time", newTime, timeDifference]);
                 if (enableStyles) Utils.PrintToChatAll(Localizer["timer_style", GetNamedStyle(style)]);
-                if (enableReplays == true && enableSRreplayBot == true && newSR && (oldticks > newticks || oldticks == 0))
+                Utils.PrintToChatAll(Localizer["timer_mode", mode]);
+                if (enableReplays == true && enableSRreplayBot == true && newSR && (oldticks > newticks || oldticks == 0) && mode == "Standard")
                     _ = Task.Run(async () => await SpawnReplayBot());
                 
                 try

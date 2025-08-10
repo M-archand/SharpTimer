@@ -215,6 +215,8 @@ namespace SharpTimer
         public bool enableStyles = true;
         public bool enableStylePoints = true;
 
+        public Mode defaultMode = Mode.Standard;
+
         public bool removeLegsEnabled = false;
         public bool removeCollisionEnabled = true;
         public bool disableDamage = true;
@@ -257,6 +259,7 @@ namespace SharpTimer
         public bool afkWarning = true;
         public int afkSeconds = 60;
         public int globalCacheInterval = 120;
+        
         public double lowgravPointModifier = 0.8;
         public double sidewaysPointModifier = 1.3;
         public double halfSidewaysPointModifier = 1.3;
@@ -269,6 +272,12 @@ namespace SharpTimer
         public double fastForwardPointModifier = 0.8;
         public double parachutePointModifier = 0.8;
         public double tasPointModifier = 0.0;
+
+        public double sourceModeModifier = 1.1;
+        public double standardModeModifier = 1;
+        public double _85tModeModifier = 0.9;
+        public double arcadeModeModifier = 0.8;
+        
 
         public bool execCustomMapCFG = false;
 

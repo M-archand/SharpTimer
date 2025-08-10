@@ -169,7 +169,7 @@ namespace SharpTimer
             }
         }
 
-        public async Task DumpReplayToJson(CCSPlayerController player, string steamID, int slot, int bonusX = 0, int style = 0)
+        public async Task DumpReplayToJson(CCSPlayerController player, string steamID, int slot, int bonusX = 0, int style = 0, string mode = "")
         {
             await Task.Run(() =>
             {
@@ -181,8 +181,7 @@ namespace SharpTimer
 
                 string fileName = $"{steamID}_replay.json";
                 string playerReplaysDirectory;
-                if (style != 0) playerReplaysDirectory = Path.Join(gameDir, "csgo", "cfg", "SharpTimer", "PlayerReplayData", bonusX == 0 ? $"{currentMapName}" : $"{currentMapName}_bonus{bonusX}", GetNamedStyle(style));
-                else playerReplaysDirectory = Path.Join(gameDir, "csgo", "cfg", "SharpTimer", "PlayerReplayData", bonusX == 0 ? $"{currentMapName}" : $"{currentMapName}_bonus{bonusX}");
+                playerReplaysDirectory = Path.Join(gameDir, "csgo", "cfg", "SharpTimer", "PlayerReplayData", bonusX == 0 ? $"{currentMapName}" : $"{currentMapName}_bonus{bonusX}", GetNamedStyle(style), mode);
                 string playerReplaysPath = Path.Join(playerReplaysDirectory, fileName);
 
                 try
@@ -235,13 +234,11 @@ namespace SharpTimer
             }
         }
 
-        private async Task ReadReplayFromJson(CCSPlayerController player, string steamId, int slot, int bonusX = 0, int style = 0)
+        private async Task ReadReplayFromJson(CCSPlayerController player, string steamId, int slot, int bonusX = 0, int style = 0, string mode = "")
         {
             string fileName = $"{steamId}_replay.json";
             string playerReplaysPath;
-            if (style != 0) playerReplaysPath = Path.Join(gameDir, "csgo", "cfg", "SharpTimer", "PlayerReplayData", bonusX == 0 ? currentMapName : $"{currentMapName}_bonus{bonusX}", GetNamedStyle(style), fileName);
-            else playerReplaysPath = Path.Join(gameDir, "csgo", "cfg", "SharpTimer", "PlayerReplayData", bonusX == 0 ? currentMapName : $"{currentMapName}_bonus{bonusX}", fileName);
-
+            playerReplaysPath = Path.Join(gameDir, "csgo", "cfg", "SharpTimer", "PlayerReplayData", bonusX == 0 ? currentMapName : $"{currentMapName}_bonus{bonusX}", GetNamedStyle(style), mode, fileName);
             try
             {
                 if (File.Exists(playerReplaysPath))
@@ -324,7 +321,7 @@ namespace SharpTimer
 
         private async Task SpawnReplayBot()
         {
-            if (!await CheckSRReplay())
+            if (!await CheckSRReplay("x", 0, 0, "Standard"))
             {
                 Utils.LogError("Replay check failed, not spawning bot.");
                 return;
@@ -372,7 +369,7 @@ namespace SharpTimer
                                 OnPlayerConnect(bot, true);
                                 ChangePlayerName(bot, replayBotName);
                                 playerTimers[bot.Slot].IsTimerBlocked = true;
-                                _ = Task.Run(async () => await ReplayHandler(bot, bot.Slot));
+                                _ = Task.Run(async () => await ReplayHandler(bot, bot.Slot, "1", "69", "unknown", 0, 0, false, "Standard"));
                                 Utils.LogDebug($"Starting replay for {bot.PlayerName}");
                             }
                             else
@@ -397,13 +394,13 @@ namespace SharpTimer
             });
         }
 
-        public async Task<bool> CheckSRReplay(string topSteamID = "x", int bonusX = 0, int style = 0)
+        public async Task<bool> CheckSRReplay(string topSteamID = "x", int bonusX = 0, int style = 0, string mode = "")
         {
             var (srSteamID, srPlayerName, srTime) = ("null", "null", "null");
 
             if (enableDb)
             {
-                (srSteamID, srPlayerName, srTime) = await GetMapRecordSteamIDFromDatabase(bonusX);
+                (srSteamID, srPlayerName, srTime) = await GetMapRecordSteamIDFromDatabase(bonusX, 0, style, mode);
             }
             else
             {
@@ -414,9 +411,7 @@ namespace SharpTimer
 
             string fileName = $"{(topSteamID == "x" ? $"{srSteamID}" : $"{topSteamID}")}_replay.json";
             string playerReplaysPath;
-            if (style != 0) playerReplaysPath = Path.Join(gameDir, "csgo", "cfg", "SharpTimer", "PlayerReplayData", (bonusX == 0 ? currentMapName : $"{currentMapName}_bonus{bonusX}"), GetNamedStyle(style), fileName);
-            else playerReplaysPath = Path.Join(gameDir, "csgo", "cfg", "SharpTimer", "PlayerReplayData", (bonusX == 0 ? currentMapName : $"{currentMapName}_bonus{bonusX}"), fileName);
-
+            playerReplaysPath = Path.Join(gameDir, "csgo", "cfg", "SharpTimer", "PlayerReplayData", (bonusX == 0 ? currentMapName : $"{currentMapName}_bonus{bonusX}"), GetNamedStyle(style), mode, fileName);
             try
             {
                 if (File.Exists(playerReplaysPath))

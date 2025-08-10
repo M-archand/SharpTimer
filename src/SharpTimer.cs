@@ -73,7 +73,11 @@ public partial class SharpTimer : BasePlugin
         movementPtr = isLinux ? 1 : 2;
         RunCommand = isLinux ? new RunCommandLinux() : new RunCommandWindows();
 
-        if (isLinux) RunCommand?.Hook(OnRunCommand, HookMode.Pre);
+        if (isLinux)
+        {
+            RunCommand?.Hook(OnRunCommandPre, HookMode.Pre);
+            RunCommand?.Hook(OnRunCommandPost, HookMode.Post);
+        }
         StateTransition.Hook(Hook_StateTransition, HookMode.Post);
         RemoveDamage?.Hook();
 
@@ -104,7 +108,11 @@ public partial class SharpTimer : BasePlugin
 
     public override void Unload(bool hotReload)
     {
-        if (isLinux) RunCommand?.Unhook(OnRunCommand, HookMode.Pre);
+        if (isLinux)
+        {
+            RunCommand?.Unhook(OnRunCommandPre, HookMode.Pre);
+            RunCommand?.Unhook(OnRunCommandPost, HookMode.Post);
+        }
         StateTransition.Unhook(Hook_StateTransition, HookMode.Post);
         RemoveDamage?.Unhook();
 
@@ -133,7 +141,7 @@ public partial class SharpTimer : BasePlugin
         UnhookEntityOutput("trigger_teleport", "OnEndTouch", TriggerTeleport_OnEndTouch, HookMode.Pre);
     }
 
-    private HookResult OnRunCommand(DynamicHook h)
+    private HookResult OnRunCommandPre(DynamicHook h)
     {
         var player = h.GetParam<CCSPlayer_MovementServices>(movementServices).Pawn.Value.Controller.Value?.As<CCSPlayerController>();
 
@@ -160,6 +168,9 @@ public partial class SharpTimer : BasePlugin
                     QAngle_t viewAngle = userCmd.GetViewAngles()!.Value;
                     ParseStrafes(player, new (viewAngle.X, viewAngle.Y, viewAngle.Z));
                 }
+                
+                // Mode Stuff
+                ApplyConvar(h);
                     
                 // Style Stuff
                 if ((playerTimers[player.Slot].IsTimerRunning || playerTimers[player.Slot].IsBonusTimerRunning) && playerTimers[player.Slot].currentStyle.Equals(2) && (moveLeft || moveRight)) //sideways
@@ -231,6 +242,11 @@ public partial class SharpTimer : BasePlugin
         }
 
         return HookResult.Continue;
+    }
+
+    private HookResult OnRunCommandPost(DynamicHook h)
+    {
+        return ResetConvar(h);
     }
     private HookResult Hook_StateTransition(DynamicHook h)
     {
@@ -392,6 +408,11 @@ public partial class SharpTimer : BasePlugin
             if (enableStyles)
                 setStyle(player, playerTimers[player.Slot].currentStyle);
 
+            if (TryParseMode(playerTimer.Mode.ToLower(), out Mode newMode) && newMode != defaultMode)
+                SetPlayerMode(player, newMode);
+            else
+                SetPlayerMode(player, defaultMode);
+            
             AddTimer(3.0f, () =>
             {
                 if (enableDb && playerTimers.ContainsKey(player.Slot) && player.DesiredFOV != (uint)playerTimers[player.Slot].PlayerFov)
@@ -409,6 +430,8 @@ public partial class SharpTimer : BasePlugin
             playerPawn.Render = Color.FromArgb(254, 254, 254, 254);
             Utilities.SetStateChanged(playerPawn, "CBaseModelEntity", "m_clrRender");
         }
+        
+        
 
         return HookResult.Continue;
     }

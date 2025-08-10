@@ -131,7 +131,7 @@ namespace SharpTimer
             if (useTriggers || useTriggersAndFakeZones) Utils.LogDebug($"Stopping Timer for {playerName}");
 
             if (!ignoreJSON) SavePlayerTime(player, currentTicks);
-            if (enableDb) _ = Task.Run(async () => await SavePlayerTimeToDatabase(player, currentTicks, steamID, playerName, slot, 0, playerTimer.currentStyle));
+            if (enableDb) _ = Task.Run(async () => await SavePlayerTimeToDatabase(player, currentTicks, steamID, playerName, slot, 0, playerTimer.currentStyle, playerTimer.Mode));
 
             //if (enableReplays == true) _ = Task.Run(async () => await DumpReplayToJson(player!, steamID, slot));
             playerTimer.IsTimerRunning = false;
@@ -163,7 +163,7 @@ namespace SharpTimer
             }
 
             if (!ignoreJSON) SavePlayerTime(player, currentTicks, bonusX);
-            if (enableDb) _ = Task.Run(async () => await SavePlayerTimeToDatabase(player, currentTicks, steamID, playerName, slot, bonusX, playerTimers[player.Slot].currentStyle));
+            if (enableDb) _ = Task.Run(async () => await SavePlayerTimeToDatabase(player, currentTicks, steamID, playerName, slot, bonusX, playerTimers[player.Slot].currentStyle, playerTimer.Mode));
             //if (enableReplays == true) _ = Task.Run(async () => await DumpReplayToJson(player!, steamID, slot, bonusX));
             playerTimers[player.Slot].IsBonusTimerRunning = false;
             playerTimers[player.Slot].IsRecordingReplay = false;

@@ -37,7 +37,7 @@ public partial class SharpTimer
                 }, TimerFlags.STOP_ON_MAPCHANGE);
 
                 if (removeCrouchFatigueEnabled == true) Server.ExecuteCommand("sv_timebetweenducks 0");
-
+                Server.ExecuteCommand("log off"); // prevent crippling console spam from modes
                 //bonusRespawnPoses.Clear();
                 bonusRespawnAngs.Clear();
 
