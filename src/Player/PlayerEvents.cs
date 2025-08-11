@@ -75,8 +75,6 @@ namespace SharpTimer
                     {
                         string steamID = player.SteamID.ToString();
 
-                        _ = Task.Run(async () => await IsPlayerATester(steamID, slot));
-
                         if (enableDb)
                             _ = Task.Run(async () =>
                             {

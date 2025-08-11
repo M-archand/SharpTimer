@@ -875,8 +875,7 @@ namespace SharpTimer
                                                     FormattedTime = VALUES(FormattedTime),
                                                     UnixStamp = VALUES(UnixStamp),
                                                     Style = VALUES(Style),
-                                                    Mode = VALUES(Mode),;
-                                                    ";
+                                                    Mode = VALUES(Mode);";
                                 upsertCommand = new MySqlCommand(upsertQuery, (MySqlConnection)connection);
                                 break;
                             case DatabaseType.PostgreSQL:
@@ -2465,12 +2464,6 @@ namespace SharpTimer
             Server.NextFrame(() => Utils.LogDebug($"Trying to get replay VIP Gif from database"));
             try
             {
-                if (await IsSteamIDaTester(steamId))
-                {
-                    playerTimers[slot].VipReplayGif = await GetTesterBigGif(steamId);
-                    return;
-                }
-
                 using (var connection = await OpenConnectionAsync())
                 {
                     await CreatePlayerStatsTableAsync(connection);
