@@ -400,12 +400,26 @@ namespace SharpTimer
                     $"({playerTimer.CachedMapPlacement})" +
                     $"{(RankIconsEnabled ? $" |</font> <img src='{playerTimer.RankHUDIcon}'><font class='fontSize-s stratum-bold-italic' color='gray'>" : "")}" +
                     $"{(enableStyles ? $" | {GetNamedStyle(playerTimer.currentStyle)} | {playerTimer.Mode}<br>" : $" | {playerTimer.Mode}<br>")}" +
-                    $"{((MapTierHudEnabled && currentMapTier != null) ? $"Tier: {currentMapTier}" : "")}" +
-                    $"{((MapTypeHudEnabled && currentMapType != null) ? $" | {currentMapType}" : "")}" +
-                    $"{((MapNameHudEnabled && currentMapType == null && currentMapTier == null) ? $" | {currentMapName}" : "")}" +
+                    $"{GetMapDataLine()}" +
                     $"</font>"
 
                 : $" <font class='fontSize-s stratum-bold-italic' color='gray'>{playerTimer.ReplayHUDString}</font>";
+        }
+        
+        private string GetMapDataLine()
+        {
+            string mapInfo = "";
+    
+            if (MapTierHudEnabled && currentMapTier != null)
+                mapInfo += $"Tier: {currentMapTier}";
+    
+            if (MapTypeHudEnabled && currentMapType != null)
+                mapInfo += (string.IsNullOrEmpty(mapInfo) ? "" : " | ") + currentMapType;
+    
+            if (MapNameHudEnabled && currentMapType == null && currentMapTier == null)
+                mapInfo += (string.IsNullOrEmpty(mapInfo) ? "" : " | ") + currentMapName;
+    
+            return mapInfo;
         }
 
         private string GetBonusInfoLine(PlayerTimerInfo playerTimer)

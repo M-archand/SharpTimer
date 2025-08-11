@@ -53,19 +53,6 @@ public partial class SharpTimer : BasePlugin
         if (apiKey != "")
             AddTimer(randomf, () => CheckCvarsAndMaxVelo(), TimerFlags.REPEAT);
 
-        if (apiKey != "")
-        {
-            Server.NextFrame(async () =>
-            {
-                hashCheck = await CheckHashAsync();
-                if (!hashCheck)
-                    globalDisabled = true;
-                
-                int serverId = await GetServerIDAsync(Utils.GetIPAndPort().Item1, Utils.GetIPAndPort().Item2);
-                CacheServerID(serverId);
-            });
-        }
-
         currentMapName = Server.MapName;
 
         string recordsFileName = $"SharpTimer/PlayerRecords/";
@@ -108,6 +95,23 @@ public partial class SharpTimer : BasePlugin
 
         HookEntityOutput("trigger_teleport", "OnStartTouch", TriggerTeleport_OnStartTouch, HookMode.Pre);
         HookEntityOutput("trigger_teleport", "OnEndTouch", TriggerTeleport_OnEndTouch, HookMode.Pre);
+        
+        Server.NextFrame(() =>
+        {
+            string ip = Utils.GetIPAndPort().Item1;
+            int port = Utils.GetIPAndPort().Item2;
+            if (apiKey != "")
+            {
+                _ = Task.Run(async () =>
+                {
+                    hashCheck = await CheckHashAsync();
+                    if (!hashCheck)
+                        globalDisabled = true;
+                    int serverId = await GetServerIDAsync(ip, port);
+                    CacheServerID(serverId);
+                });
+            }
+        });
     }
 
     public override void Unload(bool hotReload)

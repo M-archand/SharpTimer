@@ -203,11 +203,8 @@ namespace SharpTimer
         [RequiresPermissions("@css/cheats")]
         public void GetHashCommand(CCSPlayerController? player, CommandInfo command)
         {
-            if (!IsAllowedPlayer(player))
-                return;
-
             var hash = GetHash();
-            Server.NextFrame(() => player!.PrintToConsole($"ST HASH: {hash}"));
+            Server.NextFrame(() => command.ReplyToCommand($"ST HASH: {hash}"));
         }
 
         [ConsoleCommand("css_replayb", "Replay a top 10 server bonus record")]
