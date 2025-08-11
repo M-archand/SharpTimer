@@ -78,7 +78,14 @@ namespace SharpTimer
                         _ = Task.Run(async () => await IsPlayerATester(steamID, slot));
 
                         if (enableDb)
-                            _ = Task.Run(async () => await GetPlayerStats(player, steamID, playerName, slot, true));
+                            _ = Task.Run(async () =>
+                            {
+                                await GetPlayerStats(player, steamID, playerName, slot, true);
+                                if (TryParseMode(playerTimers[player.Slot].Mode.ToLower(), out Mode newMode) && newMode != defaultMode)
+                                    SetPlayerMode(player, newMode);
+                                else
+                                    SetPlayerMode(player, defaultMode);
+                            });
 
                         if (cmdJoinMsgEnabled == true)
                             PrintAllEnabledCommands(player);

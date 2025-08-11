@@ -185,6 +185,7 @@ namespace SharpTimer
 
         public bool globalChecksPassed = false;
         public bool globalDisabled = false;
+        public bool hashCheck = false;
         public bool displayChatTags = true;
         public bool displayScoreboardTags = true;
         public string customVIPTag = "[VIP] ";

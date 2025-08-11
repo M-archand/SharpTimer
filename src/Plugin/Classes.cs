@@ -45,7 +45,10 @@ namespace SharpTimer
 
     public class RecordCache
     {
-        public Dictionary<int, GlobalRecord>? CachedWorldRecords { get; set; } = new();
+        public Dictionary<int, GlobalRecord>? CachedStandardWorldRecords { get; set; } = new();
+        public Dictionary<int, GlobalRecord>? Cached85tWorldRecords { get; set; } = new();
+        public Dictionary<int, GlobalRecord>? CachedSourceWorldRecords { get; set; } = new();
+        public Dictionary<int, GlobalRecord>? CachedArcadeWorldRecords { get; set; } = new();
         public List<PlayerPoints>? CachedGlobalPoints { get; set; } = new();
     }
 
@@ -182,6 +185,7 @@ namespace SharpTimer
         public bool HidePlayers { get; set; }
         public bool HideWeapon { get; set; }
         public string Mode { get; set; }
+        public bool ChangedMode { get; set; }
         public bool GivenWeapon { get; set; }
         public bool SoundsEnabled { get; set; }
         public bool BindsDisabled { get; set; }

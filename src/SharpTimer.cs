@@ -57,6 +57,10 @@ public partial class SharpTimer : BasePlugin
         {
             Server.NextFrame(async () =>
             {
+                hashCheck = await CheckHashAsync();
+                if (!hashCheck)
+                    globalDisabled = true;
+                
                 int serverId = await GetServerIDAsync(Utils.GetIPAndPort().Item1, Utils.GetIPAndPort().Item2);
                 CacheServerID(serverId);
             });
@@ -407,11 +411,6 @@ public partial class SharpTimer : BasePlugin
 
             if (enableStyles)
                 setStyle(player, playerTimers[player.Slot].currentStyle);
-
-            if (TryParseMode(playerTimer.Mode.ToLower(), out Mode newMode) && newMode != defaultMode)
-                SetPlayerMode(player, newMode);
-            else
-                SetPlayerMode(player, defaultMode);
             
             AddTimer(3.0f, () =>
             {

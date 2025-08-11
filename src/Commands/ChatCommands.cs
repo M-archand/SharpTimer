@@ -81,7 +81,7 @@ namespace SharpTimer
             if (ReplayCheck(player))
                 return;
 
-            _ = Task.Run(async () => await ReplayHandler(player, slot, "self", steamID, playerName, 0, playerTimers[slot].currentStyle));
+            _ = Task.Run(async () => await ReplayHandler(player, slot, "self", steamID, playerName, 0, playerTimers[slot].currentStyle, false, playerTimers[slot].Mode));
         }
 
         [ConsoleCommand("css_replay", "Replay server map record")]
@@ -104,7 +104,7 @@ namespace SharpTimer
 
             Utils.PrintToChat(player, Localizer["available_replay_cmds"]);
 
-            _ = Task.Run(async () => await ReplayHandler(player, slot, "1", "69", "unknown", 0, playerTimers[slot].currentStyle));
+            _ = Task.Run(async () => await ReplayHandler(player, slot, "1", "69", "unknown", 0, playerTimers[slot].currentStyle, false, playerTimers[slot].Mode));
         }
 
         [ConsoleCommand("css_replaytop", "Replay a top 10 server map record")]
@@ -126,7 +126,7 @@ namespace SharpTimer
 
             string arg = command.ArgByIndex(1);
 
-            _ = Task.Run(async () => await ReplayHandler(player, slot, arg, "69", "unknown", 0, playerTimers[slot].currentStyle));
+            _ = Task.Run(async () => await ReplayHandler(player, slot, arg, "69", "unknown", 0, playerTimers[slot].currentStyle, false, playerTimers[slot].Mode));
         }
 
         //TODO: Implement binary replay formatting and re-enable global replays
@@ -231,7 +231,7 @@ namespace SharpTimer
             string arg = command.ArgByIndex(1);
             string arg2 = command.ArgByIndex(2);
 
-            _ = Task.Run(async () => await ReplayHandler(player, slot, arg, "69", "unknown", Int16.Parse(arg2), playerTimers[slot].currentStyle));
+            _ = Task.Run(async () => await ReplayHandler(player, slot, arg, "69", "unknown", Int16.Parse(arg2), playerTimers[slot].currentStyle, false, playerTimers[slot].Mode));
         }
 
         [ConsoleCommand("css_replaybpb", "Replay your bonus pb")]
@@ -257,7 +257,7 @@ namespace SharpTimer
             string arg = command.ArgByIndex(1);
             int bonusX = Int16.Parse(arg);
 
-            _ = Task.Run(async () => await ReplayHandler(player, slot, "self", steamID, playerName, bonusX, playerTimers[slot].currentStyle));
+            _ = Task.Run(async () => await ReplayHandler(player, slot, "self", steamID, playerName, bonusX, playerTimers[slot].currentStyle, false, playerTimers[slot].Mode));
         }
 
         public async Task ReplayHandler(CCSPlayerController player, int slot, string arg = "1", string pbSteamID = "69", string playerName = "unknown", int bonusX = 0, int style = 0, bool wr = false, string mode = "")
@@ -283,7 +283,7 @@ namespace SharpTimer
             if (!self)
             {
                 if (enableDb)
-                    (srSteamID, srPlayerName, srTime) = await GetMapRecordSteamIDFromDatabase(bonusX, top10, style);
+                    (srSteamID, srPlayerName, srTime) = await GetMapRecordSteamIDFromDatabase(bonusX, top10, style, mode);
 
                 else
                     (srSteamID, srPlayerName, srTime) = await GetMapRecordSteamID(bonusX, top10);
@@ -570,7 +570,7 @@ namespace SharpTimer
 
             Server.NextFrame(async () =>
             {
-                await PrintTopRecordsHandler(player, player.PlayerName, 0, string.IsNullOrEmpty(mapName) ? "" : mapName, playerTimers[player.Slot].currentStyle);
+                await PrintTopRecordsHandler(player, player.PlayerName, 0, string.IsNullOrEmpty(mapName) ? "" : mapName, playerTimers[player.Slot].currentStyle, playerTimers[player.Slot].Mode);
             });
         }
 
@@ -664,10 +664,10 @@ namespace SharpTimer
                 return;
             }
 
-            Server.NextFrame(async () => await PrintTopRecordsHandler(player, player.PlayerName, bonusX));
+            Server.NextFrame(async () => await PrintTopRecordsHandler(player, player.PlayerName, bonusX, "", playerTimers[player.Slot].currentStyle, playerTimers[player.Slot].Mode));
         }
 
-        public async Task PrintTopRecordsHandler(CCSPlayerController? player, string playerName, int bonusX = 0, string mapName = "", int style = 0)
+        public async Task PrintTopRecordsHandler(CCSPlayerController? player, string playerName, int bonusX = 0, string mapName = "", int style = 0, string mode = "")
         {
             if (!IsPlayerOrSpectator(player) || topEnabled == false)
                 return;
@@ -680,7 +680,7 @@ namespace SharpTimer
             else
                 currentMapNamee = mapName;
 
-            var sortedRecords = await GetSortedRecordsFromDatabase(10, bonusX, mapName, style);
+            var sortedRecords = await GetSortedRecordsFromDatabase(10, bonusX, mapName, style, mode);
 
             Server.NextFrame(() =>
             {
@@ -741,7 +741,7 @@ namespace SharpTimer
             if (CommandCooldown(player))
                 return;
 
-            _ = Task.Run(async () => await RankCommandHandler(player, steamID, slot, playerName, false, playerTimers[slot].currentStyle));
+            _ = Task.Run(async () => await RankCommandHandler(player, steamID, slot, playerName, false, playerTimers[slot].currentStyle, playerTimers[slot].Mode));
         }
 
         public async Task RankCommandHandler(CCSPlayerController? player, string steamId, int slot, string playerName, bool sendRankToHUD = false, int style = 0, string mode = "")

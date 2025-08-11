@@ -1032,7 +1032,7 @@ namespace SharpTimer
                         if (enableReplays && !onlySRReplay)
                             _ = Task.Run(async () =>
                                 await DumpReplayToJson(player!, steamId, slot, bonusX,
-                                    playerTimers[slot].currentStyle));
+                                    playerTimers[slot].currentStyle, mode));
                         await row.CloseAsync();
 
                         string? upsertQuery;
@@ -1796,7 +1796,7 @@ namespace SharpTimer
                                     upsertCommand!.AddParameterWithValue("@HideKeys", value.HideKeys);
                                     upsertCommand!.AddParameterWithValue("@HideWeapon", value.HideWeapon);
                                     upsertCommand!.AddParameterWithValue("@HidePlayers", value.HidePlayers);
-                                    upsertCommand!.AddParameterWithValue("@HidePlayers", value.Mode);
+                                    upsertCommand!.AddParameterWithValue("@Mode", value.Mode);
                                     upsertCommand!.AddParameterWithValue("@SoundsEnabled", value.SoundsEnabled);
                                     upsertCommand!.AddParameterWithValue("@PlayerFov", value.PlayerFov);
                                     upsertCommand!.AddParameterWithValue("@IsVip", isVip);

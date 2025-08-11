@@ -75,6 +75,11 @@ public partial class SharpTimer
     {
         _playerModes[player.Slot] = mode;
         playerTimers[player.Slot].Mode = GetModeName(mode);
+        playerTimers[player.Slot].ChangedMode = true;
+        Server.NextFrame(() =>
+        {
+            SetPlayerStats(player, player.SteamID.ToString(), player.PlayerName, player.Slot);
+        });
         ApplyModeSettings(player, mode);
     }
 

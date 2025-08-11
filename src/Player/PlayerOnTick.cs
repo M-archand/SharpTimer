@@ -159,10 +159,18 @@ namespace SharpTimer
 
                         if (playerTimer.changedStyle)
                         {
-                            _ = Task.Run(async () => await RankCommandHandler(player, steamID, slot, playerName, true, playerTimer.currentStyle));
+                            _ = Task.Run(async () => await RankCommandHandler(player, steamID, slot, playerName, true, playerTimer.currentStyle, playerTimer.Mode));
                             playerTimer.changedStyle = false;
                         }
                         /* styles */
+                        
+                        /* modes */
+                        if (playerTimer.ChangedMode)
+                        {
+                            _ = Task.Run(async () => await RankCommandHandler(player, steamID, slot, playerName, true, playerTimer.currentStyle, playerTimer.Mode));
+                            playerTimer.ChangedMode = false;
+                        }
+                        /* modes */
 
                         // respawn player if on bhop block too long
                         bool isOnBhopBlock = playerTimer.IsOnBhopBlock;
@@ -205,7 +213,7 @@ namespace SharpTimer
                         if (playerTimer.IsRankPbCached == false)
                         {
                             Utils.LogDebug($"{playerName} has rank and pb null... calling handler");
-                            _ = Task.Run(async () => await RankCommandHandler(player, steamID, slot, playerName, true, playerTimer.currentStyle));
+                            _ = Task.Run(async () => await RankCommandHandler(player, steamID, slot, playerName, true, playerTimer.currentStyle, playerTimer.Mode));
 
                             playerTimer.IsRankPbCached = true;
                         }
@@ -215,7 +223,7 @@ namespace SharpTimer
                         {
                             Utils.LogDebug($"{playerName} CachedMapPlacement is still null, calling rank handler once more");
                             playerTimer.IsRankPbReallyCached = true;
-                            AddTimer(3.0f, () => { _ = Task.Run(async () => await RankCommandHandler(player, steamID, slot, playerName, true, playerTimer.currentStyle)); });                           
+                            AddTimer(3.0f, () => { _ = Task.Run(async () => await RankCommandHandler(player, steamID, slot, playerName, true, playerTimer.currentStyle, playerTimer.Mode)); });                           
                         }
                         /* ranks */
 
@@ -391,8 +399,8 @@ namespace SharpTimer
                     $"{playerTimer.CachedPB} " +
                     $"({playerTimer.CachedMapPlacement})" +
                     $"{(RankIconsEnabled ? $" |</font> <img src='{playerTimer.RankHUDIcon}'><font class='fontSize-s stratum-bold-italic' color='gray'>" : "")}" +
-                    $"{(enableStyles ? $" | {GetNamedStyle(playerTimer.currentStyle)}" : "")}" +
-                    $"{((MapTierHudEnabled && currentMapTier != null) ? $" | Tier: {currentMapTier}" : "")}" +
+                    $"{(enableStyles ? $" | {GetNamedStyle(playerTimer.currentStyle)} | {playerTimer.Mode}<br>" : $" | {playerTimer.Mode}<br>")}" +
+                    $"{((MapTierHudEnabled && currentMapTier != null) ? $"Tier: {currentMapTier}" : "")}" +
                     $"{((MapTypeHudEnabled && currentMapType != null) ? $" | {currentMapType}" : "")}" +
                     $"{((MapNameHudEnabled && currentMapType == null && currentMapTier == null) ? $" | {currentMapName}" : "")}" +
                     $"</font>"
@@ -413,7 +421,7 @@ namespace SharpTimer
                         $"{(cachedBonusInfo.Value != null ? $"{Utils.FormatTime(cachedBonusInfo.Value.PbTicks)}" : "Unranked")}" +
                         $"{(cachedBonusInfo.Value != null ? $" ({cachedBonusInfo.Value.Placement})" : "")}</font>" +
                         $"<font class='fontSize-s stratum-bold-italic' color='gray'>" +
-                        $"{(enableStyles ? $" | {GetNamedStyle(playerTimer.currentStyle)}" : "")}" +
+                        $"{(enableStyles ? $" | {GetNamedStyle(playerTimer.currentStyle)} | {playerTimer.Mode}" : $" | {playerTimer.Mode}")}" +
                         $" | Bonus #{currentBonusNumber} </font>"
                     : $" <font class='fontSize-s stratum-bold-italic' color='gray'>{playerTimer.ReplayHUDString}</font>";
             }

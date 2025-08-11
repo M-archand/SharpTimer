@@ -336,8 +336,12 @@ namespace SharpTimer
 
         public void ClearGlobalCache()
         {
-            recordCache.CachedWorldRecords = new Dictionary<int, GlobalRecord>();
+            recordCache.CachedStandardWorldRecords = new Dictionary<int, GlobalRecord>();
+            recordCache.Cached85tWorldRecords = new Dictionary<int, GlobalRecord>();
+            recordCache.CachedSourceWorldRecords = new Dictionary<int, GlobalRecord>();
+            recordCache.CachedArcadeWorldRecords = new Dictionary<int, GlobalRecord>();
             recordCache.CachedGlobalPoints = new List<PlayerPoints>();
+            
             mapCache.MapID = 0;
             mapCache.AddonID = 0;
             mapCache.MapName = "";
@@ -351,8 +355,15 @@ namespace SharpTimer
             if (!players.Any() && !initial)
                 return;
             
-            var sortedRecords = await GetSortedRecordsFromGlobal("Normal", "Standard", 0, 10);
-            recordCache.CachedWorldRecords = sortedRecords;
+            var sortedStandardRecords = await GetSortedRecordsFromGlobal("Normal", "Standard", 0, 10);
+            var sorted85tRecords = await GetSortedRecordsFromGlobal("Normal", "85t", 0, 10);
+            var sortedSourceRecords = await GetSortedRecordsFromGlobal("Normal", "Source", 0, 10);
+            var sortedArcadeRecords = await GetSortedRecordsFromGlobal("Normal", "Arcade", 0, 10);
+            
+            recordCache.CachedStandardWorldRecords = sortedStandardRecords;
+            recordCache.Cached85tWorldRecords = sorted85tRecords;
+            recordCache.CachedSourceWorldRecords = sortedSourceRecords;
+            recordCache.CachedArcadeWorldRecords = sortedArcadeRecords;
         }
 
         public async Task CacheGlobalPoints(bool initial = false)
@@ -615,18 +626,44 @@ namespace SharpTimer
         {
             try
             {
-                if (recordCache.CachedWorldRecords is null)
+                if (recordCache.CachedStandardWorldRecords is null
+                    || recordCache.Cached85tWorldRecords is null
+                    || recordCache.CachedSourceWorldRecords is null
+                    || recordCache.CachedArcadeWorldRecords is null)
                     _ = Task.Run(async () => await CacheWorldRecords());
                 
                 Server.NextFrame(() =>
                 {
                     Utils.PrintToChat(player, Localizer["current_wr", currentMapName!]);
 
-                    if (recordCache.CachedWorldRecords == null || recordCache.CachedWorldRecords.Count <= 0)
+                    if (recordCache.CachedStandardWorldRecords == null || recordCache.CachedStandardWorldRecords.Count <= 0
+                        || recordCache.Cached85tWorldRecords == null || recordCache.Cached85tWorldRecords.Count <= 0
+                        || recordCache.CachedSourceWorldRecords == null || recordCache.CachedSourceWorldRecords.Count <= 0
+                        || recordCache.CachedArcadeWorldRecords == null || recordCache.CachedArcadeWorldRecords.Count <= 0)
                         return;
 
                     int position = 1;
-                    foreach (var record in recordCache.CachedWorldRecords)
+                    Dictionary<int, GlobalRecord> tempCache;
+                    switch (playerTimers[player.Slot].Mode)
+                    {
+                        case "Standard":
+                            tempCache = recordCache.CachedStandardWorldRecords;
+                            break;
+                        case "85t":
+                            tempCache = recordCache.Cached85tWorldRecords;
+                            break;
+                        case "Source":
+                            tempCache = recordCache.CachedSourceWorldRecords;
+                            break;
+                        case "Arcade":
+                            tempCache = recordCache.CachedArcadeWorldRecords;
+                            break;
+                        default:
+                            tempCache = recordCache.CachedStandardWorldRecords;
+                            break;
+                    }
+                    
+                    foreach (var record in tempCache)
                     {
                         string replayIndicator = record.Value.replay ? $"{ChatColors.Red}◉" : "";
                         Utils.PrintToChat(player, $"{Localizer["records_map", position, record.Value.player_name!, replayIndicator, Utils.FormatDecimalTime(record.Value.time)]}");
