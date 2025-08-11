@@ -278,7 +278,7 @@ namespace SharpTimer
         public double standardModeModifier = 1;
         public double _85tModeModifier = 0.9;
         public double arcadeModeModifier = 0.8;
-        
+        public double _128tModeModifier = 0.8;
 
         public bool execCustomMapCFG = false;
 

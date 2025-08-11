@@ -13,6 +13,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Admin;
 
@@ -79,13 +80,19 @@ namespace SharpTimer
                             _ = Task.Run(async () =>
                             {
                                 await GetPlayerStats(player, steamID, playerName, slot, true);
-                                if (TryParseMode(playerTimers[player.Slot].Mode.ToLower(), out Mode newMode) && newMode != defaultMode)
-                                    SetPlayerMode(player, newMode);
-                                else
-                                    SetPlayerMode(player, defaultMode);
+                                Server.NextFrame(() =>
+                                {
+                                    if (connectedPlayers.TryGetValue(slot, out var connectedPlayer) && connectedPlayer.IsValid)
+                                    {
+                                        if (TryParseMode(playerTimers[slot].Mode.ToLower(), out Mode newMode) && newMode != defaultMode)
+                                            SetPlayerMode(connectedPlayer, newMode);
+                                        else
+                                            SetPlayerMode(connectedPlayer, defaultMode);
+                                    }
+                                });
                             });
 
-                        if (cmdJoinMsgEnabled == true)
+                        if (cmdJoinMsgEnabled)
                             PrintAllEnabledCommands(player);
 
                         if (connectMsgEnabled == true && !enableDb)

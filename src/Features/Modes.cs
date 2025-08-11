@@ -39,7 +39,8 @@ public partial class SharpTimer
         new(Mode.Standard, 150f, 10f, 30.0f, 5.2f),
         new(Mode._85t, 150f, 10f, 37.41f, 5.2f),
         new(Mode.Source, 150f, 5f, 30.71f, 4f),
-        new(Mode.Arcade, 1000f, 10f, 43.55f, 4f)
+        new(Mode.Arcade, 1000f, 10f, 43.55f, 4f),
+        new(Mode._128t, 150f, 10f, 52.59f, 5.2f)
     };
 
     private static readonly Dictionary<Mode, int> ModeIndexLookup = new()
@@ -47,7 +48,8 @@ public partial class SharpTimer
         { Mode.Standard, 0 },
         { Mode._85t, 1 },
         { Mode.Source, 2 },
-        { Mode.Arcade, 3 }
+        { Mode.Arcade, 3 },
+        { Mode._128t, 3 }
     };
 
     private bool TryParseMode(string input, out Mode mode)
@@ -101,6 +103,7 @@ public partial class SharpTimer
             Mode._85t => "85t",
             Mode.Source => "Source",
             Mode.Arcade => "Arcade",
+            Mode._128t => "128t",
             _ => mode.ToString()
         };
     }
@@ -119,6 +122,8 @@ public partial class SharpTimer
                     return 0.9;
                 case "arcade":
                     return 0.8;
+                case "128t":
+                    return 0.8;
                 default:
                     return 1;
             }
@@ -134,6 +139,8 @@ public partial class SharpTimer
                 return _85tModeModifier;
             case "arcade":
                 return arcadeModeModifier;
+            case "128t":
+                return _128tModeModifier;
             default:
                 return 1;
         }
@@ -312,7 +319,8 @@ public partial class SharpTimer
 public enum Mode
 {
     Standard = 0, // default csgo 1:1 cfg (64 tick)
-    _85t = 1, // 85t-ish speed (37.41 wishspeed)
-    Source = 2, // 66t-ish + lower accel + cs:s friction (30.71 wishspeed & 5 accel & 4 friction)
-    Arcade = 3 // 102.4t-ish + higher aa + cs:s friction (43.55 wishspeed & 1000 aa & 4 friction)
+    _85t = 1,     // 85t-ish speed (37.41 wishspeed)
+    Source = 2,   // 66t-ish + lower accel + cs:s friction (30.71 wishspeed & 5 accel & 4 friction)
+    Arcade = 3,   // 102.4t-ish + higher aa + cs:s friction (43.55 wishspeed & 1000 aa & 4 friction)
+    _128t = 4     // 128t-ish speed (52.59 wishspeed)
 }

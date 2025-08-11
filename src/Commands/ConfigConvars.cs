@@ -860,6 +860,23 @@ namespace SharpTimer
             }
         }
         
+        [ConsoleCommand("sharptimer_mode_multiplier_128t", "Point modifier for 128t mode. Default value: 0.8")]
+        [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
+        public void SharpTimer128tModeMultiplierConvar(CCSPlayerController? player, CommandInfo command)
+        {
+            string args = command.ArgString;
+
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double pointModifier) && pointModifier is >= 0 and <= 2)
+            {
+                _128tModeModifier = pointModifier;
+                Utils.LogDebug($"SharpTimer 128t mode point modifier set to {pointModifier}.");
+            }
+            else
+            {
+                Utils.LogError("Invalid 128t mode point modifier. Please provide a positive integer.");
+            }
+        }
+        
         [ConsoleCommand("sharptimer_mode_multiplier_arcade", "Point modifier for arcade mode. Default value: 0.8")]
         [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
         public void SharpTimerArcadeModeMultiplierConvar(CCSPlayerController? player, CommandInfo command)
