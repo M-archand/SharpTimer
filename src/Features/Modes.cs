@@ -49,7 +49,8 @@ public partial class SharpTimer
         { Mode._85t, 1 },
         { Mode.Source, 2 },
         { Mode.Arcade, 3 },
-        { Mode._128t, 3 }
+        { Mode._128t, 4 },
+        { Mode.Custom, 5 }
     };
 
     private bool TryParseMode(string input, out Mode mode)
@@ -87,6 +88,9 @@ public partial class SharpTimer
 
     private void ApplyModeSettings(CCSPlayerController player, Mode mode)
     {
+        if (playerTimers[player.Slot].Mode == "Custom")
+            return;
+        
         var config = ConfigValues[ModeIndexLookup[mode]];
 
         player.ReplicateConVar("sv_airaccelerate", config.AirAccelerate.ToString());
@@ -141,6 +145,8 @@ public partial class SharpTimer
                 return arcadeModeModifier;
             case "128t":
                 return _128tModeModifier;
+            case "custom":
+                return 1;
             default:
                 return 1;
         }
@@ -248,7 +254,7 @@ public partial class SharpTimer
         CCSPlayer_MovementServices movementServices = hook.GetParam<CCSPlayer_MovementServices>(0);
         Mode? playerMode = GetPlayerMode(movementServices);
 
-        if (playerMode == null || !ModeIndexLookup.ContainsKey(playerMode.Value))
+        if (playerMode == null || !ModeIndexLookup.ContainsKey(playerMode.Value) || playerMode == Mode.Custom)
         {
             return HookResult.Continue;
         }
@@ -288,6 +294,12 @@ public partial class SharpTimer
         {
             return HookResult.Continue;
         }
+        
+        CCSPlayer_MovementServices movementServices = hook.GetParam<CCSPlayer_MovementServices>(0);
+        Mode? playerMode = GetPlayerMode(movementServices);
+
+        if (playerMode == Mode.Custom)
+            return HookResult.Continue;
 
         var defaultConfig = ConfigValues[ModeIndexLookup[defaultMode]];
 
@@ -318,9 +330,10 @@ public partial class SharpTimer
 [Flags]
 public enum Mode
 {
-    Standard = 0, // default csgo 1:1 cfg (64 tick)
-    _85t = 1,     // 85t-ish speed (37.41 wishspeed)
-    Source = 2,   // 66t-ish + lower accel + cs:s friction (30.71 wishspeed & 5 accel & 4 friction)
-    Arcade = 3,   // 102.4t-ish + higher aa + cs:s friction (43.55 wishspeed & 1000 aa & 4 friction)
-    _128t = 4     // 128t-ish speed (52.59 wishspeed)
+    Standard = 0,  // default csgo 1:1 cfg (64 tick)
+    _85t = 1,      // 85t-ish speed (37.41 wishspeed)
+    Source = 2,    // 66t-ish + lower accel + cs:s friction (30.71 wishspeed & 5 accel & 4 friction)
+    Arcade = 3,    // 102.4t-ish + higher aa + cs:s friction (43.55 wishspeed & 1000 aa & 4 friction)
+    _128t = 4,     // 128t-ish speed (52.59 wishspeed)
+    Custom = 5     // Use custom server cvars (WILL NOT SUBMIT TO GLOBAL)
 }

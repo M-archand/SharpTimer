@@ -972,6 +972,9 @@ namespace SharpTimer
                                 
                                 Mode playerMode = _playerModes[slot];
                                 string modeString = GetModeName(playerMode);
+
+                                if (modeString == "Custom")
+                                    return;
                                 
                                 //first lets see if the new record beats global pb
                                 var beatGlobalPB = false;
@@ -1106,6 +1109,9 @@ namespace SharpTimer
                                 
                                 Mode playerMode = _playerModes[slot];
                                 string modeString = GetModeName(playerMode);
+
+                                if (modeString == "Custom")
+                                    return;
 
                                 //first lets see if the new record beats global pb
                                 var beatGlobalPB = false;
