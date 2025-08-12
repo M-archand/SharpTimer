@@ -9,10 +9,10 @@ namespace SharpTimer;
 
 public partial class SharpTimer
 {
-    private static readonly ConVar? _wishspeed = ConVar.Find("sv_air_max_wishspeed");
-    private static readonly ConVar? _airaccel = ConVar.Find("sv_airaccelerate");
-    private static readonly ConVar? _accel = ConVar.Find("sv_accelerate");
-    private static readonly ConVar? _friction = ConVar.Find("sv_friction");
+    private readonly ConVar? _wishspeed = ConVar.Find("sv_air_max_wishspeed");
+    private readonly ConVar? _airaccel = ConVar.Find("sv_airaccelerate");
+    private readonly ConVar? _accel = ConVar.Find("sv_accelerate");
+    private readonly ConVar? _friction = ConVar.Find("sv_friction");
 
     private readonly Mode[] _playerModes = new Mode[64];
 
@@ -41,7 +41,8 @@ public partial class SharpTimer
         new(Mode.Source, 150f, 5f, 30.71f, 4f),
         new(Mode.Arcade, 1000f, 10f, 43.55f, 4f),
         new(Mode._128t, 150f, 10f, 52.59f, 5.2f),
-        new(Mode.Custom, _airaccel.GetPrimitiveValue<float>(), _accel.GetPrimitiveValue<float>(), _wishspeed.GetPrimitiveValue<float>(), _friction.GetPrimitiveValue<float>()),
+        new(Mode.Custom, ConVar.Find("sv_airaccelerate")!.GetPrimitiveValue<float>(), ConVar.Find("sv_accelerate")!.GetPrimitiveValue<float>(), 
+            ConVar.Find("sv_air_max_wishspeed")!.GetPrimitiveValue<float>(), ConVar.Find("sv_friction")!.GetPrimitiveValue<float>())
     };
 
     private static readonly Dictionary<Mode, int> ModeIndexLookup = new()
@@ -89,6 +90,9 @@ public partial class SharpTimer
 
     private void ApplyModeSettings(CCSPlayerController player, Mode mode)
     {
+        if (playerTimers[player.Slot].Mode == "Custom")
+            return;
+        
         var config = ConfigValues[ModeIndexLookup[mode]];
 
         player.ReplicateConVar("sv_airaccelerate", config.AirAccelerate.ToString());
@@ -240,7 +244,11 @@ public partial class SharpTimer
 
     private HookResult ApplyConvar(DynamicHook hook)
     {
-        if (_accel == null || _airaccel == null || _wishspeed == null || _friction == null)
+        CCSPlayerController player = hook.GetParam<CCSPlayer_MovementServices>(0).Pawn.Value.Controller.Value?.As<CCSPlayerController>();
+        CCSPlayer_MovementServices movementServices = hook.GetParam<CCSPlayer_MovementServices>(0);
+        Mode? playerMode = GetPlayerMode(movementServices);
+        
+        if (_accel == null || _airaccel == null || _wishspeed == null || _friction == null || player == null)
         {
             return HookResult.Continue;
         }
@@ -250,10 +258,7 @@ public partial class SharpTimer
         _wasConVarChanged["sv_air_max_wishspeed"] = false;
         _wasConVarChanged["sv_friction"] = false;
 
-        CCSPlayer_MovementServices movementServices = hook.GetParam<CCSPlayer_MovementServices>(0);
-        Mode? playerMode = GetPlayerMode(movementServices);
-
-        if (playerMode == null || !ModeIndexLookup.ContainsKey(playerMode.Value))
+        if (playerMode == null || !ModeIndexLookup.ContainsKey(playerMode.Value) || playerMode == Mode.Custom)
         {
             return HookResult.Continue;
         }
@@ -289,10 +294,17 @@ public partial class SharpTimer
 
     private HookResult ResetConvar(DynamicHook hook)
     {
-        if (_accel == null || _airaccel == null || _wishspeed == null || _friction == null)
+        CCSPlayer_MovementServices movementServices = hook.GetParam<CCSPlayer_MovementServices>(0);
+        CCSPlayerController player = hook.GetParam<CCSPlayer_MovementServices>(0).Pawn.Value.Controller.Value?.As<CCSPlayerController>();
+        Mode? playerMode = GetPlayerMode(movementServices);
+
+        if (_accel == null || _airaccel == null || _wishspeed == null || _friction == null || player == null)
         {
             return HookResult.Continue;
         }
+        
+        if (playerMode == Mode.Custom)
+            return HookResult.Continue;
 
         var defaultConfig = ConfigValues[ModeIndexLookup[defaultMode]];
 
