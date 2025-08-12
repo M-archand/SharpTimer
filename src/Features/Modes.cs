@@ -9,10 +9,10 @@ namespace SharpTimer;
 
 public partial class SharpTimer
 {
-    private readonly ConVar? _wishspeed = ConVar.Find("sv_air_max_wishspeed");
-    private readonly ConVar? _airaccel = ConVar.Find("sv_airaccelerate");
-    private readonly ConVar? _accel = ConVar.Find("sv_accelerate");
-    private readonly ConVar? _friction = ConVar.Find("sv_friction");
+    private static readonly ConVar? _wishspeed = ConVar.Find("sv_air_max_wishspeed");
+    private static readonly ConVar? _airaccel = ConVar.Find("sv_airaccelerate");
+    private static readonly ConVar? _accel = ConVar.Find("sv_accelerate");
+    private static readonly ConVar? _friction = ConVar.Find("sv_friction");
 
     private readonly Mode[] _playerModes = new Mode[64];
 
@@ -40,7 +40,8 @@ public partial class SharpTimer
         new(Mode._85t, 150f, 10f, 37.41f, 5.2f),
         new(Mode.Source, 150f, 5f, 30.71f, 4f),
         new(Mode.Arcade, 1000f, 10f, 43.55f, 4f),
-        new(Mode._128t, 150f, 10f, 52.59f, 5.2f)
+        new(Mode._128t, 150f, 10f, 52.59f, 5.2f),
+        new(Mode.Custom, _airaccel.GetPrimitiveValue<float>(), _accel.GetPrimitiveValue<float>(), _wishspeed.GetPrimitiveValue<float>(), _friction.GetPrimitiveValue<float>()),
     };
 
     private static readonly Dictionary<Mode, int> ModeIndexLookup = new()
@@ -88,9 +89,6 @@ public partial class SharpTimer
 
     private void ApplyModeSettings(CCSPlayerController player, Mode mode)
     {
-        if (playerTimers[player.Slot].Mode == "Custom")
-            return;
-        
         var config = ConfigValues[ModeIndexLookup[mode]];
 
         player.ReplicateConVar("sv_airaccelerate", config.AirAccelerate.ToString());
@@ -108,6 +106,7 @@ public partial class SharpTimer
             Mode.Source => "Source",
             Mode.Arcade => "Arcade",
             Mode._128t => "128t",
+            Mode.Custom => "Custom",
             _ => mode.ToString()
         };
     }
@@ -254,7 +253,7 @@ public partial class SharpTimer
         CCSPlayer_MovementServices movementServices = hook.GetParam<CCSPlayer_MovementServices>(0);
         Mode? playerMode = GetPlayerMode(movementServices);
 
-        if (playerMode == null || !ModeIndexLookup.ContainsKey(playerMode.Value) || playerMode == Mode.Custom)
+        if (playerMode == null || !ModeIndexLookup.ContainsKey(playerMode.Value))
         {
             return HookResult.Continue;
         }
@@ -294,12 +293,6 @@ public partial class SharpTimer
         {
             return HookResult.Continue;
         }
-        
-        CCSPlayer_MovementServices movementServices = hook.GetParam<CCSPlayer_MovementServices>(0);
-        Mode? playerMode = GetPlayerMode(movementServices);
-
-        if (playerMode == Mode.Custom)
-            return HookResult.Continue;
 
         var defaultConfig = ConfigValues[ModeIndexLookup[defaultMode]];
 
