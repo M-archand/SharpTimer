@@ -822,7 +822,7 @@ namespace SharpTimer
                     selectCommand!.AddParameterWithValue("@SteamID", steamId);
                     selectCommand!.AddParameterWithValue("@Style", style);
                     selectCommand!.AddParameterWithValue("@Mode", mode);
-                    
+
                     var row = await selectCommand!.ExecuteReaderAsync();
 
                     if (row.Read())
@@ -950,7 +950,8 @@ namespace SharpTimer
                             if (enableDb && IsAllowedPlayer(player))
                                 await RankCommandHandler(player, steamId, slot, playerName, true, style, mode);
                             if (globalRanksEnabled == true)
-                                await SavePlayerPoints(steamId, playerName, slot, timerTicks, dBtimerTicks, mode, beatPB,
+                                await SavePlayerPoints(steamId, playerName, slot, timerTicks, dBtimerTicks, mode,
+                                    beatPB,
                                     bonusX, style, dBtimesFinished);
                             if (IsAllowedPlayer(player))
                                 Server.NextFrame(() => _ = Task.Run(async () => await PrintMapTimeToChat(player!,
@@ -969,13 +970,13 @@ namespace SharpTimer
 
                                 DateTimeOffset timeCreated = DateTimeOffset.UtcNow;
                                 int playerId = playerCache.PlayerID[player];
-                                
+
                                 Mode playerMode = _playerModes[slot];
                                 string modeString = GetModeName(playerMode);
 
                                 if (modeString == "Custom")
                                     return;
-                                
+
                                 //first lets see if the new record beats global pb
                                 var beatGlobalPB = false;
                                 var prevPBTime = await GetPreviousPlayerRecordFromGlobal(playerId, modeString,
@@ -997,13 +998,14 @@ namespace SharpTimer
                                         created_on = timeCreated
                                     }
                                 };
-                                
+
                                 //TODO: Implement binary formatting and re-enable replay submission
                                 _ = Task.Run(async () =>
                                 {
                                     await SubmitRecordAsync(record_payload); // submit the record to DB
                                     int recordID = await GetRecordIDAsync(playerId, timeCreated);
-                                    int globalPoints = await CalculateGlobalPoints(playerId, Utils.TicksToDecimal(timerTicks), bonusX, style, mode); 
+                                    int globalPoints = await CalculateGlobalPoints(playerId,
+                                        Utils.TicksToDecimal(timerTicks), bonusX, style, mode);
                                     await SubmitPointsAsync(playerId, globalPoints, recordID);
                                     await UpdateTotalPointsAsync(playerId);
                                 }).ConfigureAwait(false);
@@ -1079,7 +1081,8 @@ namespace SharpTimer
                                 prevSRID.Item2, bonusX, style, mode);
                             await upsertCommand!.ExecuteNonQueryAsync();
                             if (globalRanksEnabled == true)
-                                await SavePlayerPoints(steamId, playerName, slot, timerTicks, dBtimerTicks, mode, beatPB,
+                                await SavePlayerPoints(steamId, playerName, slot, timerTicks, dBtimerTicks, mode,
+                                    beatPB,
                                     bonusX, style, dBtimesFinished);
 
                             if (style == 0 && (stageTriggerCount != 0 || cpTriggerCount != 0) && bonusX == 0 &&
@@ -1103,10 +1106,10 @@ namespace SharpTimer
                             {
                                 if (!mapCache.Verified)
                                     return;
-                                
+
                                 DateTimeOffset timeCreated = DateTimeOffset.UtcNow;
                                 int playerId = playerCache.PlayerID[player];
-                                
+
                                 Mode playerMode = _playerModes[slot];
                                 string modeString = GetModeName(playerMode);
 
@@ -1140,7 +1143,8 @@ namespace SharpTimer
                                 {
                                     await SubmitRecordAsync(record_payload); // submit the record to DB
                                     int recordID = await GetRecordIDAsync(playerId, timeCreated);
-                                    int globalPoints = await CalculateGlobalPoints(playerId, Utils.TicksToDecimal(timerTicks), bonusX, style, mode); 
+                                    int globalPoints = await CalculateGlobalPoints(playerId,
+                                        Utils.TicksToDecimal(timerTicks), bonusX, style, mode);
                                     await SubmitPointsAsync(playerId, globalPoints, recordID);
                                     await UpdateTotalPointsAsync(playerId);
                                 }).ConfigureAwait(false);
@@ -1920,7 +1924,8 @@ namespace SharpTimer
         }
 
         public async Task SavePlayerPoints(string steamId, string playerName, int slot, int timerTicks, int oldTicks,
-            string mode, bool beatPB = false, int bonusX = 0, int style = 0, int completions = 0, string mapname = "", bool import = false)
+            string mode, bool beatPB = false, int bonusX = 0, int style = 0, int completions = 0, string mapname = "",
+            bool import = false)
         {
             Utils.LogDebug($"Trying to set player points in database for {playerName}");
             try
@@ -2225,7 +2230,7 @@ namespace SharpTimer
                 // Apply style multiplier if enabled
                 if (enableStylePoints)
                     newPoints *= GetStyleMultiplier(style);
-                
+
                 // Apply mode multiplier
                 newPoints *= GetModeMultiplier(mode);
 
@@ -2308,7 +2313,7 @@ namespace SharpTimer
                     newPoints += CalculateGroups(maxPoints,
                         await GetPlayerGlobalMapPercentile(playerId, mode, GetNamedStyle(style), bonusX, time), true);
                 }
-                
+
                 // Apply mode multiplier
                 newPoints *= GetModeMultiplier(mode, true);
 
@@ -3168,6 +3173,224 @@ namespace SharpTimer
                 catch (Exception ex)
                 {
                     Utils.LogError($"Error getting sorted records from database: {ex.Message}");
+                }
+            }
+
+            return [];
+        }
+
+        public async Task<Dictionary<int, PlayerRecord>> GetTopPlayersFromDatabase(int limit = 0, int bonusX = 0,
+            string mapName = "", int style = 0, string mode = "", string type = "")
+        {
+            Utils.LogDebug($"Trying GetSortedRecords {(bonusX != 0 ? $"bonus {bonusX}" : "")} from database");
+            using (var connection = await OpenConnectionAsync())
+            {
+                try
+                {
+                    string? currentMapNamee;
+                    if (string.IsNullOrEmpty(mapName))
+                        currentMapNamee = bonusX == 0 ? currentMapName! : $"{currentMapName}_bonus{bonusX}";
+                    else
+                        currentMapNamee = mapName;
+
+                    await CreatePlayerRecordsTableAsync(connection);
+
+                    // Retrieve and sort records for the current map
+                    string? selectQuery;
+                    DbCommand? selectCommand;
+                    if (limit != 0)
+                    {
+                        switch (dbType)
+                        {
+                            case DatabaseType.MySQL:
+                                selectQuery =
+                                    $@"SELECT SteamID, PlayerName, TimerTicks, Completions FROM PlayerRecords WHERE MapName = @MapName AND Style = @Style AND Mode = @Mode ORDER BY TimerTicks ASC LIMIT {limit}";
+                                selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
+                                break;
+                            case DatabaseType.PostgreSQL:
+                                selectQuery =
+                                    $@"SELECT ""SteamID"", ""PlayerName"", ""TimerTicks"", ""Completions"" FROM ""PlayerRecords"" WHERE ""MapName"" = @MapName AND ""Style"" = @Style AND ""Mode"" = @Mode ORDER BY ""TimerTicks"" ASC LIMIT {limit}";
+                                selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
+                                break;
+                            case DatabaseType.SQLite:
+                                selectQuery =
+                                    $@"SELECT SteamID, PlayerName, TimerTicks, Completions FROM PlayerRecords WHERE MapName = @MapName AND Style = @Style AND Mode = @Mode ORDER BY TimerTicks ASC LIMIT {limit}";
+                                selectCommand = new SQLiteCommand(selectQuery, (SQLiteConnection)connection);
+                                break;
+                            default:
+                                selectQuery = null;
+                                selectCommand = null;
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        switch (dbType)
+                        {
+                            case DatabaseType.MySQL:
+                                selectQuery =
+                                    @"SELECT SteamID, PlayerName, TimerTicks, Completions FROM PlayerRecords WHERE MapName = @MapName AND Style = @Style AND Mode = @Mode";
+                                selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
+                                break;
+                            case DatabaseType.PostgreSQL:
+                                selectQuery =
+                                    @"SELECT ""SteamID"", ""PlayerName"", ""TimerTicks"", ""Completions"" FROM ""PlayerRecords"" WHERE ""MapName"" = @MapName AND ""Style"" = @Style AND ""Mode"" = @Mode";
+                                selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
+                                break;
+                            case DatabaseType.SQLite:
+                                selectQuery =
+                                    @"SELECT SteamID, PlayerName, TimerTicks, Completions FROM PlayerRecords WHERE MapName = @MapName AND Style = @Style AND Mode = @Mode";
+                                selectCommand = new SQLiteCommand(selectQuery, (SQLiteConnection)connection);
+                                break;
+                            default:
+                                selectQuery = null;
+                                selectCommand = null;
+                                break;
+                        }
+                    }
+
+                    using (selectCommand)
+                    {
+                        selectCommand!.AddParameterWithValue("@MapName", currentMapNamee);
+                        selectCommand!.AddParameterWithValue("@Style", style);
+                        selectCommand!.AddParameterWithValue("@Mode", mode);
+                        using (var reader = await selectCommand!.ExecuteReaderAsync())
+                        {
+                            var sortedRecords = new Dictionary<int, PlayerRecord>();
+                            int record = 0;
+                            while (await reader.ReadAsync())
+                            {
+                                string steamId = reader.GetString(0);
+                                string playerName = reader.IsDBNull(1) ? "Unknown" : reader.GetString(1);
+                                int timerTicks = reader.GetInt32(2);
+                                int completions = reader.GetInt32(3);
+                                sortedRecords.Add(record, new PlayerRecord
+                                {
+                                    SteamID = steamId,
+                                    PlayerName = playerName,
+                                    TimerTicks = timerTicks,
+                                    Completions = completions
+                                });
+                                record++;
+                            }
+
+                            if (type == "Times")
+                            {
+                                sortedRecords = sortedRecords.OrderBy(record => record.Value.TimerTicks)
+                                    .ToDictionary(record => record.Key, record => record.Value);
+                            }
+                            else
+                            {
+                                sortedRecords = sortedRecords.OrderByDescending(record => record.Value.Completions)
+                                    .ToDictionary(record => record.Key, record => record.Value);
+                            }
+
+                            Utils.LogDebug(
+                                $"Got GetTopPlayers {(bonusX != 0 ? $"bonus {bonusX}" : "")} from database");
+
+                            return sortedRecords;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Utils.LogError($"Error getting sorted records from database: {ex.Message}");
+                }
+            }
+
+            return [];
+        }
+
+        public async Task<Dictionary<int, PlayerPoints>> GetTopPointsFromDatabase(int limit = 0)
+        {
+            using (var connection = await OpenConnectionAsync())
+            {
+                try
+                {
+                    string? selectQuery;
+                    DbCommand? selectCommand;
+                    switch (dbType)
+                    {
+                        case DatabaseType.MySQL:
+                            selectQuery =
+                                $@"WITH RankedPlayers AS (
+                                            SELECT
+                                                SteamID,
+                                                PlayerName,
+                                                GlobalPoints,
+                                                DENSE_RANK() OVER (ORDER BY GlobalPoints DESC) AS playerPlace
+                                            FROM {PlayerStatsTable})
+                                        SELECT SteamID, PlayerName, GlobalPoints, playerPlace
+                                        FROM RankedPlayers
+                                        ORDER BY GlobalPoints DESC
+                                        LIMIT @limit";
+                            selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
+                            break;
+                        case DatabaseType.PostgreSQL:
+                            selectQuery =
+                                $@"WITH RankedPlayers AS (
+                                            SELECT
+                                                ""SteamID"",
+                                                ""PlayerName"",
+                                                ""GlobalPoints"",
+                                                DENSE_RANK() OVER (ORDER BY ""GlobalPoints"" DESC) AS playerPlace
+                                            FROM ""{PlayerStatsTable}"")
+                                        SELECT ""SteamID"", ""PlayerName"", ""GlobalPoints"", playerPlace
+                                        FROM RankedPlayers
+                                        ORDER BY ""GlobalPoints"" DESC
+                                        LIMIT @limit";
+                            selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
+                            break;
+                        case DatabaseType.SQLite:
+                            selectQuery =
+                                $@"WITH RankedPlayers AS (
+                                            SELECT
+                                                SteamID,
+                                                PlayerName,
+                                                GlobalPoints,
+                                                DENSE_RANK() OVER (ORDER BY GlobalPoints DESC) AS playerPlace
+                                            FROM {PlayerStatsTable})
+                                        SELECT SteamID, PlayerName, GlobalPoints, playerPlace
+                                        FROM RankedPlayers
+                                        ORDER BY GlobalPoints DESC
+                                        LIMIT @limit";
+                            selectCommand = new SQLiteCommand(selectQuery, (SQLiteConnection)connection);
+                            break;
+                        default:
+                            selectQuery = null;
+                            selectCommand = null;
+                            break;
+                    }
+
+                    using (selectCommand)
+                    {
+                        selectCommand!.AddParameterWithValue("@limit", limit);
+                        using (var reader = await selectCommand!.ExecuteReaderAsync())
+                        {
+                            var sortedPoints = new Dictionary<int, PlayerPoints>();
+                            int playerNum = 0;
+                            while (await reader.ReadAsync())
+                            {
+                                string steamId = reader.GetString(0);
+                                string playerName = reader.IsDBNull(1) ? "Unknown" : reader.GetString(1);
+                                int globalPoints = reader.GetInt32(2);
+                                int playerPlace = reader.GetInt32(3);
+                                sortedPoints.Add(playerNum, new PlayerPoints
+                                {
+                                    SteamID = steamId,
+                                    PlayerName = playerName,
+                                    GlobalPoints = globalPoints,
+                                    Placement = playerPlace
+                                });
+                                playerNum++;
+                            }
+                            return sortedPoints.ToDictionary(points => points.Key, points => points.Value);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Utils.LogError($"Error getting top points from database: {ex.Message}");
                 }
             }
 

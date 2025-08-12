@@ -352,6 +352,7 @@ namespace SharpTimer
         public string? MapName { get; set; }
         public int TimerTicks { get; set; }
         public bool Replay { get; set; }
+        public int Completions { get; set; }
     }
     
     public class GlobalRecord
@@ -399,8 +400,10 @@ namespace SharpTimer
     // PlayerPoints for MySql
     public class PlayerPoints
     {
+        public string SteamID { get; set; }
         public string? PlayerName { get; set; }
         public int GlobalPoints { get; set; }
+        public int Placement { get; set; }
     }
 
     // Checkpoints
