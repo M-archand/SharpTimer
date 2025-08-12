@@ -248,9 +248,6 @@ namespace SharpTimer
         
         public async Task<int> GetMapIDAsync (long workshop_id)
         {
-            if (apiKey == "")
-                return 0;
-
             try
             {
                 var payload = new
@@ -340,6 +337,7 @@ namespace SharpTimer
             recordCache.Cached85tWorldRecords = new Dictionary<int, GlobalRecord>();
             recordCache.CachedSourceWorldRecords = new Dictionary<int, GlobalRecord>();
             recordCache.CachedArcadeWorldRecords = new Dictionary<int, GlobalRecord>();
+            recordCache.Cached128tWorldRecords = new Dictionary<int, GlobalRecord>();
             recordCache.CachedGlobalPoints = new List<PlayerPoints>();
             
             mapCache.MapID = 0;
@@ -359,11 +357,13 @@ namespace SharpTimer
             var sorted85tRecords = await GetSortedRecordsFromGlobal("Normal", "85t", 0, 10);
             var sortedSourceRecords = await GetSortedRecordsFromGlobal("Normal", "Source", 0, 10);
             var sortedArcadeRecords = await GetSortedRecordsFromGlobal("Normal", "Arcade", 0, 10);
+            var sorted128tRecords = await GetSortedRecordsFromGlobal("Normal", "128t", 0, 10);
             
             recordCache.CachedStandardWorldRecords = sortedStandardRecords;
             recordCache.Cached85tWorldRecords = sorted85tRecords;
             recordCache.CachedSourceWorldRecords = sortedSourceRecords;
             recordCache.CachedArcadeWorldRecords = sortedArcadeRecords;
+            recordCache.Cached128tWorldRecords = sorted128tRecords;
         }
 
         public async Task CacheGlobalPoints(bool initial = false)
@@ -395,13 +395,15 @@ namespace SharpTimer
         
         public async Task CacheMapData(int mapId, long addonId, string mapName)
         {
-            if (apiKey == "")
-                return;
-            
             mapCache.MapID = mapId;
             mapCache.AddonID = addonId;
             mapCache.MapName = mapName;
             mapCache.Verified = await CheckAddonAsync(addonId);
+            Utils.LogDebug("Cached Map Data");
+            Utils.LogDebug("Map ID: " + mapCache.MapID);
+            Utils.LogDebug("Map Name: " + mapCache.MapName);
+            Utils.LogDebug("Addon ID: " + mapCache.AddonID);
+            Utils.LogDebug("Verified: " + mapCache.Verified);
         }
 
         public async Task<List<PlayerPoints>> GetTopPointsAsync(int limit = 10)
@@ -629,17 +631,19 @@ namespace SharpTimer
                 if (recordCache.CachedStandardWorldRecords is null
                     || recordCache.Cached85tWorldRecords is null
                     || recordCache.CachedSourceWorldRecords is null
-                    || recordCache.CachedArcadeWorldRecords is null)
+                    || recordCache.CachedArcadeWorldRecords is null
+                    || recordCache.Cached128tWorldRecords is null)
                     _ = Task.Run(async () => await CacheWorldRecords());
                 
                 Server.NextFrame(() =>
                 {
                     Utils.PrintToChat(player, Localizer["current_wr", currentMapName!]);
 
-                    if (recordCache.CachedStandardWorldRecords == null || recordCache.CachedStandardWorldRecords.Count <= 0
-                        || recordCache.Cached85tWorldRecords == null || recordCache.Cached85tWorldRecords.Count <= 0
-                        || recordCache.CachedSourceWorldRecords == null || recordCache.CachedSourceWorldRecords.Count <= 0
-                        || recordCache.CachedArcadeWorldRecords == null || recordCache.CachedArcadeWorldRecords.Count <= 0)
+                    if (recordCache.CachedStandardWorldRecords == null
+                        || recordCache.Cached85tWorldRecords == null
+                        || recordCache.CachedSourceWorldRecords == null
+                        || recordCache.CachedArcadeWorldRecords == null
+                        || recordCache.Cached128tWorldRecords == null)
                         return;
 
                     int position = 1;
@@ -657,6 +661,9 @@ namespace SharpTimer
                             break;
                         case "Arcade":
                             tempCache = recordCache.CachedArcadeWorldRecords;
+                            break;
+                        case "128t":
+                            tempCache = recordCache.Cached128tWorldRecords;
                             break;
                         default:
                             tempCache = recordCache.CachedStandardWorldRecords;
@@ -707,9 +714,6 @@ namespace SharpTimer
 
         public async Task<Dictionary<int, GlobalRecord>> GetSortedRecordsFromGlobal(string style = "Normal", string mode = "Standard", int bonus = 0, int limit = 0)
         {
-            if (apiKey == "")
-                return null!;
-
             if (globalDisabled)
                 return null!;
             
@@ -959,23 +963,7 @@ namespace SharpTimer
             {
                 var equal = Utils.IsApproximatelyEqual;
 
-                if (equal(ConVar.Find("sv_accelerate")!.GetPrimitiveValue<float>(), 10)
-
-                && ((equal(ConVar.Find("sv_airaccelerate")!.GetPrimitiveValue<float>(), 150) && currentMapName!.Contains("surf_")) ||
-                    (equal(ConVar.Find("sv_airaccelerate")!.GetPrimitiveValue<float>(), 1000) && currentMapName!.Contains("bhop_")))
-                
-                && equal(ConVar.Find("sv_friction")!.GetPrimitiveValue<float>(), (float)5.2)
-                && equal(ConVar.Find("sv_gravity")!.GetPrimitiveValue<float>(), 800)
-                && equal(ConVar.Find("sv_ladder_scale_speed")!.GetPrimitiveValue<float>(), 1)
-                && equal(ConVar.Find("sv_staminajumpcost")!.GetPrimitiveValue<float>(), 0)
-                && equal(ConVar.Find("sv_staminalandcost")!.GetPrimitiveValue<float>(), 0)
-                && equal(ConVar.Find("sv_staminamax")!.GetPrimitiveValue<float>(), 0)
-                && equal(ConVar.Find("sv_staminarecoveryrate")!.GetPrimitiveValue<float>(), 0)
-                && equal(ConVar.Find("sv_wateraccelerate")!.GetPrimitiveValue<float>(), 10)
-                && ConVar.Find("sv_cheats")!.GetPrimitiveValue<bool>() == false
-
-                && equal(ConVar.Find("sv_air_max_wishspeed")!.GetPrimitiveValue<float>(), 30)
-                
+                if (ConVar.Find("sv_cheats")!.GetPrimitiveValue<bool>() == false
                 && equal(ConVar.Find("sv_maxspeed")!.GetPrimitiveValue<float>(), 420)
                 && useCheckpointVerification)
                 {
@@ -986,19 +974,8 @@ namespace SharpTimer
 
                 //Checks failed, disable global api
                 Utils.ConPrint($"GLOBAL CHECK FAILED -- Current Values:");
-                Utils.ConPrint($"sv_accelerate: {ConVar.Find("sv_accelerate")!.GetPrimitiveValue<float>()} [should be 10]");
-                Utils.ConPrint($"sv_airaccelerate: {ConVar.Find("sv_airaccelerate")!.GetPrimitiveValue<float>()} [should be 150 for surf_ or 1000 for bhop_]");
-                Utils.ConPrint($"sv_friction: {ConVar.Find("sv_friction")!.GetPrimitiveValue<float>()} [should be 5.2]");
-                Utils.ConPrint($"sv_gravity: {ConVar.Find("sv_gravity")!.GetPrimitiveValue<float>()} [should be 800]");
-                Utils.ConPrint($"sv_ladder_scale_speed: {ConVar.Find("sv_ladder_scale_speed")!.GetPrimitiveValue<float>()} [should be 1]");
-                Utils.ConPrint($"sv_staminajumpcost: {ConVar.Find("sv_staminajumpcost")!.GetPrimitiveValue<float>()} [should be 0]");
-                Utils.ConPrint($"sv_staminalandcost: {ConVar.Find("sv_staminalandcost")!.GetPrimitiveValue<float>()} [should be 0]");
-                Utils.ConPrint($"sv_staminamax: {ConVar.Find("sv_staminamax")!.GetPrimitiveValue<float>()} [should be 0]");
-                Utils.ConPrint($"sv_staminarecoveryrate: {ConVar.Find("sv_staminarecoveryrate")!.GetPrimitiveValue<float>()} [should be 0]");
-                Utils.ConPrint($"sv_wateraccelerate: {ConVar.Find("sv_wateraccelerate")!.GetPrimitiveValue<float>()} [should be 10]");
                 Utils.ConPrint($"sv_maxspeed: {ConVar.Find("sv_maxspeed")!.GetPrimitiveValue<float>()} [should be 420]");
                 Utils.ConPrint($"sharptimer_max_start_speed: {ConVar.Find("sv_maxspeed")!.GetPrimitiveValue<float>()} [should be 420]");
-                Utils.ConPrint($"sv_air_max_wishspeed: {ConVar.Find("sv_air_max_wishspeed")!.GetPrimitiveValue<float>()} [should be 30]");
                 Utils.ConPrint($"sv_cheats: {ConVar.Find("sv_cheats")!.GetPrimitiveValue<bool>()} [should be false]");
                 Utils.ConPrint($"Map is properly zoned?: {useTriggers} [should be true]");
                 Utils.ConPrint($"Use checkpoint verification?: {useCheckpointVerification} [should be true]");

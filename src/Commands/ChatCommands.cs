@@ -594,9 +594,6 @@ namespace SharpTimer
             if (!IsPlayerOrSpectator(player))
                 return;
 
-            if (apiKey == "")
-                return;
-
             Utils.LogDebug($"{player!.PlayerName} calling css_wr...");
 
             if (CommandCooldown(player))

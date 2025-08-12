@@ -49,6 +49,7 @@ namespace SharpTimer
         public Dictionary<int, GlobalRecord>? Cached85tWorldRecords { get; set; } = new();
         public Dictionary<int, GlobalRecord>? CachedSourceWorldRecords { get; set; } = new();
         public Dictionary<int, GlobalRecord>? CachedArcadeWorldRecords { get; set; } = new();
+        public Dictionary<int, GlobalRecord>? Cached128tWorldRecords { get; set; } = new();
         public List<PlayerPoints>? CachedGlobalPoints { get; set; } = new();
     }
 

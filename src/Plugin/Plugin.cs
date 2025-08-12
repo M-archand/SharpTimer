@@ -3,6 +3,7 @@ using CounterStrikeSharp.API.Modules.Timers;
 using FixVectorLeak;
 using System.Text;
 using System.Text.Json;
+using Serilog;
 
 namespace SharpTimer;
 
@@ -88,6 +89,22 @@ public partial class SharpTimer
                         }
                     });
                     sqlCheck = true;
+                }
+                
+                if (apiKey != "")
+                {
+                    Server.NextFrame(async () =>
+                    {
+                        long addonID = GetAddonID();
+                        int mapId = await GetMapIDAsync(addonID);
+            
+                        await CacheMapData(mapId, addonID, mapName);
+                        await CacheWorldRecords(true);
+                        await CacheGlobalPoints(true);
+                    });
+                
+                    AddTimer(globalCacheInterval, async () => await CacheWorldRecords(), TimerFlags.REPEAT | TimerFlags.STOP_ON_MAPCHANGE);
+                    AddTimer(globalCacheInterval, async () => await CacheGlobalPoints(), TimerFlags.REPEAT | TimerFlags.STOP_ON_MAPCHANGE);
                 }
 
                 if (Directory.Exists($"{gameDir}/addons/StripperCS2/maps/{Server.MapName}"))
@@ -542,21 +559,6 @@ public partial class SharpTimer
                 }
 
                 useTriggers = true;
-            }
-            
-            if (apiKey != "")
-            {
-                Server.NextFrame(async () =>
-                {
-                    long addonID = GetAddonID();
-                    int mapId = await GetMapIDAsync(addonID);
-                    await CacheMapData(mapId, addonID, mapName);
-                    await CacheWorldRecords(true);
-                    await CacheGlobalPoints(true);
-                });
-                
-                AddTimer(globalCacheInterval, async () => await CacheWorldRecords(), TimerFlags.REPEAT | TimerFlags.STOP_ON_MAPCHANGE);
-                AddTimer(globalCacheInterval, async () => await CacheGlobalPoints(), TimerFlags.REPEAT | TimerFlags.STOP_ON_MAPCHANGE);
             }
 
             Utils.LogDebug($"useTriggers: {useTriggers}!");
