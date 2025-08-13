@@ -387,10 +387,8 @@ namespace SharpTimer
 
         public void CacheServerID(int serverId)
         {
-            if (apiKey == "")
-                return;
-            
             serverCache.ServerID = serverId;
+            Utils.LogDebug($"Server ID: {serverCache.ServerID}");
         }
         
         public async Task CacheMapData(int mapId, long addonId, string mapName)
