@@ -1548,7 +1548,7 @@ namespace SharpTimer
                                                     (""MapName"", ""SteamID"", ""PlayerName"", ""Stage"", ""TimerTicks"", ""FormattedTime"", ""Velocity"", ""Style"", ""Mode"")
                                                     VALUES 
                                                     (@MapName, @SteamID, @PlayerName, @Stage, @TimerTicks, @FormattedTime, @Velocity, @Style, @Mode)
-                                                    ON CONFLICT (""MapName"", ""SteamID"", ""Stage"")
+                                                    ON CONFLICT (""MapName"", ""SteamID"", ""Stage"", ""Style"", ""Mode"")
                                                     DO UPDATE SET
                                                     ""MapName"" = EXCLUDED.""MapName"",
                                                     ""PlayerName"" = EXCLUDED.""PlayerName"",
@@ -1567,7 +1567,7 @@ namespace SharpTimer
                                                     (MapName, SteamID, PlayerName, TimerTicks, Stage, FormattedTime, Velocity, Style, Mode)
                                                     VALUES 
                                                     (@MapName, @SteamID, @PlayerName, @Stage, @TimerTicks, @FormattedTime, @Velocity, @Style, @Mode)
-                                                    ON CONFLICT (MapName, SteamID, Stage)
+                                                    ON CONFLICT (MapName, SteamID, Stage, Style, Mode)
                                                     DO UPDATE SET
                                                     MapName = excluded.MapName,
                                                     PlayerName = excluded.PlayerName,
