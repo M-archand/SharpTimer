@@ -234,7 +234,7 @@ namespace SharpTimer
             });
         }
 
-        private async Task HandlePlayerStageTimes(CCSPlayerController player, nint triggerHandle, int slot, string playerSteamID, string playerName)
+        private async Task HandlePlayerStageTimes(CCSPlayerController player, nint triggerHandle, int slot, string playerSteamID, string playerName, int style, string mode)
         {
             try
             {
@@ -255,10 +255,10 @@ namespace SharpTimer
                     var (srSteamID, srPlayerName, srTime) = ("null", "null", "null");
                     if (playerTimers[slot].CurrentMapStage == stageTrigger || playerTimers[slot] == null) return;
 
-                    (srSteamID, srPlayerName, srTime) = await GetStageRecordSteamIDFromDatabase(prevStage);
+                    (srSteamID, srPlayerName, srTime) = await GetStageRecordSteamIDFromDatabase(prevStage, style, mode);
 
-                    var (previousStageTime, previousStageSpeed) = await GetStageRecordFromDatabase(prevStage, playerSteamID);
-                    var (srStageTime, srStageSpeed) = await GetStageRecordFromDatabase(prevStage, srSteamID);
+                    var (previousStageTime, previousStageSpeed) = await GetStageRecordFromDatabase(prevStage, playerSteamID, style, mode);
+                    var (srStageTime, srStageSpeed) = await GetStageRecordFromDatabase(prevStage, srSteamID, style, mode);
 
                     Server.NextFrame(() =>
                     {
@@ -314,7 +314,7 @@ namespace SharpTimer
             }
         }
 
-        private async Task HandlePlayerCheckpointTimes(CCSPlayerController player, nint triggerHandle, int slot, string playerSteamID, string playerName)
+        private async Task HandlePlayerCheckpointTimes(CCSPlayerController player, nint triggerHandle, int slot, string playerSteamID, string playerName, int style, string mode)
         {
             try
             {
@@ -338,13 +338,13 @@ namespace SharpTimer
                     var (srSteamID, srPlayerName, srTime) = ("null", "null", "null");
                     if (playerTimers[slot] == null) return;
                     if (enableDb)
-                        (srSteamID, srPlayerName, srTime) = await GetMapRecordSteamIDFromDatabase();
+                        (srSteamID, srPlayerName, srTime) = await GetMapRecordSteamIDFromDatabase(0, 0, style, mode);
                     else
                         (srSteamID, srPlayerName, srTime) = await GetMapRecordSteamID();
 
-                    (srSteamID, srPlayerName, srTime) = await GetStageRecordSteamIDFromDatabase(cpTrigger);
-                    var (previousStageTime, previousStageSpeed) = await GetStageRecordFromDatabase(cpTrigger, playerSteamID);
-                    var (srStageTime, srStageSpeed) = await GetStageRecordFromDatabase(cpTrigger, srSteamID);
+                    (srSteamID, srPlayerName, srTime) = await GetStageRecordSteamIDFromDatabase(cpTrigger, style, mode);
+                    var (previousStageTime, previousStageSpeed) = await GetStageRecordFromDatabase(cpTrigger, playerSteamID, style, mode);
+                    var (srStageTime, srStageSpeed) = await GetStageRecordFromDatabase(cpTrigger, srSteamID, style, mode);
 
                     string currentStageSpeed = GetCurrentPlayerSpeed(player);
 
@@ -408,7 +408,7 @@ namespace SharpTimer
             }
         }
 
-        private async Task HandlePlayerBonusCheckpointTimes(CCSPlayerController player, nint triggerHandle, int slot, string playerSteamID, string playerName)
+        private async Task HandlePlayerBonusCheckpointTimes(CCSPlayerController player, nint triggerHandle, int slot, string playerSteamID, string playerName, int style, string mode)
         {
             try
             {
@@ -435,9 +435,9 @@ namespace SharpTimer
                     else
                         (srSteamID, srPlayerName, srTime) = await GetMapRecordSteamID();
 
-                    (srSteamID, srPlayerName, srTime) = await GetStageRecordSteamIDFromDatabase(bonusCheckpointTrigger);
-                    var (previousStageTime, previousStageSpeed) = await GetStageRecordFromDatabase(bonusCheckpointTrigger, playerSteamID);
-                    var (srStageTime, srStageSpeed) = await GetStageRecordFromDatabase(bonusCheckpointTrigger, srSteamID);
+                    (srSteamID, srPlayerName, srTime) = await GetStageRecordSteamIDFromDatabase(bonusCheckpointTrigger, style, mode);
+                    var (previousStageTime, previousStageSpeed) = await GetStageRecordFromDatabase(bonusCheckpointTrigger, playerSteamID, style, mode);
+                    var (srStageTime, srStageSpeed) = await GetStageRecordFromDatabase(bonusCheckpointTrigger, srSteamID, style, mode);
 
                     string currentStageSpeed = GetCurrentPlayerSpeed(player);
 

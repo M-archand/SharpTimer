@@ -146,6 +146,11 @@ namespace SharpTimer
         public int maxReplayFrames = 19200;
         public string apiKey = "";
 
+        public static float customAirAccel = 150f;
+        public static float customAccel = 10f;
+        public static float customWishSpeed = 30f;
+        public static float customFriction = 5.2f;
+
         public bool globalRanksEnabled = false;
         public float? globalPointsMultiplier = 1.0f;
         public int minGlobalPointsForRank = 1;

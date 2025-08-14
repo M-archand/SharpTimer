@@ -34,18 +34,22 @@ public partial class SharpTimer
         }
     }
 
-    private static readonly ModeConfig[] ConfigValues =
-    {
-        new(Mode.Standard, 150f, 10f, 30.0f, 5.2f),
-        new(Mode._85t, 150f, 10f, 37.41f, 5.2f),
-        new(Mode.Source, 150f, 5f, 30.71f, 4f),
-        new(Mode.Arcade, 1000f, 10f, 43.55f, 4f),
-        new(Mode._128t, 150f, 10f, 52.59f, 5.2f),
-        new(Mode.Custom, ConVar.Find("sv_airaccelerate")!.GetPrimitiveValue<float>(), ConVar.Find("sv_accelerate")!.GetPrimitiveValue<float>(), 
-            ConVar.Find("sv_air_max_wishspeed")!.GetPrimitiveValue<float>(), ConVar.Find("sv_friction")!.GetPrimitiveValue<float>())
-    };
+    private ModeConfig[] _configValues;
 
-    private static readonly Dictionary<Mode, int> ModeIndexLookup = new()
+    public void InitializeModeConfigs()
+    {
+        _configValues = new ModeConfig[]
+        {
+            new(Mode.Standard, 150f, 10f, 30.0f, 5.2f),
+            new(Mode._85t, 150f, 10f, 37.41f, 5.2f),
+            new(Mode.Source, 150f, 5f, 30.71f, 4f),
+            new(Mode.Arcade, 1000f, 10f, 43.55f, 4f),
+            new(Mode._128t, 150f, 10f, 52.59f, 5.2f),
+            new(Mode.Custom, customAirAccel, customAccel, customWishSpeed, customFriction)
+        };
+    }
+
+    private readonly Dictionary<Mode, int> ModeIndexLookup = new()
     {
         { Mode.Standard, 0 },
         { Mode._85t, 1 },
@@ -90,10 +94,7 @@ public partial class SharpTimer
 
     private void ApplyModeSettings(CCSPlayerController player, Mode mode)
     {
-        if (playerTimers[player.Slot].Mode == "Custom")
-            return;
-        
-        var config = ConfigValues[ModeIndexLookup[mode]];
+        var config = _configValues[ModeIndexLookup[mode]];
 
         player.ReplicateConVar("sv_airaccelerate", config.AirAccelerate.ToString());
         player.ReplicateConVar("sv_accelerate", config.Accelerate.ToString());
@@ -258,12 +259,12 @@ public partial class SharpTimer
         _wasConVarChanged["sv_air_max_wishspeed"] = false;
         _wasConVarChanged["sv_friction"] = false;
 
-        if (playerMode == null || !ModeIndexLookup.ContainsKey(playerMode.Value) || playerMode == Mode.Custom)
+        if (playerMode == null || !ModeIndexLookup.ContainsKey(playerMode.Value))
         {
             return HookResult.Continue;
         }
 
-        ModeConfig modeConfig = ConfigValues[ModeIndexLookup[playerMode.Value]];
+        ModeConfig modeConfig = _configValues[ModeIndexLookup[playerMode.Value]];
 
         if (!_accel.GetPrimitiveValue<float>().ToString().Equals(modeConfig.Accelerate))
         {
@@ -302,11 +303,8 @@ public partial class SharpTimer
         {
             return HookResult.Continue;
         }
-        
-        if (playerMode == Mode.Custom)
-            return HookResult.Continue;
 
-        var defaultConfig = ConfigValues[ModeIndexLookup[defaultMode]];
+        var defaultConfig = _configValues[ModeIndexLookup[defaultMode]];
 
         if (_wasConVarChanged.TryGetValue("sv_accelerate", out bool accelChanged) && accelChanged)
         {

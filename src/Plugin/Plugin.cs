@@ -3,6 +3,7 @@ using CounterStrikeSharp.API.Modules.Timers;
 using FixVectorLeak;
 using System.Text;
 using System.Text.Json;
+using CounterStrikeSharp.API.Modules.Cvars;
 using Serilog;
 
 namespace SharpTimer;
@@ -26,7 +27,6 @@ public partial class SharpTimer
                 {
                     //Utils.LogDebug("Re-Executing SharpTimer/custom_exec");
                     Server.ExecuteCommand("execifexists SharpTimer/custom_exec.cfg");
-
                     if (execCustomMapCFG == true)
                     {
                         string MapExecFile = Utils.GetClosestMapCFGMatch();
@@ -128,6 +128,8 @@ public partial class SharpTimer
                     globalDisabled = true;
                     Utils.LogError("OverrideDisableTelehop detected for current map; disabling globalapi");
                 }
+                
+                InitializeModeConfigs();
             });
         }
         catch (Exception ex)

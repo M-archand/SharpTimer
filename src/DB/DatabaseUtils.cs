@@ -1527,25 +1527,27 @@ namespace SharpTimer
                             case DatabaseType.MySQL:
                                 upsertQuery = @"
                                                     INSERT INTO PlayerStageTimes 
-                                                    (MapName, SteamID, PlayerName, Stage, TimerTicks, FormattedTime, Velocity)
+                                                    (MapName, SteamID, PlayerName, Stage, TimerTicks, FormattedTime, Velocity, Style, Mode)
                                                     VALUES 
-                                                    (@MapName, @SteamID, @PlayerName, @Stage, @TimerTicks, @FormattedTime, @Velocity)
+                                                    (@MapName, @SteamID, @PlayerName, @Stage, @TimerTicks, @FormattedTime, @Velocity, @Style, @Mode)
                                                     ON DUPLICATE KEY UPDATE
                                                     MapName = VALUES(MapName),
                                                     PlayerName = VALUES(PlayerName),
                                                     Stage = VALUES(Stage),
                                                     TimerTicks = VALUES(TimerTicks),
                                                     FormattedTime = VALUES(FormattedTime),
-                                                    Velocity = VALUES(Velocity);
+                                                    Velocity = VALUES(Velocity),
+                                                    Style = Values(Style),
+                                                    Mode = VALUES(Mode);
                                                     ";
                                 upsertCommand = new MySqlCommand(upsertQuery, (MySqlConnection)connection);
                                 break;
                             case DatabaseType.PostgreSQL:
                                 upsertQuery = @"
                                                     INSERT INTO ""PlayerStageTimes"" 
-                                                    (""MapName"", ""SteamID"", ""PlayerName"", ""Stage"", ""TimerTicks"", ""FormattedTime"", ""Velocity"")
+                                                    (""MapName"", ""SteamID"", ""PlayerName"", ""Stage"", ""TimerTicks"", ""FormattedTime"", ""Velocity"", ""Style"", ""Mode"")
                                                     VALUES 
-                                                    (@MapName, @SteamID, @PlayerName, @Stage, @TimerTicks, @FormattedTime, @Velocity)
+                                                    (@MapName, @SteamID, @PlayerName, @Stage, @TimerTicks, @FormattedTime, @Velocity, @Style, @Mode)
                                                     ON CONFLICT (""MapName"", ""SteamID"", ""Stage"")
                                                     DO UPDATE SET
                                                     ""MapName"" = EXCLUDED.""MapName"",
@@ -1553,16 +1555,18 @@ namespace SharpTimer
                                                     ""Stage"" = EXCLUDED.""Stage"",
                                                     ""TimerTicks"" = EXCLUDED.""TimerTicks"",
                                                     ""FormattedTime"" = EXCLUDED.""FormattedTime"",
-                                                    ""Velocity"" = EXCLUDED.""Velocity"";
+                                                    ""Velocity"" = EXCLUDED.""Velocity"",
+                                                    ""Style"" = EXCLUDED.""Style"",
+                                                    ""Mode"" = EXCLUDED.""Mode"";
                                                     ";
                                 upsertCommand = new NpgsqlCommand(upsertQuery, (NpgsqlConnection)connection);
                                 break;
                             case DatabaseType.SQLite:
                                 upsertQuery = @"
                                                     INSERT INTO PlayerStageTimes 
-                                                    (MapName, SteamID, PlayerName, TimerTicks, Stage, FormattedTime, Velocity)
+                                                    (MapName, SteamID, PlayerName, TimerTicks, Stage, FormattedTime, Velocity, Style, Mode)
                                                     VALUES 
-                                                    (@MapName, @SteamID, @PlayerName, @Stage, @TimerTicks, @FormattedTime, @Velocity)
+                                                    (@MapName, @SteamID, @PlayerName, @Stage, @TimerTicks, @FormattedTime, @Velocity, @Style, @Mode)
                                                     ON CONFLICT (MapName, SteamID, Stage)
                                                     DO UPDATE SET
                                                     MapName = excluded.MapName,
@@ -1570,7 +1574,9 @@ namespace SharpTimer
                                                     Stage = excluded.Stage,
                                                     TimerTicks = excluded.TimerTicks,
                                                     FormattedTime = excluded.FormattedTime,
-                                                    Velocity = excluded.Velocity;
+                                                    Velocity = excluded.Velocity,
+                                                    Style = excluded.Style,
+                                                    Mode = excluded.Mode;
                                                     ";
                                 upsertCommand = new SQLiteCommand(upsertQuery, (SQLiteConnection)connection);
                                 break;
@@ -1589,11 +1595,13 @@ namespace SharpTimer
                             upsertCommand!.AddParameterWithValue("@SteamID", steamId);
                             upsertCommand!.AddParameterWithValue("@Stage", stage);
                             upsertCommand!.AddParameterWithValue("@Velocity", velocity);
+                            upsertCommand!.AddParameterWithValue("@Style", style);
+                            upsertCommand!.AddParameterWithValue("@Mode", playerTimers[slot].Mode);
                             //no points for stage times until points overhaul
                             //if (enableDb && globalRanksEnabled == true && ((dBtimesFinished <= maxGlobalFreePoints && globalRanksFreePointsEnabled == true) || beatPB)) await SavePlayerPoints(steamId, playerName, slot, playerPoints, dBtimerTicks, beatPB, bonusX, style);
                             //dont save stagetimes unless they complete map
                             //if ((stageTriggerCount != 0 || cpTriggerCount != 0) && bonusX == 0 && enableDb && timerTicks < dBtimerTicks) Server.NextFrame(() => _ = Task.Run(async () => await DumpPlayerStageTimesToJson(player, steamId, slot)));
-                            var prevSRID = await GetStageRecordSteamIDFromDatabase(bonusX, 0, style);
+                            var prevSRID = await GetStageRecordSteamIDFromDatabase(stage, style, playerTimers[player.Slot].Mode);
                             var prevSR = await GetPreviousPlayerStageRecordFromDatabase(player, prevSRID.Item1,
                                 currentMapNamee, stage, prevSRID.Item2, bonusX);
                             await upsertCommand!.ExecuteNonQueryAsync();
@@ -1618,17 +1626,17 @@ namespace SharpTimer
                         {
                             case DatabaseType.MySQL:
                                 upsertQuery =
-                                    @"REPLACE INTO PlayerStageTimes (MapName, SteamID, PlayerName, Stage, TimerTicks, FormattedTime, Velocity) VALUES (@MapName, @SteamID, @PlayerName, @Stage, @TimerTicks, @FormattedTime, @Velocity)";
+                                    @"REPLACE INTO PlayerStageTimes (MapName, SteamID, PlayerName, Stage, TimerTicks, FormattedTime, Velocity, Style, Mode) VALUES (@MapName, @SteamID, @PlayerName, @Stage, @TimerTicks, @FormattedTime, @Velocity, @Style, @Mode)";
                                 upsertCommand = new MySqlCommand(upsertQuery, (MySqlConnection)connection);
                                 break;
                             case DatabaseType.PostgreSQL:
                                 upsertQuery =
-                                    @"INSERT INTO ""PlayerStageTimes"" (""MapName"", ""SteamID"", ""PlayerName"", ""Stage"", ""TimerTicks"", ""FormattedTime"", ""Velocity"") VALUES (@MapName, @SteamID, @PlayerName, @Stage, @TimerTicks, @FormattedTime, @Velocity)";
+                                    @"INSERT INTO ""PlayerStageTimes"" (""MapName"", ""SteamID"", ""PlayerName"", ""Stage"", ""TimerTicks"", ""FormattedTime"", ""Velocity"", ""Style"", ""Mode"") VALUES (@MapName, @SteamID, @PlayerName, @Stage, @TimerTicks, @FormattedTime, @Velocity, @Style, @Mode)";
                                 upsertCommand = new NpgsqlCommand(upsertQuery, (NpgsqlConnection)connection);
                                 break;
                             case DatabaseType.SQLite:
                                 upsertQuery =
-                                    @"REPLACE INTO PlayerStageTimes (MapName, SteamID, PlayerName, Stage, TimerTicks, FormattedTime, Velocity) VALUES (@MapName, @SteamID, @PlayerName, @Stage, @TimerTicks, @FormattedTime, @Velocity)";
+                                    @"REPLACE INTO PlayerStageTimes (MapName, SteamID, PlayerName, Stage, TimerTicks, FormattedTime, Velocity, Style, Mode) VALUES (@MapName, @SteamID, @PlayerName, @Stage, @TimerTicks, @FormattedTime, @Velocity, @Style, @Mode)";
                                 upsertCommand = new SQLiteCommand(upsertQuery, (SQLiteConnection)connection);
                                 break;
                             default:
@@ -1646,7 +1654,9 @@ namespace SharpTimer
                             upsertCommand!.AddParameterWithValue("@SteamID", steamId);
                             upsertCommand!.AddParameterWithValue("@Stage", stage);
                             upsertCommand!.AddParameterWithValue("@Velocity", velocity);
-                            var prevSRID = await GetStageRecordSteamIDFromDatabase(bonusX, 0, style);
+                            upsertCommand!.AddParameterWithValue("@Style", style);
+                            upsertCommand!.AddParameterWithValue("@Mode", playerTimers[slot].Mode);
+                            var prevSRID = await GetStageRecordSteamIDFromDatabase(stage, style, playerTimers[player.Slot].Mode);
                             var prevSR = await GetPreviousPlayerStageRecordFromDatabase(player, prevSRID.Item1,
                                 currentMapNamee, stage, prevSRID.Item2, bonusX);
                             await upsertCommand!.ExecuteNonQueryAsync();
@@ -2669,8 +2679,7 @@ namespace SharpTimer
             }
         }
 
-        public async Task<(string, string, string)> GetStageRecordSteamIDFromDatabase(int stage, int bonusX = 0,
-            int top10 = 0)
+        public async Task<(string, string, string)> GetStageRecordSteamIDFromDatabase(int stage, int style, string mode, int bonusX = 0, int top10 = 0)
         {
             Utils.LogDebug(
                 $"Trying to get {(bonusX != 0 ? $"bonus {bonusX} stage {stage}" : $"stage {stage}")} record steamid from database");
@@ -2690,6 +2699,8 @@ namespace SharpTimer
                                               "FROM PlayerStageTimes " +
                                               "WHERE MapName = @MapName " +
                                               "AND Stage = @Stage " +
+                                              "AND Style = @Style " +
+                                              "AND Mode = @Mode " +
                                               "ORDER BY TimerTicks ASC " +
                                               $"LIMIT 1 OFFSET {top10 - 1};";
                                 selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
@@ -2700,6 +2711,8 @@ namespace SharpTimer
                                               @"FROM ""PlayerStageTimes"" " +
                                               @"WHERE ""MapName"" = @MapName " +
                                               @"AND ""Stage"" = @Stage " +
+                                              @"AND ""Style"" = @Style " +
+                                              @"AND ""Mode"" = @Mode " +
                                               @"ORDER BY ""TimerTicks"" ASC " +
                                               $"LIMIT 1 OFFSET {top10 - 1};";
                                 selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
@@ -2710,6 +2723,8 @@ namespace SharpTimer
                                               "FROM PlayerStageTimes " +
                                               "WHERE MapName = @MapName " +
                                               "AND Stage = @Stage " +
+                                              "AND Style = @Style " +
+                                              "AND Mode = @Mode " +
                                               "ORDER BY TimerTicks ASC " +
                                               $"LIMIT 1 OFFSET {top10 - 1};";
                                 selectCommand = new SQLiteCommand(selectQuery, (SQLiteConnection)connection);
@@ -2727,17 +2742,17 @@ namespace SharpTimer
                         {
                             case DatabaseType.MySQL:
                                 selectQuery =
-                                    $"SELECT SteamID, PlayerName, TimerTicks FROM PlayerStageTimes WHERE MapName = @MapName AND Stage = @Stage ORDER BY TimerTicks ASC LIMIT 1";
+                                    $"SELECT SteamID, PlayerName, TimerTicks FROM PlayerStageTimes WHERE MapName = @MapName AND Stage = @Stage AND Style = @Style AND Mode = @Mode ORDER BY TimerTicks ASC LIMIT 1";
                                 selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
                                 break;
                             case DatabaseType.PostgreSQL:
                                 selectQuery =
-                                    $@"SELECT ""SteamID"", ""PlayerName"", ""TimerTicks"" FROM ""PlayerStageTimes"" WHERE ""MapName"" = @MapName AND ""Stage"" = @Stage ORDER BY ""TimerTicks"" ASC LIMIT 1";
+                                    $@"SELECT ""SteamID"", ""PlayerName"", ""TimerTicks"" FROM ""PlayerStageTimes"" WHERE ""MapName"" = @MapName AND ""Stage"" = @Stage AND ""Style"" = @Style AND ""Mode"" = @Mode ORDER BY ""TimerTicks"" ASC LIMIT 1";
                                 selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
                                 break;
                             case DatabaseType.SQLite:
                                 selectQuery =
-                                    $"SELECT SteamID, PlayerName, TimerTicks FROM PlayerStageTimes WHERE MapName = @MapName AND Stage = @Stage ORDER BY TimerTicks ASC LIMIT 1";
+                                    $"SELECT SteamID, PlayerName, TimerTicks FROM PlayerStageTimes WHERE MapName = @MapName AND Stage = @Stage AND Style = @Style AND Mode = @Mode ORDER BY TimerTicks ASC LIMIT 1";
                                 selectCommand = new SQLiteCommand(selectQuery, (SQLiteConnection)connection);
                                 break;
                             default:
@@ -2752,6 +2767,8 @@ namespace SharpTimer
                         selectCommand!.AddParameterWithValue("@MapName",
                             bonusX == 0 ? currentMapName! : $"{currentMapName}_bonus{bonusX}");
                         selectCommand!.AddParameterWithValue("@Stage", stage);
+                        selectCommand!.AddParameterWithValue("@Mode", mode);
+                        selectCommand!.AddParameterWithValue("@Style", style);
 
                         var row = await selectCommand!.ExecuteReaderAsync();
 
@@ -2782,7 +2799,7 @@ namespace SharpTimer
             }
         }
 
-        public async Task<(int, string)> GetStageRecordFromDatabase(int stage, string steamId, int bonusX = 0)
+        public async Task<(int, string)> GetStageRecordFromDatabase(int stage, string steamId, int style, string mode, int bonusX = 0)
         {
             Utils.LogDebug(
                 $"Trying to get {(bonusX != 0 ? $"bonus {bonusX} stage {stage}" : $"stage {stage}")} record steamid from database");
@@ -2801,6 +2818,8 @@ namespace SharpTimer
                                           "WHERE MapName = @MapName " +
                                           "AND Stage = @Stage " +
                                           "AND SteamID = @SteamID " +
+                                          "AND Style = @Style " +
+                                          "AND Mode = @Mode " +
                                           "ORDER BY TimerTicks ASC " +
                                           $"LIMIT 1;";
                             selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
@@ -2812,6 +2831,8 @@ namespace SharpTimer
                                           @"WHERE ""MapName"" = @MapName " +
                                           @"AND ""Stage"" = @Stage " +
                                           @"AND ""SteamID"" = @SteamID " +
+                                          @"AND ""Style"" = @Style " +
+                                          @"AND ""Mode"" = @Mode " +
                                           @"ORDER BY ""TimerTicks"" ASC " +
                                           $"LIMIT 1;";
                             selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
@@ -2823,6 +2844,8 @@ namespace SharpTimer
                                           "WHERE MapName = @MapName " +
                                           "AND Stage = @Stage " +
                                           "AND SteamID = @SteamID " +
+                                          "AND Style = @Style " +
+                                          "AND Mode = @Mode " +
                                           "ORDER BY TimerTicks ASC " +
                                           $"LIMIT 1;";
                             selectCommand = new SQLiteCommand(selectQuery, (SQLiteConnection)connection);
@@ -2839,6 +2862,8 @@ namespace SharpTimer
                             bonusX == 0 ? currentMapName! : $"{currentMapName}_bonus{bonusX}");
                         selectCommand!.AddParameterWithValue("@Stage", stage);
                         selectCommand!.AddParameterWithValue("@SteamID", steamId);
+                        selectCommand!.AddParameterWithValue("@Mode", mode);
+                        selectCommand!.AddParameterWithValue("@Style", style);
 
                         var row = await selectCommand!.ExecuteReaderAsync();
 

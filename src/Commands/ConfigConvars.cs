@@ -910,6 +910,73 @@ namespace SharpTimer
                 Utils.LogError("Invalid source mode point modifier. Please provide a positive integer.");
             }
         }
+        
+        [ConsoleCommand("sharptimer_mode_custom_aa", "Custom airaccelerate float. Default value: 150")]
+        [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
+        public void SharpTimerCustomAirAccelConvar(CCSPlayerController? player, CommandInfo command)
+        {
+            string args = command.ArgString;
+
+            if (float.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out float custom) && custom is >= 0)
+            {
+                customAirAccel = custom;
+                Utils.LogDebug($"SharpTimer custom airaccel set to {custom}.");
+            }
+            else
+            {
+                Utils.LogError("Invalid custom airaccel. Please provide a positive integer.");
+            }
+        }
+        [ConsoleCommand("sharptimer_mode_custom_accel", "Custom accel float. Default value: 10")]
+        [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
+        public void SharpTimerCustomAccelConvar(CCSPlayerController? player, CommandInfo command)
+        {
+            string args = command.ArgString;
+
+            if (float.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out float custom) && custom is >= 0)
+            {
+                customAccel = custom;
+                Utils.LogDebug($"SharpTimer custom accel set to {custom}.");
+            }
+            else
+            {
+                Utils.LogError("Invalid custom accel. Please provide a positive integer.");
+            }
+        }
+        
+        [ConsoleCommand("sharptimer_mode_custom_wishspeed", "Custom wishspeed float. Default value: 30")]
+        [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
+        public void SharpTimerCustomWishspeedConvar(CCSPlayerController? player, CommandInfo command)
+        {
+            string args = command.ArgString;
+
+            if (float.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out float custom) && custom is >= 0)
+            {
+                customWishSpeed = custom;
+                Utils.LogDebug($"SharpTimer custom wishspeed set to {custom}.");
+            }
+            else
+            {
+                Utils.LogError("Invalid custom wishspeed. Please provide a positive integer.");
+            }
+        }
+        
+        [ConsoleCommand("sharptimer_mode_custom_friction", "Custom friction float. Default value: 5.2")]
+        [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
+        public void SharpTimerCustomFrictionConvar(CCSPlayerController? player, CommandInfo command)
+        {
+            string args = command.ArgString;
+
+            if (float.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out float custom) && custom is >= 0)
+            {
+                customFriction = custom;
+                Utils.LogDebug($"SharpTimer custom friction set to {custom}.");
+            }
+            else
+            {
+                Utils.LogError("Invalid custom friction. Please provide a positive integer.");
+            }
+        }
 
         [ConsoleCommand("sharptimer_enable_checkpoint_verification", "Enable or disable checkpoint verification system. Default value: true")]
         [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
