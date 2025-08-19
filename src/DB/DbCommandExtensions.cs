@@ -11,9 +11,5 @@ namespace SharpTimer
             parameter.Value = value;
             command.Parameters.Add(parameter);
         }
-        public static bool GetSQLiteBool(this DbDataReader reader, string columnName)
-        {
-            return reader.GetInt32(reader.GetOrdinal(columnName)) == 1;
-        }
     }
 }

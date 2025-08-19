@@ -6,7 +6,6 @@ using System.Text.Json;
 using System.Data.Common;
 using MySqlConnector;
 using Npgsql;
-using System.Data.SQLite;
 using System.Numerics;
 using static SharpTimer.PlayerReplays;
 
@@ -473,10 +472,6 @@ namespace SharpTimer
                             query = @"SELECT ""ReplayData"" FROM ""PlayerReplays"" WHERE ""SteamID"" = @SteamID AND ""MapName"" = @MapName AND ""Style"" = @Style";
                             command = new NpgsqlCommand(query, (NpgsqlConnection)connection);
                             break;
-                        case DatabaseType.SQLite:
-                            query = "SELECT ReplayData FROM PlayerReplays WHERE SteamID = @SteamID AND MapName = @MapName AND Style = @Style";
-                            command = new SQLiteCommand(query, (SQLiteConnection)connection);
-                            break;
                         default:
                             throw new Exception("Unsupported database type");
                     }
@@ -576,12 +571,6 @@ namespace SharpTimer
                                 VALUES (@SteamID, @MapName, @Style, @ReplayData)
                                 ON CONFLICT (""SteamID"", ""MapName"", ""Style"") DO UPDATE SET ReplayData = @ReplayData";
                             command = new NpgsqlCommand(query, (NpgsqlConnection)connection);
-                            break;
-                        case DatabaseType.SQLite:
-                            query = @"
-                                INSERT OR REPLACE INTO PlayerReplays (SteamID, MapName, Style, ReplayData)
-                                VALUES (@SteamID, @MapName, @Style, @ReplayData)";
-                            command = new SQLiteCommand(query, (SQLiteConnection)connection);
                             break;
                         default:
                             throw new Exception("Unsupported database type");

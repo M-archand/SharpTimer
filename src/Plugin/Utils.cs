@@ -854,13 +854,6 @@ namespace SharpTimer
                             dbPath = postgresPath;
                             enableDb = true;
                         }
-                        else
-                        {
-                            SharpTimerDebug($"No db set, defaulting to SQLite");
-                            dbPath = Path.Join(gameDir + "/csgo/cfg", "SharpTimer/database.db");
-                            dbType = DatabaseType.SQLite;
-                            enableDb = true;
-                        }
                         using (var connection = OpenConnection())
                         {
                             _ = CheckTablesAsync();
@@ -868,19 +861,6 @@ namespace SharpTimer
                         }
                         sqlCheck = true;
                     }
-                    /*
-                    if (Directory.Exists($"{gameDir}/addons/StripperCS2/maps/{Server.MapName}"))
-                    {
-                        globalDisabled = true;
-                        SharpTimerError("StripperCS2 detected for current map; disabling globalapi");
-                    }
-                    
-                    _ = Task.Run(async () => await CacheWorldRecords());
-                    AddTimer(globalCacheInterval, async () => await CacheWorldRecords(), TimerFlags.REPEAT);
-
-                    _ = Task.Run(async () => await CacheGlobalPoints());
-                    AddTimer(globalCacheInterval, async () => await CacheGlobalPoints(), TimerFlags.REPEAT);
-                    */
                 });
             }
             catch (Exception ex)
@@ -1346,7 +1326,20 @@ namespace SharpTimer
                         SharpTimerDebug($"[Bonus] Drew beams for {startName}/{endName}");
                     }
 
-                    for (int i = 1; i <= 10; i++)
+                    // 1) Gather all bonus-X values from real triggers
+                    var bonusIndices = new HashSet<int>();
+                    foreach (var trigger in entityCache!.Triggers)
+                    {
+                        if (trigger?.Entity?.Name == null) continue;
+
+                        var (valid, idx) = IsValidStartBonusTriggerName(trigger.Entity.Name.ToString());
+                        if (valid)
+                            bonusIndices.Add(idx);
+                    }
+                    SharpTimerDebug($"[Bonus] found indices: {string.Join(",", bonusIndices)}");
+
+                    // 2) For each index, draw both naming conventions
+                    foreach (var i in bonusIndices)
                     {
                         DrawOneBonus($"b{i}_start", $"b{i}_end");
                         DrawOneBonus($"bonus{i}_start", $"bonus{i}_end");
