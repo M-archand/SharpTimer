@@ -2,6 +2,7 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Utils;
+using System.Numerics;
 
 namespace SharpTimer
 {
@@ -39,22 +40,28 @@ namespace SharpTimer
                             continue;
                         }
 
-                        // Count every server tick the player remains in the start zone, to account for the startspeed bypass exploit
+                        // Count ticks in start zone (startspeed bypass guard)
                         if (playerTimer.inStartzone)
                             playerTimer.TicksInStartZone++;
 
-                        bool isOnBhopBlock = playerTimer.IsOnBhopBlock;
-                        bool isTimerRunning = playerTimer.IsTimerRunning;
+                        bool isOnBhopBlock       = playerTimer.IsOnBhopBlock;
+                        bool isTimerRunning      = playerTimer.IsTimerRunning;
                         bool isBonusTimerRunning = playerTimer.IsBonusTimerRunning;
-                        bool isTimerBlocked = playerTimer.IsTimerBlocked;
-                        int timerTicks = playerTimer.TimerTicks;
+                        bool isTimerBlocked      = playerTimer.IsTimerBlocked;
+                        int timerTicks           = playerTimer.TimerTicks;
                         PlayerButtons? playerButtons = player.Buttons;
-                        Vector playerSpeed = player.PlayerPawn!.Value!.AbsVelocity;
+                        // Read engine velocity once, then cast to numerics for math (no allocations)
+                        var playerSpeed = player.PlayerPawn!.Value!.AbsVelocity;
+                        Vector3 vel   = (Vector3)playerSpeed;
+ 
                         var hasWeapons = player.PlayerPawn?.Value?.WeaponServices?.MyWeapons?.Count > 0;
+ 
+                        // AFK tracking (numerics check to avoid engine helper calls)
+                        bool isZeroVel = vel.X == 0f && vel.Y == 0f && vel.Z == 0f;
 
                         if (connectedAFKPlayers.ContainsKey(player.Slot))
                         {
-                            if (!playerSpeed.IsZero())
+                            if (!isZeroVel)
                             {
                                 connectedAFKPlayers.Remove(player.Slot);
                                 playerTimer.AFKWarned = false;
@@ -63,20 +70,19 @@ namespace SharpTimer
                             else
                             {
                                 continue;
-
                             }
                         }
 
-                        if (playerTimer.AFKTicks >= afkSeconds*48 && !playerTimer.AFKWarned && afkWarning)
+                        if (playerTimer.AFKTicks >= afkSeconds * 48 && !playerTimer.AFKWarned && afkWarning)
                         {
                             //player.PrintToChat($"{Localizer["prefix"]} {Localizer["afk_message"]}");
                             playerTimer.AFKWarned = true;
                         }
 
-                        if (playerTimer.AFKTicks >= afkSeconds*64)
+                        if (playerTimer.AFKTicks >= afkSeconds * 64)
                             connectedAFKPlayers[player.Slot] = connectedPlayers[player.Slot];
 
-                        if (playerSpeed.IsZero())
+                        if (isZeroVel)
                             playerTimer.AFKTicks++;
                         else
                             playerTimer.AFKTicks = 0;
@@ -126,12 +132,14 @@ namespace SharpTimer
                             }
                         }
 
-                        if (playerTimer.currentStyle.Equals(4)) //check if 400vel
+                        // 400vel style: prefer numerics overload inside SetVelocity
+                        if (playerTimer.currentStyle.Equals(4))
                         {
-                            SetVelocity(player, player!.Pawn.Value!.AbsVelocity, 400);
+                            SetVelocity(player, vel, 400);
                         }
 
-                        if (playerTimer.currentStyle.Equals(10) && player.PlayerPawn?.Value != null && !player.PlayerPawn.Value.GroundEntity.IsValid)  //check if fast-forward
+                        // Fast-forward style: every other tick while in air
+                        if (playerTimer.currentStyle.Equals(10) && player.PlayerPawn?.Value != null && !player.PlayerPawn.Value.GroundEntity.IsValid)
                         {
                             if (currentTick % 2 != 0) IncreaseVelocity(player);
                         }
@@ -145,22 +153,26 @@ namespace SharpTimer
                             }
                         }
 
-                        if (useTriggers == false && isTimerBlocked == false)
+                        // Coords checks still accept engine Vector
+                        if (!useTriggers && !isTimerBlocked)
                         {
                             CheckPlayerCoords(player, playerSpeed);
                         }
-                        if (useTriggers == true && isTimerBlocked == false && useTriggersAndFakeZones == true)
+                        if (useTriggers && !isTimerBlocked && useTriggersAndFakeZones)
                         {
                             CheckPlayerCoords(player, playerSpeed);
                         }
 
-                        if (jumpStatsEnabled == true) OnJumpStatTick(player, playerSpeed, player.Pawn?.Value!.CBodyComponent?.SceneNode!.AbsOrigin!, player.PlayerPawn?.Value.EyeAngles!, playerButtons);
-                        if (StrafeHudEnabled == true) OnSyncTick(player, playerButtons, player.PlayerPawn?.Value.EyeAngles!);
+                        // Jump stats / strafe hud use engine AbsOrigin/EyeAngles
+                        if (jumpStatsEnabled == true)
+                            OnJumpStatTick(player, playerSpeed, player.Pawn?.Value!.CBodyComponent?.SceneNode!.AbsOrigin!, player.PlayerPawn?.Value.EyeAngles!, playerButtons);
+                        if (StrafeHudEnabled == true)
+                            OnSyncTick(player, playerButtons, player.PlayerPawn?.Value.EyeAngles!);
                         if (StrafeHudEnabled == true && playerTimers[player.Slot].inStartzone && playerTimer.Rotation.Count > 0)
                         {
                             playerTimer.Sync = 100.00f;
                             playerTimer.Rotation.Clear();
-                        }//reset sync in startzone
+                        } //reset sync in startzone
 
 
                         if (forcePlayerSpeedEnabled == true)
@@ -236,7 +248,8 @@ namespace SharpTimer
                             playerTimer.TicksInAir++;
                             if (playerTimer.TicksInAir == 1)
                             {
-                                playerTimer.PreSpeed = $"{playerSpeed.X} {playerSpeed.Y} {playerSpeed.Z}";
+                                // Store numerics to string (no engine helpers)
+                                playerTimer.PreSpeed = $"{vel.X} {vel.Y} {vel.Z}";
                             }
                         }
                         else
@@ -257,7 +270,8 @@ namespace SharpTimer
                             }
                             else
                             {
-                                if (!isTimerBlocked && (player.PlayerPawn!.Value.MoveType.HasFlag(MoveType_t.MOVETYPE_OBSERVER) || player.PlayerPawn.Value.ActualMoveType.HasFlag(MoveType_t.MOVETYPE_OBSERVER))) SetMoveType(player, MoveType_t.MOVETYPE_WALK);
+                                if (!isTimerBlocked && (player.PlayerPawn!.Value.MoveType.HasFlag(MoveType_t.MOVETYPE_OBSERVER) || player.PlayerPawn.Value.ActualMoveType.HasFlag(MoveType_t.MOVETYPE_OBSERVER)))
+                                    SetMoveType(player, MoveType_t.MOVETYPE_WALK);
                             }
                         }
 
@@ -269,11 +283,15 @@ namespace SharpTimer
                         bool keyEnabled = !playerTimer.HideKeys && keysOverlayEnabled;
                         bool hudEnabled = !playerTimer.HideTimerHud && hudOverlayEnabled;
 
-                        string formattedPlayerVel = Math.Round(use2DSpeed ? playerSpeed.Length2D()
-                                                                            : playerSpeed.Length())
-                                                                            .ToString("0000");
+                        // Speed calc via numerics (2D or 3D)
+                        float speed = use2DSpeed
+                            ? MathF.Sqrt(vel.X * vel.X + vel.Y * vel.Y)
+                            : vel.Length();
+ 
+                        string formattedPlayerVel = Math.Round(speed).ToString("0000");
                         int playerVel = int.Parse(formattedPlayerVel);
 
+                        // Dynamic color by velocity
                         string secondaryHUDcolorDynamic = "LimeGreen";
                         int[] velocityThresholds = { 349, 699, 1049, 1399, 1749, 2099, 2449, 2799, 3149, 3499 };
                         string[] hudColors = { "LimeGreen", "Lime", "GreenYellow", "Yellow", "Gold", "Orange", "DarkOrange", "Tomato", "OrangeRed", "Red", "Crimson" };
@@ -402,19 +420,25 @@ namespace SharpTimer
                 var target = specTargets[player.Pawn.Value!.ObserverServices!.ObserverTarget.Index];
                 if (playerTimers.TryGetValue(target.Slot, out PlayerTimerInfo? playerTimer) && IsAllowedPlayer(target))
                 {
-                    bool isTimerRunning = playerTimer.IsTimerRunning;
+                    bool isTimerRunning      = playerTimer.IsTimerRunning;
                     bool isBonusTimerRunning = playerTimer.IsBonusTimerRunning;
-                    int timerTicks = playerTimer.TimerTicks;
+                    int timerTicks           = playerTimer.TimerTicks;
                     PlayerButtons? playerButtons = target.Buttons;
-                    Vector playerSpeed = target.PlayerPawn!.Value!.AbsVelocity;
+ 
+                    var playerSpeed = target.PlayerPawn!.Value!.AbsVelocity;
+                    Vector3 vel   = (Vector3)playerSpeed;
+ 
                     bool keyEnabled = !playerTimer.HideKeys && !playerTimer.IsReplaying && keysOverlayEnabled;
                     bool hudEnabled = !playerTimer.HideTimerHud && hudOverlayEnabled;
-
-                    string formattedPlayerVel = Math.Round(use2DSpeed ? playerSpeed.Length2D()
-                                                                        : playerSpeed.Length())
-                                                                        .ToString("0000");
+ 
+                    float speed = use2DSpeed
+                        ? MathF.Sqrt(vel.X * vel.X + vel.Y * vel.Y)
+                        : vel.Length();
+ 
+                    string formattedPlayerVel = Math.Round(speed).ToString("0000");
                     string playerTime = FormatTimeShort(timerTicks);
                     string playerBonusTime = FormatTimeShort(playerTimer.BonusTimerTicks);
+
                     string timerLine = isBonusTimerRunning
                                         ? $" <font class='fontSize-s' color='{tertiaryHUDcolor}'>Timer:</font> <font class='fontSize-l horizontal-center' color='{primaryHUDcolor}'>{playerBonusTime}</font> <br>"
                                         : isTimerRunning

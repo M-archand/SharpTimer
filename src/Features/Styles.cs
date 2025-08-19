@@ -1,5 +1,5 @@
 using CounterStrikeSharp.API.Core;
-using Vector = CounterStrikeSharp.API.Modules.Utils.Vector;
+using System.Numerics;
 
 namespace SharpTimer
 {
@@ -12,47 +12,20 @@ namespace SharpTimer
                 SetNormalStyle(player);
                 switch (style)
                 {
-                    case 0:
-                        SetNormalStyle(player);
-                        return;
-                    case 1:
-                        SetLowGravity(player);
-                        return;
-                    case 2:
-                        SetSideways(player);
-                        return;
-                    case 3:
-                        SetOnlyW(player);
-                        return;
-                    case 4:
-                        Set400Vel(player);
-                        return;
-                    case 5:
-                        SetHighGravity(player);
-                        return;
-                    case 6:
-                        SetOnlyA(player);
-                        return;
-                    case 7:
-                        SetOnlyD(player);
-                        return;
-                    case 8:
-                        SetOnlyS(player);
-                        return;
-                    case 9:
-                        SetHalfSideways(player);
-                        return;
-                    case 10:
-                        SetFastForward(player);
-                        return;
-                    case 11:
-                        SetParachute(player);
-                        return;
-                    case 12:
-                        SetTAS(player);
-                        return;
-                    default:
-                        return;
+                    case 0:  SetNormalStyle(player);    return;
+                    case 1:  SetLowGravity(player);     return;
+                    case 2:  SetSideways(player);       return;
+                    case 3:  SetOnlyW(player);          return;
+                    case 4:  Set400Vel(player);         return;
+                    case 5:  SetHighGravity(player);    return;
+                    case 6:  SetOnlyA(player);          return;
+                    case 7:  SetOnlyD(player);          return;
+                    case 8:  SetOnlyS(player);          return;
+                    case 9:  SetHalfSideways(player);   return;
+                    case 10: SetFastForward(player);    return;
+                    case 11: SetParachute(player);      return;
+                    case 12: SetTAS(player);            return;
+                    default: return;
                 }
             });
         }
@@ -138,18 +111,27 @@ namespace SharpTimer
             playerTimers[player.Slot].changedStyle = true;
         }
 
-        public void SetVelocity(CCSPlayerController player, Vector currentVel, int desiredVel)
+        // Preferred overload: pass numerics Vector3 (no native allocations)
+        public void SetVelocity(CCSPlayerController player, Vector3 currentVel, int desiredVel)
         {
-            if (currentVel.X > desiredVel) player!.PlayerPawn.Value!.AbsVelocity.X = desiredVel;
-            if (currentVel.X < -desiredVel) player!.PlayerPawn.Value!.AbsVelocity.X = -desiredVel;
-            if (currentVel.Y > desiredVel) player!.PlayerPawn.Value!.AbsVelocity.Y = desiredVel;
-            if (currentVel.Y < -desiredVel) player!.PlayerPawn.Value!.AbsVelocity.Y = -desiredVel;
-            //do not cap z velocity
+            // Write directly to engine fields
+            var pawn = player!.PlayerPawn.Value!;
+            if (currentVel.X >  desiredVel) pawn.AbsVelocity.X =  desiredVel;
+            if (currentVel.X < -desiredVel) pawn.AbsVelocity.X = -desiredVel;
+            if (currentVel.Y >  desiredVel) pawn.AbsVelocity.Y =  desiredVel;
+            if (currentVel.Y < -desiredVel) pawn.AbsVelocity.Y = -desiredVel;
+            // Do not cap Z velocity
         }
+
+        // Backwards-compatible shim: if any call sites still pass the engine Vector, this funnels into the numerics version
+        public void SetVelocity(CCSPlayerController player, CounterStrikeSharp.API.Modules.Utils.Vector currentVel, int desiredVel)
+            => SetVelocity(player, (Vector3)currentVel, desiredVel);
 
         public void IncreaseVelocity(CCSPlayerController player)
         {
-            var currentSpeedXY = Math.Round(player!.Pawn.Value!.AbsVelocity.Length2D());
+            // Convert engine velocity to numerics and compute 2D speed without using engine helpers
+            Vector3 vel = (Vector3)player!.PlayerPawn.Value!.AbsVelocity;
+            var currentSpeedXY = Math.Round(Math.Sqrt(vel.X * vel.X + vel.Y * vel.Y));
             var targetSpeed = currentSpeedXY + 5;
 
             AdjustPlayerVelocity2D(player, (float)targetSpeed);
@@ -200,19 +182,19 @@ namespace SharpTimer
             }
             return style switch
             {
-                0 => 1, // 1.0x for normal
-                1 => lowgravPointModifier, //1.1x for lowgrav
-                2 => sidewaysPointModifier, // 1.3x for sideways
-                3 => onlywPointModifier, // 1.33x for onlyw
-                4 => velPointModifier, // 1.5x for 400vel
-                5 => highgravPointModifier, // 1.3x for highgrav
-                6 => onlyaPointModifier, // 1.33x for onlya
-                7 => onlydPointModifier, // 1.33x for onlyd
-                8 => onlysPointModifier, // 1.33x for onlys
-                9 => halfSidewaysPointModifier, // 1.3x for halfsideways
-                10 => fastForwardPointModifier, // 1.3x for ff
-                11 => parachutePointModifier, // 0.8x for parachute
-                12 => tasPointModifier, // 0.0x for TAS
+                0 => 1,
+                1 => lowgravPointModifier,
+                2 => sidewaysPointModifier,
+                3 => onlywPointModifier,
+                4 => velPointModifier,
+                5 => highgravPointModifier,
+                6 => onlyaPointModifier,
+                7 => onlydPointModifier,
+                8 => onlysPointModifier,
+                9 => halfSidewaysPointModifier,
+                10 => fastForwardPointModifier,
+                11 => parachutePointModifier,
+                12 => tasPointModifier,
                 _ => 1,
             };
         }
