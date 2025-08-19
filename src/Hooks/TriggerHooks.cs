@@ -92,8 +92,9 @@ namespace SharpTimer
                     if (!playerTimers[playerSlot].IsNoclip)
                     {
                         playerTimers[playerSlot].IsTimerBlocked = false;
-                        SharpTimerDebug($"[noclip] unblocked timer for {playerName} on start trigger {callerName}");
-                        PrintToChat(player, Localizer["timer_enabled"]);
+                        //Not sure of the best way to indicate timer being re-enabled after no-clip
+                        //SharpTimerDebug($"[noclip] unblocked timer for {playerName} on start trigger {callerName}");
+                        //PrintToChat(player, Localizer["timer_enabled"]);
                     }
                     if (!playerTimers[playerSlot].IsTimerBlocked && playerTimer!.currentStyle != 12) // if in TAS style, dont wipe checkpoints onstart (wipe them on !r)
                     {
