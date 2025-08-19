@@ -8,7 +8,7 @@
     <GenerateRuntimeConfigurationFiles>false</GenerateRuntimeConfigurationFiles>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CounterStrikeSharp.API" Version="1.0.335">
+    <PackageReference Include="CounterStrikeSharp.API" Version="1.0.336">
         <PrivateAssets>none</PrivateAssets>
         <ExcludeAssets>runtime</ExcludeAssets>
         <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

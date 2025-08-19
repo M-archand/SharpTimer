@@ -9,7 +9,7 @@ namespace SharpTimer
     public partial class SharpTimer
     {
         public override string ModuleName => "SharpTimer";
-        public override string ModuleVersion => $"0.3.1w";
+        public override string ModuleVersion => $"0.3.1w - 2025-08-19";
         public override string ModuleAuthor => "dea + rc + Marchand";
 
         public Dictionary<int, PlayerTimerInfo> playerTimers = [];
