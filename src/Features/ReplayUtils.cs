@@ -3,12 +3,11 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using System.Text.Json;
-using Vector = CounterStrikeSharp.API.Modules.Utils.Vector;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Data.Common;
 using MySqlConnector;
 using Npgsql;
 using System.Data.SQLite;
+using System.Numerics;
 using static SharpTimer.PlayerReplays;
 
 namespace SharpTimer
@@ -21,10 +20,19 @@ namespace SharpTimer
             {
                 if (!IsAllowedPlayer(player)) return;
 
-                // Get the player's current position and rotation
-                ReplayVector currentPosition = ReplayVector.GetVectorish(player.Pawn.Value!.CBodyComponent?.SceneNode?.AbsOrigin ?? new Vector(0, 0, 0));
-                ReplayVector currentSpeed = ReplayVector.GetVectorish(player.PlayerPawn.Value!.AbsVelocity ?? new Vector(0, 0, 0));
-                ReplayQAngle currentRotation = ReplayQAngle.GetQAngleish(player.PlayerPawn.Value.EyeAngles ?? new QAngle(0, 0, 0));
+                // Pull engine values once, cast to numerics (no native allocations)
+                var absOrigin = player.Pawn.Value!.CBodyComponent?.SceneNode?.AbsOrigin;
+                var absVelocity = player.PlayerPawn.Value!.AbsVelocity;
+                var eyeAngles = player.PlayerPawn.Value!.EyeAngles;
+
+                Vector3 posV3 = absOrigin is not null ? (Vector3)absOrigin : Vector3.Zero;
+                Vector3 velV3 = absVelocity is not null ? (Vector3)absVelocity : Vector3.Zero;
+                Vector3 angV3 = eyeAngles is not null ? (Vector3)eyeAngles : Vector3.Zero;
+
+                // Populate your DTOs (pure managed).
+                ReplayVector currentPosition = new ReplayVector(posV3.X, posV3.Y, posV3.Z);
+                ReplayVector currentSpeed    = new ReplayVector(velV3.X, velV3.Y, velV3.Z);
+                ReplayQAngle currentRotation = new ReplayQAngle(angV3.X, angV3.Y, angV3.Z);
 
                 var buttons = player.Buttons;
                 var flags = player.Pawn.Value.Flags;
@@ -54,11 +62,8 @@ namespace SharpTimer
             {
                 if (!IsAllowedPlayer(player)) return;
 
-                //player.LerpTime = 0.0078125f;
-
                 if (playerTimers.TryGetValue(player.Slot, out PlayerTimerInfo? value))
                 {
-                    
                     var replayFrame = playerReplays[player.Slot].replayFrames[plackbackTick];
 
                     if (((PlayerFlags)replayFrame.Flags & PlayerFlags.FL_ONGROUND) != 0)
@@ -79,7 +84,12 @@ namespace SharpTimer
                         value.MovementService!.DuckAmount = 0;
                     }
 
-                    player.PlayerPawn.Value!.Teleport(ReplayVector.ToVector(replayFrame.Position!), ReplayQAngle.ToQAngle(replayFrame.Rotation!), ReplayVector.ToVector(replayFrame.Speed!));
+                    // Use numerics Vector3 for Teleport (no native allocations)
+                    Vector3 pos = new Vector3(replayFrame.Position!.X, replayFrame.Position!.Y, replayFrame.Position!.Z);
+                    Vector3 ang = new Vector3(replayFrame.Rotation!.Pitch, replayFrame.Rotation!.Yaw, replayFrame.Rotation!.Roll);
+                    Vector3 vel = new Vector3(replayFrame.Speed!.X, replayFrame.Speed!.Y, replayFrame.Speed!.Z);
+
+                    player.PlayerPawn.Value!.Teleport(pos, ang, vel);
 
                     var replayButtons = $"{((replayFrame.Buttons & PlayerButtons.Moveleft) != 0 ? "A" : "_")} " +
                                         $"{((replayFrame.Buttons & PlayerButtons.Forward) != 0 ? "W" : "_")} " +
@@ -366,27 +376,28 @@ namespace SharpTimer
                     return;
                 }
                    
-                var replayFrames = new List<PlayerReplays.ReplayFrames>();
+                var replayFrames = new List<ReplayFrames>();
                 
                 await Server.NextFrameAsync(() => {
                     while (reader.BaseStream.Position != reader.BaseStream.Length)
                     {
-                            var position = new Vector(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
-                            var rotation = new QAngle(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
-                            var speed = new Vector(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
-                            var buttons = (PlayerButtons)reader.ReadInt32();
-                            var flags = (uint)reader.ReadInt32();
-                            var moveType = (MoveType_t)reader.ReadInt32();
+                        // Read floats directly—no temporary Vector/QAngle objects allocated.
+                        float px = reader.ReadSingle(); float py = reader.ReadSingle(); float pz = reader.ReadSingle();
+                        float ax = reader.ReadSingle(); float ay = reader.ReadSingle(); float az = reader.ReadSingle();
+                        float vx = reader.ReadSingle(); float vy = reader.ReadSingle(); float vz = reader.ReadSingle();
+                        var buttons = (PlayerButtons)reader.ReadInt32();
+                        var flags = (uint)reader.ReadInt32();
+                        var moveType = (MoveType_t)reader.ReadInt32();
                         
-                            replayFrames.Add(new PlayerReplays.ReplayFrames
-                            {
-                                Position = ReplayVector.GetVectorish(position),
-                                Rotation = ReplayQAngle.GetQAngleish(rotation),
-                                Speed    = ReplayVector.GetVectorish(speed),
-                                Buttons  = buttons,
-                                Flags    = flags,
-                                MoveType = moveType
-                            });
+                        replayFrames.Add(new ReplayFrames
+                        {
+                            Position = new ReplayVector(px, py, pz),
+                            Rotation = new ReplayQAngle(ax, ay, az),
+                            Speed    = new ReplayVector(vx, vy, vz),
+                            Buttons  = buttons,
+                            Flags    = flags,
+                            MoveType = moveType
+                        });
                     }
                 });
                 
@@ -429,7 +440,7 @@ namespace SharpTimer
                             writer.Write(frame.Speed.Y);
                             writer.Write(frame.Speed.Z);
                             
-                            writer.Write((int)(frame.Buttons ?? default(PlayerButtons)));
+                            writer.Write((int)frame.Buttons.GetValueOrDefault());
                             writer.Write((int)frame.Flags);
                             writer.Write((int)frame.MoveType);
                         }
@@ -498,16 +509,11 @@ namespace SharpTimer
                             // Loop while there is data available
                             while (ms.Position < ms.Length)
                             {
-                                // Read position
-                                ReplayVector position = new ReplayVector(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+                                // Read raw floats directly—no temporary Vector/QAngle
+                                float px = reader.ReadSingle(); float py = reader.ReadSingle(); float pz = reader.ReadSingle();
+                                float ax = reader.ReadSingle(); float ay = reader.ReadSingle(); float az = reader.ReadSingle();
+                                float vx = reader.ReadSingle(); float vy = reader.ReadSingle(); float vz = reader.ReadSingle();
 
-                                // Read rotation
-                                ReplayQAngle rotation = new ReplayQAngle(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
-
-                                // Read speed
-                                ReplayVector speed = new ReplayVector(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
-                                
-                                // Read buttons, flags, and move type
                                 PlayerButtons buttons = (PlayerButtons)reader.ReadInt32();
                                 uint flags = (uint)reader.ReadInt32();
                                 MoveType_t moveType = (MoveType_t)reader.ReadInt32();
@@ -515,11 +521,11 @@ namespace SharpTimer
                                 // Create a new frame and add it to the replay
                                 ReplayFrames frame = new ReplayFrames
                                 {
-                                    Position = position,
-                                    Rotation = rotation,
-                                    Speed = speed,
-                                    Buttons = buttons,
-                                    Flags = flags,
+                                    Position = new ReplayVector(px, py, pz),
+                                    Rotation = new ReplayQAngle(ax, ay, az),
+                                    Speed    = new ReplayVector(vx, vy, vz),
+                                    Buttons  = buttons,
+                                    Flags    = flags,
                                     MoveType = moveType
                                 };
                                 
@@ -544,9 +550,7 @@ namespace SharpTimer
             byte[] replayBinaryData = GetReplayBinaryData(playerReplays[playerSlot]);
             SharpTimerDebug($"DumpReplayToDatabase called with SteamID: {steamId}, bonusX: {bonusX}, style: {style}, currentMapName: {currentMapName}");
             SharpTimerDebug($"Replay binary data length: {replayBinaryData.Length}");
-
             SharpTimerDebug($"Replay binary data length: {replayBinaryData.Length}");
-            
             
             try
             {
@@ -599,46 +603,6 @@ namespace SharpTimer
                 SharpTimerError($"Error saving replay to database: {ex.Message}");
             }
         }
-
-        /*
-        private async Task ReadReplayFromGlobal(CCSPlayerController player, int recordId, int style, int bonusX = 0)
-        {
-            string currentMapFull = bonusX == 0 ? currentMapName! : $"{currentMapName}_bonus{bonusX}";
-            var payload = new
-            {
-                record_id = recordId,
-                map_name = currentMapFull,
-                style = style
-            };
-
-            try
-            {
-
-                var jsonString = await GetReplayFromGlobal(payload);
-                var indexedReplayFrames = JsonSerializer.Deserialize<List<IndexedReplayFrames>>(jsonString);
-
-                if (indexedReplayFrames != null)
-                {
-                    var replayFrames = indexedReplayFrames
-                        .OrderBy(frame => frame.Index)
-                        .Select(frame => frame.Frame)
-                        .ToList();
-
-                    if (!playerReplays.TryGetValue(player.Slot, out PlayerReplays? value))
-                    {
-                        value = new PlayerReplays();
-                        playerReplays[player.Slot] = value;
-                    }
-
-                    value.replayFrames = replayFrames!;
-                }
-            }
-            catch (Exception ex)
-            {
-                SharpTimerError($"Error during deserialization: {ex.Message}");
-            }
-        }
-        */
 
         private async Task SpawnReplayBot()
         {
@@ -736,7 +700,6 @@ namespace SharpTimer
             }
         }
 
-
         public async Task<bool> CheckSRReplay(string topSteamID = "x", int bonusX = 0, int style = 0)
         {
             var (srSteamID, srPlayerName, srTime) = ("null", "null", "null");
@@ -755,42 +718,28 @@ namespace SharpTimer
             string ext = useBinaryReplays ? "dat" : "json";
             string fileName = $"{(topSteamID == "x" ? $"{srSteamID}" : $"{topSteamID}")}_replay.{ext}";
             string playerReplaysPath;
-            if (style != 0) playerReplaysPath = Path.Join(gameDir, "csgo", "cfg", "SharpTimer", "PlayerReplayData", (bonusX == 0 ? currentMapName : $"{currentMapName}_bonus{bonusX}"), GetNamedStyle(style), fileName);
-            else playerReplaysPath = Path.Join(gameDir, "csgo", "cfg", "SharpTimer", "PlayerReplayData", (bonusX == 0 ? currentMapName : $"{currentMapName}_bonus{bonusX}"), fileName);
+            if (style != 0) playerReplaysPath = Path.Join(gameDir, "csgo", "cfg", "SharpTimer", "PlayerReplayData", bonusX == 0 ? currentMapName : $"{currentMapName}_bonus{bonusX}", GetNamedStyle(style), fileName);
+            else playerReplaysPath = Path.Join(gameDir, "csgo", "cfg", "SharpTimer", "PlayerReplayData", bonusX == 0 ? currentMapName : $"{currentMapName}_bonus{bonusX}", fileName);
 
             try
             {
-                if (File.Exists(playerReplaysPath)) {
-                    if (useBinaryReplays) {
-                        var reader = new BinaryReader(File.Open(playerReplaysPath, FileMode.Open));
-                        var version = reader.ReadInt32();
-                        
-                        return version == REPLAY_VERSION;
-                    }
-                    var jsonString = await File.ReadAllTextAsync(playerReplaysPath);
-                    if (!jsonString.Contains("PositionString"))
-                    {
-                        var indexedReplayFrames = JsonSerializer.Deserialize<List<IndexedReplayFrames>>(jsonString);
+                if (!File.Exists(playerReplaysPath)) return false;
 
-                        if (indexedReplayFrames != null)
-                        {
-                            return true;
-                        }
-                        return false;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                else
+                if (useBinaryReplays)
                 {
-                    return false;
+                    using var fs = File.OpenRead(playerReplaysPath);
+                    if (fs.Length < sizeof(int)) return false; // guard against empty/corrupt files
+                    using var reader = new BinaryReader(fs);
+                    return reader.ReadInt32() == REPLAY_VERSION;
                 }
+
+                var json = await File.ReadAllTextAsync(playerReplaysPath);
+                if (json.Contains("PositionString")) return false; // unsupported format
+                return JsonSerializer.Deserialize<List<IndexedReplayFrames>>(json) is not null;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error during deserialization: {ex.Message}");
+                SharpTimerError($"Error validating replay file '{playerReplaysPath}': {ex.Message}");
                 return false;
             }
         }
