@@ -3537,7 +3537,7 @@ namespace SharpTimer
         }
 
         public async Task<Dictionary<string, PlayerRecord>> GetSortedStageRecordsFromDatabase(int stage, int limit = 0,
-            int bonusX = 0, string mapName = "")
+            int bonusX = 0, string mapName = "", int style = 0, string mode = "")
         {
             Utils.LogDebug($"Trying GetSortedStageRecords {(bonusX != 0 ? $"bonus {bonusX}" : "")} from database");
             using (var connection = await OpenConnectionAsync())
@@ -3561,17 +3561,17 @@ namespace SharpTimer
                         {
                             case DatabaseType.MySQL:
                                 selectQuery =
-                                    $@"SELECT SteamID, PlayerName, TimerTicks FROM PlayerStageTimes WHERE MapName = @MapName AND Stage = @Stage ORDER BY TimerTicks ASC LIMIT {limit}";
+                                    $@"SELECT SteamID, PlayerName, TimerTicks FROM PlayerStageTimes WHERE MapName = @MapName AND Stage = @Stage AND Style = @Style AND Mode = @Mode ORDER BY TimerTicks ASC LIMIT {limit}";
                                 selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
                                 break;
                             case DatabaseType.PostgreSQL:
                                 selectQuery =
-                                    $@"SELECT ""SteamID"", ""PlayerName"", ""TimerTicks"" FROM ""PlayerStageTimes"" WHERE ""MapName"" = @MapName AND ""Stage"" = @Stage ORDER BY ""TimerTicks"" ASC LIMIT {limit}";
+                                    $@"SELECT ""SteamID"", ""PlayerName"", ""TimerTicks"" FROM ""PlayerStageTimes"" WHERE ""MapName"" = @MapName AND ""Stage"" = @Stage AND ""Style"" = @Style AND ""Mode"" = @Mode ORDER BY ""TimerTicks"" ASC LIMIT {limit}";
                                 selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
                                 break;
                             case DatabaseType.SQLite:
                                 selectQuery =
-                                    $@"SELECT SteamID, PlayerName, TimerTicks FROM PlayerStageTimes WHERE MapName = @MapName AND Stage = @Stage ORDER BY TimerTicks ASC LIMIT {limit}";
+                                    $@"SELECT SteamID, PlayerName, TimerTicks FROM PlayerStageTimes WHERE MapName = @MapName AND Stage = @Stage AND Style = @Style AND Mode = @Mode ORDER BY TimerTicks ASC LIMIT {limit}";
                                 selectCommand = new SQLiteCommand(selectQuery, (SQLiteConnection)connection);
                                 break;
                             default:
@@ -3586,17 +3586,17 @@ namespace SharpTimer
                         {
                             case DatabaseType.MySQL:
                                 selectQuery =
-                                    @"SELECT SteamID, PlayerName, TimerTicks FROM PlayerStageTimes WHERE MapName = @MapName AND Stage = @Stage";
+                                    @"SELECT SteamID, PlayerName, TimerTicks FROM PlayerStageTimes WHERE MapName = @MapName AND Stage = @Stage AND Style = @Style AND Mode = @Mode";
                                 selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
                                 break;
                             case DatabaseType.PostgreSQL:
                                 selectQuery =
-                                    @"SELECT ""SteamID"", ""PlayerName"", ""TimerTicks"" FROM ""PlayerStageTimes"" WHERE ""MapName"" = @MapName AND ""Stage"" = @Stage";
+                                    @"SELECT ""SteamID"", ""PlayerName"", ""TimerTicks"" FROM ""PlayerStageTimes"" WHERE ""MapName"" = @MapName AND ""Stage"" = @Stage AND ""Style"" = @Style AND ""Mode"" = @Mode";
                                 selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
                                 break;
                             case DatabaseType.SQLite:
                                 selectQuery =
-                                    @"SELECT SteamID, PlayerName, TimerTicks FROM PlayerStageTimes WHERE MapName = @MapName AND Stage = @Stage";
+                                    @"SELECT SteamID, PlayerName, TimerTicks FROM PlayerStageTimes WHERE MapName = @MapName AND Stage = @Stage AND Style = @Style AND Mode = @Mode";
                                 selectCommand = new SQLiteCommand(selectQuery, (SQLiteConnection)connection);
                                 break;
                             default:
@@ -3610,6 +3610,8 @@ namespace SharpTimer
                     {
                         selectCommand!.AddParameterWithValue("@MapName", currentMapNamee);
                         selectCommand!.AddParameterWithValue("@Stage", stage);
+                        selectCommand!.AddParameterWithValue("@Style", style);
+                        selectCommand!.AddParameterWithValue("@Mode", mode);
                         using (var reader = await selectCommand!.ExecuteReaderAsync())
                         {
                             var sortedRecords = new Dictionary<string, PlayerRecord>();

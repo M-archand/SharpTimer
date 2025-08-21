@@ -75,22 +75,8 @@ namespace SharpTimer
                     if (isForBot == false)
                     {
                         string steamID = player.SteamID.ToString();
-
-                        if (enableDb)
-                            _ = Task.Run(async () =>
-                            {
-                                await GetPlayerStats(player, steamID, playerName, slot, true);
-                                Server.NextFrame(() =>
-                                {
-                                    if (connectedPlayers.TryGetValue(slot, out var connectedPlayer) && connectedPlayer.IsValid)
-                                    {
-                                        if (TryParseMode(playerTimers[slot].Mode.ToLower(), out Mode newMode) && newMode != defaultMode)
-                                            SetPlayerMode(connectedPlayer, newMode);
-                                        else
-                                            SetPlayerMode(connectedPlayer, defaultMode);
-                                    }
-                                });
-                            });
+                        
+                        if (enableDb) _ = Task.Run(async () => await GetPlayerStats(player, steamID, playerName, player.Slot, true));
 
                         if (cmdJoinMsgEnabled)
                             PrintAllEnabledCommands(player);

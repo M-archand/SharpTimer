@@ -459,7 +459,7 @@ namespace SharpTimer
                 if (savedPlayerTime == 0)
                     return getRankImg ? UnrankedIcon : UnrankedTitle;
 
-                Dictionary<string, PlayerRecord> sortedRecords = await GetSortedStageRecordsFromDatabase(stage, 0, bonusX, currentMapNamee);
+                Dictionary<string, PlayerRecord> sortedRecords = await GetSortedStageRecordsFromDatabase(stage, 0, bonusX, currentMapNamee, playerTimers[player!.Slot].currentStyle, playerTimers[player.Slot].Mode);
 
                 int placement = sortedRecords.Count(kv => kv.Value.TimerTicks < savedPlayerTime) + 1;
                 int totalPlayers = sortedRecords.Count;

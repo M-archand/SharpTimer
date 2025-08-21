@@ -69,6 +69,7 @@ public partial class SharpTimer : BasePlugin
             RunCommand?.Hook(OnRunCommandPre, HookMode.Pre);
             RunCommand?.Hook(OnRunCommandPost, HookMode.Post);
         }
+
         StateTransition.Hook(Hook_StateTransition, HookMode.Post);
         RemoveDamage?.Hook();
 
@@ -104,6 +105,7 @@ public partial class SharpTimer : BasePlugin
             RunCommand?.Unhook(OnRunCommandPre, HookMode.Pre);
             RunCommand?.Unhook(OnRunCommandPost, HookMode.Post);
         }
+
         StateTransition.Unhook(Hook_StateTransition, HookMode.Post);
         RemoveDamage?.Unhook();
 
@@ -134,7 +136,8 @@ public partial class SharpTimer : BasePlugin
 
     private HookResult OnRunCommandPre(DynamicHook h)
     {
-        var player = h.GetParam<CCSPlayer_MovementServices>(movementServices).Pawn.Value.Controller.Value?.As<CCSPlayerController>();
+        var player = h.GetParam<CCSPlayer_MovementServices>(movementServices).Pawn.Value.Controller.Value
+            ?.As<CCSPlayerController>();
 
         if (player == null || player.IsBot || !player.IsValid || player.IsHLTV) return HookResult.Continue;
 
@@ -157,71 +160,101 @@ public partial class SharpTimer : BasePlugin
                 {
                     ParseInputs(player, baseCmd.GetSideMove(), moveLeft, moveRight);
                     QAngle_t viewAngle = userCmd.GetViewAngles()!.Value;
-                    ParseStrafes(player, new (viewAngle.X, viewAngle.Y, viewAngle.Z));
+                    ParseStrafes(player, new(viewAngle.X, viewAngle.Y, viewAngle.Z));
                 }
-                
+
                 // Mode Stuff
                 ApplyConvar(h);
-                    
+
                 // Style Stuff
-                if ((playerTimers[player.Slot].IsTimerRunning || playerTimers[player.Slot].IsBonusTimerRunning) && playerTimers[player.Slot].currentStyle.Equals(2) && (moveLeft || moveRight)) //sideways
+                if ((playerTimers[player.Slot].IsTimerRunning || playerTimers[player.Slot].IsBonusTimerRunning) &&
+                    playerTimers[player.Slot].currentStyle.Equals(2) && (moveLeft || moveRight)) //sideways
                 {
-                    userCmd.DisableInput(h.GetParam<IntPtr>(movementPtr), 1536); //disable left (512) + right (1024) = 1536
+                    userCmd.DisableInput(h.GetParam<IntPtr>(movementPtr),
+                        1536); //disable left (512) + right (1024) = 1536
                     baseCmd.DisableSideMove(); //disable side movement
                     return HookResult.Changed;
                 }
-                if ((playerTimers[player.Slot].IsTimerRunning || playerTimers[player.Slot].IsBonusTimerRunning) && playerTimers[player.Slot].currentStyle.Equals(9) && (moveLeft || moveRight) && !(moveForward || moveBackward)) //halfsideways
+
+                if ((playerTimers[player.Slot].IsTimerRunning || playerTimers[player.Slot].IsBonusTimerRunning) &&
+                    playerTimers[player.Slot].currentStyle.Equals(9) && (moveLeft || moveRight) &&
+                    !(moveForward || moveBackward)) //halfsideways
                 {
-                    userCmd.DisableInput(h.GetParam<IntPtr>(movementPtr), 1536); //disable left (512) + right (1024) = 1536
+                    userCmd.DisableInput(h.GetParam<IntPtr>(movementPtr),
+                        1536); //disable left (512) + right (1024) = 1536
                     baseCmd.DisableSideMove(); //disable side movement
                     return HookResult.Changed;
                 }
-                if ((playerTimers[player.Slot].IsTimerRunning || playerTimers[player.Slot].IsBonusTimerRunning) && playerTimers[player.Slot].currentStyle.Equals(9) && !(moveLeft || moveRight) && (moveForward || moveBackward)) //halfsideways pt2
+
+                if ((playerTimers[player.Slot].IsTimerRunning || playerTimers[player.Slot].IsBonusTimerRunning) &&
+                    playerTimers[player.Slot].currentStyle.Equals(9) && !(moveLeft || moveRight) &&
+                    (moveForward || moveBackward)) //halfsideways pt2
                 {
-                    userCmd.DisableInput(h.GetParam<IntPtr>(movementPtr), 24); //disable backward (16) + forward (8) = 24
+                    userCmd.DisableInput(h.GetParam<IntPtr>(movementPtr),
+                        24); //disable backward (16) + forward (8) = 24
                     baseCmd.DisableForwardMove(); //disable forward movement
                     return HookResult.Changed;
                 }
-                if ((playerTimers[player.Slot].IsTimerRunning || playerTimers[player.Slot].IsBonusTimerRunning) && playerTimers[player.Slot].currentStyle.Equals(3) && (moveLeft || moveRight || moveBackward)) //only w
+
+                if ((playerTimers[player.Slot].IsTimerRunning || playerTimers[player.Slot].IsBonusTimerRunning) &&
+                    playerTimers[player.Slot].currentStyle.Equals(3) &&
+                    (moveLeft || moveRight || moveBackward)) //only w
                 {
-                    userCmd.DisableInput(h.GetParam<IntPtr>(movementPtr), 1552); //disable backward (16) + left (512) + right (1024) = 1552
+                    userCmd.DisableInput(h.GetParam<IntPtr>(movementPtr),
+                        1552); //disable backward (16) + left (512) + right (1024) = 1552
                     baseCmd.DisableSideMove(); //disable side movement
                     baseCmd.DisableForwardMove(); //set forward move to 0 ONLY if player is moving backwards; ie: disable s
                     return HookResult.Changed;
                 }
-                if ((playerTimers[player.Slot].IsTimerRunning || playerTimers[player.Slot].IsBonusTimerRunning) && playerTimers[player.Slot].currentStyle.Equals(6) && (moveForward || moveRight || moveBackward)) //only a
+
+                if ((playerTimers[player.Slot].IsTimerRunning || playerTimers[player.Slot].IsBonusTimerRunning) &&
+                    playerTimers[player.Slot].currentStyle.Equals(6) &&
+                    (moveForward || moveRight || moveBackward)) //only a
                 {
-                    userCmd.DisableInput(h.GetParam<IntPtr>(movementPtr), 1048); //disable backward (16) + forward (8) + right (1024) = 1048
+                    userCmd.DisableInput(h.GetParam<IntPtr>(movementPtr),
+                        1048); //disable backward (16) + forward (8) + right (1024) = 1048
                     baseCmd.DisableSideMove(); //disable only right movement
                     baseCmd.DisableForwardMove(); //disable forward movement
                     return HookResult.Changed;
                 }
-                if ((playerTimers[player.Slot].IsTimerRunning || playerTimers[player.Slot].IsBonusTimerRunning) && playerTimers[player.Slot].currentStyle.Equals(7) && (moveForward || moveLeft || moveBackward)) //only d
+
+                if ((playerTimers[player.Slot].IsTimerRunning || playerTimers[player.Slot].IsBonusTimerRunning) &&
+                    playerTimers[player.Slot].currentStyle.Equals(7) &&
+                    (moveForward || moveLeft || moveBackward)) //only d
                 {
-                    userCmd.DisableInput(h.GetParam<IntPtr>(movementPtr), 536); //disable backward (16) + forward (8) + left (512) = 536
+                    userCmd.DisableInput(h.GetParam<IntPtr>(movementPtr),
+                        536); //disable backward (16) + forward (8) + left (512) = 536
                     baseCmd.DisableSideMove(); //disable only left movement
                     baseCmd.DisableForwardMove(); //disable forward movement
                     return HookResult.Changed;
                 }
-                if ((playerTimers[player.Slot].IsTimerRunning || playerTimers[player.Slot].IsBonusTimerRunning) && playerTimers[player.Slot].currentStyle.Equals(8) && (moveForward || moveLeft || moveRight)) //only s
+
+                if ((playerTimers[player.Slot].IsTimerRunning || playerTimers[player.Slot].IsBonusTimerRunning) &&
+                    playerTimers[player.Slot].currentStyle.Equals(8) && (moveForward || moveLeft || moveRight)) //only s
                 {
-                    userCmd.DisableInput(h.GetParam<IntPtr>(movementPtr), 1544); //disable right (1024) + forward (8) + left (512) = 1544
+                    userCmd.DisableInput(h.GetParam<IntPtr>(movementPtr),
+                        1544); //disable right (1024) + forward (8) + left (512) = 1544
                     baseCmd.DisableSideMove(); //disable side movement
                     baseCmd.DisableForwardMove(); //disable only forward movement
                     return HookResult.Changed;
                 }
-                if ((playerTimers[player.Slot].IsTimerRunning || playerTimers[player.Slot].IsBonusTimerRunning) && playerTimers[player.Slot].currentStyle.Equals(11) && usingUse) //parachute
+
+                if ((playerTimers[player.Slot].IsTimerRunning || playerTimers[player.Slot].IsBonusTimerRunning) &&
+                    playerTimers[player.Slot].currentStyle.Equals(11) && usingUse) //parachute
                 {
                     Schema.SetSchemaValue(player!.Pawn.Value!.Handle, "CBaseEntity", "m_flActualGravityScale", 0.2f);
                     Utilities.SetStateChanged(player!.Pawn.Value!, "CBaseEntity", "m_flActualGravityScale");
                     return HookResult.Changed;
                 }
-                if ((playerTimers[player.Slot].IsTimerRunning || playerTimers[player.Slot].IsBonusTimerRunning) && playerTimers[player.Slot].currentStyle.Equals(11) && !usingUse) //parachute
+
+                if ((playerTimers[player.Slot].IsTimerRunning || playerTimers[player.Slot].IsBonusTimerRunning) &&
+                    playerTimers[player.Slot].currentStyle.Equals(11) && !usingUse) //parachute
                 {
                     Schema.SetSchemaValue(player!.Pawn.Value!.Handle, "CBaseEntity", "m_flActualGravityScale", 1f);
                     Utilities.SetStateChanged(player!.Pawn.Value!, "CBaseEntity", "m_flActualGravityScale");
                     return HookResult.Changed;
                 }
+
                 return HookResult.Changed;
             }
             catch (Exception)
@@ -239,6 +272,7 @@ public partial class SharpTimer : BasePlugin
     {
         return ResetConvar(h);
     }
+
     private HookResult Hook_StateTransition(DynamicHook h)
     {
         var player = h.GetParam<CCSPlayerPawn>(0).OriginalController.Value;
@@ -248,7 +282,8 @@ public partial class SharpTimer : BasePlugin
 
         if (state != _oldPlayerState[player.Index])
         {
-            if (state == CSPlayerState.STATE_OBSERVER_MODE || _oldPlayerState[player.Index] == CSPlayerState.STATE_OBSERVER_MODE)
+            if (state == CSPlayerState.STATE_OBSERVER_MODE ||
+                _oldPlayerState[player.Index] == CSPlayerState.STATE_OBSERVER_MODE)
                 ForceFullUpdate(player);
         }
 
@@ -256,6 +291,7 @@ public partial class SharpTimer : BasePlugin
 
         return HookResult.Continue;
     }
+
     private void ForceFullUpdate(CCSPlayerController? player)
     {
         if (player is null || !player.IsValid) return;
@@ -268,7 +304,8 @@ public partial class SharpTimer : BasePlugin
 
     private void CheckTransmit(CCheckTransmitInfoList infoList)
     {
-        IEnumerable<CCSPlayerController> players = Utilities.FindAllEntitiesByDesignerName<CCSPlayerController>("cs_player_controller");
+        IEnumerable<CCSPlayerController> players =
+            Utilities.FindAllEntitiesByDesignerName<CCSPlayerController>("cs_player_controller");
 
         if (!players.Any())
             return;
@@ -398,12 +435,19 @@ public partial class SharpTimer : BasePlugin
 
             if (enableStyles)
                 setStyle(player, playerTimers[player.Slot].currentStyle);
-            
+
+            if (TryParseMode(playerTimer.Mode.ToLower(), out Mode newMode) && newMode != defaultMode)
+                SetPlayerMode(player, newMode);
+            else
+                SetPlayerMode(player, defaultMode);
+
             AddTimer(3.0f, () =>
             {
-                if (enableDb && playerTimers.ContainsKey(player.Slot) && player.DesiredFOV != (uint)playerTimers[player.Slot].PlayerFov)
+                if (enableDb && playerTimers.ContainsKey(player.Slot) &&
+                    player.DesiredFOV != (uint)playerTimers[player.Slot].PlayerFov)
                 {
-                    Utils.LogDebug($"{player.PlayerName} has wrong PlayerFov {player.DesiredFOV}... SetFov to {(uint)playerTimers[player.Slot].PlayerFov}");
+                    Utils.LogDebug(
+                        $"{player.PlayerName} has wrong PlayerFov {player.DesiredFOV}... SetFov to {(uint)playerTimers[player.Slot].PlayerFov}");
                     SetFov(player, playerTimers[player.Slot].PlayerFov, true);
                 }
             });
@@ -416,8 +460,7 @@ public partial class SharpTimer : BasePlugin
             playerPawn.Render = Color.FromArgb(254, 254, 254, 254);
             Utilities.SetStateChanged(playerPawn, "CBaseModelEntity", "m_clrRender");
         }
-        
-        
+
 
         return HookResult.Continue;
     }
