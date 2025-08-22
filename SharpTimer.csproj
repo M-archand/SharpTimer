@@ -8,7 +8,7 @@
     <GenerateRuntimeConfigurationFiles>false</GenerateRuntimeConfigurationFiles>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CounterStrikeSharp.API" Version="1.0.336">
+    <PackageReference Include="CounterStrikeSharp.API" Version="1.0.337">
         <PrivateAssets>none</PrivateAssets>
         <ExcludeAssets>runtime</ExcludeAssets>
         <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -17,5 +17,11 @@
     <PackageReference Include="MySqlConnector" Version="2.4.0" />
     <PackageReference Include="Nexd.MySQL" Version="1.0.2" />
     <PackageReference Include="Npgsql" Version="9.0.3" />
+
+    <Reference Include="TagsApi">
+      <HintPath>$(MSBuildProjectDirectory)/../../TagsApi.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+
   </ItemGroup>
 </Project>

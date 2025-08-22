@@ -943,7 +943,7 @@ namespace SharpTimer
                     timerInfo.CachedMapPlacement = mapPlacement;
                     cachedPlacements.Remove(playerSlot);
 
-                    if (displayScoreboardTags) AddScoreboardTagToPlayer(player!, ranking);
+                    if (displayScoreboardTags) AddRankTagToPlayer(player!, ranking);
                 });
 
                 if (!sendRankToHUD)

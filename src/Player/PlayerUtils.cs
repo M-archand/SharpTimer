@@ -3,6 +3,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Utils;
 using System.Text.Json;
+using TagsApi;
 
 namespace SharpTimer
 {
@@ -562,8 +563,8 @@ namespace SharpTimer
                 }
                 else if (beatPB)
                 {
-                    if (bonusX != 0) PrintToChatAll(Localizer["new_pb_record_bonus", playerName, bonusX]);
-                    else PrintToChatAll(Localizer["new_pb_record", playerName]);
+                    if (bonusX != 0) player.PrintToChat(Localizer["new_pb_record_bonus", playerName, bonusX]);
+                    else player.PrintToChat(Localizer["new_pb_record", playerName]);
                     if (discordWebhookPrintPB && discordWebhookEnabled && enableDb) _ = Task.Run(async () => await DiscordRecordMessage(player, playerName, newTime, steamID, ranking, timesFinished, false, timeDifferenceNoCol, bonusX));
                     PlaySound(player, pbSound);
                 }
@@ -631,49 +632,54 @@ namespace SharpTimer
             });
         }
 
-        public void AddScoreboardTagToPlayer(CCSPlayerController player, string tag)
+        public void AddRankTagToPlayer(CCSPlayerController player, string rank)
         {
             try
             {
-
-                if (string.IsNullOrEmpty(tag))
+                if (string.IsNullOrEmpty(rank))
                     return;
 
-                if (player == null || !player.IsValid)
-                    return;
+                if (TagApi == null)
+                    TagApi = ITagApi.Capability.Get();
 
-                string originalPlayerName = player.PlayerName;
-
-                string stripedClanTag = RemovePlayerTags(player.Clan ?? "");
-
-                player.Clan = $"{stripedClanTag}{(playerTimers[player.Slot].IsVip ? $"{customVIPTag}" : "")}{tag}";
-
-                player.PlayerName = originalPlayerName + " ";
-
-                AddTimer(0.1f, () =>
+                if (TagApi == null)
                 {
-                    if (player.IsValid)
+                    SharpTimerDebug("(SetClanTagAPI) Failed load TagApi");
+                    return;
+                }
+
+                string clanTag = $"{rank} {(playerTimers[player.Slot].IsVip ? $"{customVIPTag}" : "")}";
+
+                string rankColor = GetRankColorForChat(player);
+                string chatTag = $" {rankColor}{rank} ";
+
+                if (displayChatTags)
+                {
+                    TagApi.ResetAttribute(player, Tags.TagType.ChatTag);
+
+                    Server.NextFrame(() =>
                     {
-                        Utilities.SetStateChanged(player, "CCSPlayerController", "m_szClan");
-                        Utilities.SetStateChanged(player, "CBasePlayerController", "m_iszPlayerName");
-                    }
-                });
+                        string oldChatTag = TagApi.GetAttribute(player, Tags.TagType.ChatTag) ?? "";
+                        TagApi.SetAttribute(player, Tags.TagType.ChatTag, oldChatTag + chatTag);
+                    });
+                }
 
-                AddTimer(0.2f, () =>
+                if (displayScoreboardTags)
                 {
-                    if (player.IsValid) player.PlayerName = originalPlayerName;
-                });
+                    TagApi.ResetAttribute(player, Tags.TagType.ScoreTag);
 
-                AddTimer(0.3f, () =>
-                {
-                    if (player.IsValid) Utilities.SetStateChanged(player, "CBasePlayerController", "m_iszPlayerName");
-                });
+                    Server.NextFrame(() =>
+                    {
+                        string oldClanTag = TagApi.GetAttribute(player, Tags.TagType.ScoreTag) ?? "";
+                        TagApi.SetAttribute(player, Tags.TagType.ScoreTag, oldClanTag + clanTag);
+                    });
+                }
 
                 SharpTimerDebug($"Set Scoreboard Tag for {player.Clan} {player.PlayerName}");
             }
             catch (Exception ex)
             {
-                SharpTimerError($"Error in AddScoreboardTagToPlayer: {ex.Message}");
+                SharpTimerDebug($"Error in AddScoreboardTagToPlayer: {ex.Message}");
             }
         }
 

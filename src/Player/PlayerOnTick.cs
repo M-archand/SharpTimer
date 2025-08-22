@@ -213,11 +213,14 @@ namespace SharpTimer
                         {
                             if (playerTimer.TicksSinceLastRankUpdate > 511 && playerTimer.CachedRank != null && (player.Clan != null || !player.Clan!.Contains($"[{playerTimer.CachedRank}]")))
                             {
-                                AddScoreboardTagToPlayer(player, playerTimer.CachedRank);
+                                AddRankTagToPlayer(player, playerTimer.CachedRank);
                                 playerTimer.TicksSinceLastRankUpdate = 0;
                                 SharpTimerDebug($"Setting Scoreboard Tag for {player.PlayerName} from TimerOnTick");
                             }
                         }
+
+                        if (playerTimer.TicksSinceLastRankUpdate < 511)
+                            playerTimer.TicksSinceLastRankUpdate++;
 
                         if (playerTimer.IsSpecTargetCached == false || specTargets.ContainsKey(player.Pawn!.Value!.EntityHandle.Index) == false)
                         {

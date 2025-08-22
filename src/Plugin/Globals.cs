@@ -3,6 +3,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Cvars;
 using CounterStrikeSharp.API.Modules.Utils;
 using Vector = CounterStrikeSharp.API.Modules.Utils.Vector;
+using TagsApi;
 
 namespace SharpTimer
 {
@@ -22,9 +23,10 @@ namespace SharpTimer
         private Dictionary<uint, CCSPlayerController> specTargets = [];
         private EntityCache? entityCache;
         public Dictionary<int, PlayerRecord>? SortedCachedRecords = [];
-        private static readonly HttpClient httpClient = new();
+        public ITagApi? TagApi { get; set; }
+        public readonly HttpClient httpClient = new();
 
-        public static JsonSerializerOptions jsonSerializerOptions = new()
+        public JsonSerializerOptions jsonSerializerOptions = new()
         {
             WriteIndented = true,
             PropertyNameCaseInsensitive = true
