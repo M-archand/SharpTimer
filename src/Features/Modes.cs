@@ -85,6 +85,7 @@ public partial class SharpTimer
         _playerModes[player.Slot] = mode;
         playerTimers[player.Slot].Mode = GetModeName(mode);
         playerTimers[player.Slot].ChangedMode = true;
+        
         Server.NextFrame(async () =>
         {
             await SetPlayerStats(player, player.SteamID.ToString(), player.PlayerName, player.Slot);
@@ -200,7 +201,10 @@ public partial class SharpTimer
                 Mode newMode = modes[modeIndex];
                 SetPlayerMode(player, newMode);
                 Utils.PrintToChat(player, Localizer["mode_set", GetModeName(newMode)]);
-                RespawnPlayer(player);
+                AddTimer(0.1f, () =>
+                {
+                    RespawnPlayer(player);
+                });
             }
             else
             {
@@ -211,7 +215,10 @@ public partial class SharpTimer
         {
             SetPlayerMode(player, newMode);
             Utils.PrintToChat(player, Localizer["mode_set", GetModeName(newMode)]);
-            RespawnPlayer(player);
+            AddTimer(0.1f, () =>
+            {
+                RespawnPlayer(player);
+            });
         }
         else
         {
