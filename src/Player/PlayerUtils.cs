@@ -551,44 +551,36 @@ namespace SharpTimer
                 if (newSR)
                 {
                     if (prevSR != 0)
-                    {
                         timeDifference = $"[{FormatTimeDifference(newticks, prevSR)}{ChatColors.White}] ";
-                    }
+
                     if (bonusX != 0) PrintToChatAll(Localizer["new_server_record_bonus", playerName, bonusX]);
-                    else
-                    {
+                    else {
                         PrintToChatAll(Localizer["new_server_record", playerName]);
                         if (srSoundAll) SendCommandToEveryone($"play {srSound}");
                         else PlaySound(player, srSound);
                     }
+
                     if (enableDb || bonusX != 0)
-                    {
-                        PrintToChatAll($"Rank: [{primaryChatColor}{ranking}{ChatColors.White}] " + (timesFinished != 0 && enableDb ? $"Times Finished: [{primaryChatColor}{timesFinished}{ChatColors.White}]" : ""));
-                    }
+                        PrintToChatAll($"Rank: [{primaryChatColor}{ranking}{ChatColors.White}] " +
+                                    (timesFinished != 0 && enableDb ? $"Times Finished: [{primaryChatColor}{timesFinished}{ChatColors.White}]" : ""));
+
                     PrintToChatAll(Localizer["timer_time", newTime, timeDifference]);
+                    if (enableStyles) PrintToChatAll(Localizer["timer_style", GetNamedStyle(style)]);
 
                     if (discordWebhookPrintSR && discordWebhookEnabled && enableDb)
                         _ = Task.Run(async () => await DiscordRecordMessage(player, playerName, newTime, steamID, ranking, timesFinished, true, timeDifferenceNoCol, bonusX));
-                    
-                    if (enableStyles) PrintToChatAll(Localizer["timer_style", GetNamedStyle(style)]);
                 }
                 else if (beatPB)
                 {
-                    if (bonusX != 0)
-                        player.PrintToChat(Localizer["new_pb_record_bonus", playerName, bonusX]);
-                    else
-                    {
-                        player.PrintToChat(Localizer["new_pb_record", playerName]);
-                    }
+                    if (bonusX != 0) player.PrintToChat(Localizer["new_pb_record_bonus", playerName, bonusX]);
+                    else             player.PrintToChat(Localizer["new_pb_record", playerName]);
+
                     if (enableDb || bonusX != 0)
-                    {
-                        player.PrintToChat($"Rank: [{primaryChatColor}{ranking}{ChatColors.White}] " + (timesFinished != 0 && enableDb ? $"Times Finished: [{primaryChatColor}{timesFinished}{ChatColors.White}]" : ""));
-                    }
+                        player.PrintToChat($"Rank: [{primaryChatColor}{ranking}{ChatColors.White}] " +
+                                        (timesFinished != 0 && enableDb ? $"Times Finished: [{primaryChatColor}{timesFinished}{ChatColors.White}]" : ""));
 
                     player.PrintToChat(Localizer["timer_time", newTime, timeDifference]);
-
-                    if (enableStyles)
-                        player.PrintToChat(Localizer["timer_style", GetNamedStyle(style)]);
+                    if (enableStyles) player.PrintToChat(Localizer["timer_style", GetNamedStyle(style)]);
 
                     if (discordWebhookPrintPB && discordWebhookEnabled && enableDb)
                         _ = Task.Run(async () => await DiscordRecordMessage(player, playerName, newTime, steamID, ranking, timesFinished, false, timeDifferenceNoCol, bonusX));
@@ -597,21 +589,15 @@ namespace SharpTimer
                 }
                 else
                 {
-                    if (bonusX != 0)
-                        player.PrintToChat(Localizer["map_finish_bonus", playerName, bonusX]);
-                    else
-                    {
-                        player.PrintToChat(Localizer["map_finish", playerName]);
-                    }
+                    if (bonusX != 0) player.PrintToChat(Localizer["map_finish_bonus", playerName, bonusX]);
+                    else             player.PrintToChat(Localizer["map_finish", playerName]);
+
                     if (enableDb || bonusX != 0)
-                    {
-                        player.PrintToChat($"Rank: [{primaryChatColor}{ranking}{ChatColors.White}] " + (timesFinished != 0 && enableDb ? $"Times Finished: [{primaryChatColor}{timesFinished}{ChatColors.White}]" : ""));
-                    }
+                        player.PrintToChat($"Rank: [{primaryChatColor}{ranking}{ChatColors.White}] " +
+                                        (timesFinished != 0 && enableDb ? $"Times Finished: [{primaryChatColor}{timesFinished}{ChatColors.White}]" : ""));
 
                     player.PrintToChat(Localizer["timer_time", newTime, timeDifference]);
-
-                    if (enableStyles)
-                        player.PrintToChat(Localizer["timer_style", GetNamedStyle(style)]);
+                    if (enableStyles) player.PrintToChat(Localizer["timer_style", GetNamedStyle(style)]);
 
                     if (discordWebhookPrintPB && discordWebhookEnabled && timesFinished == 1 && enableDb)
                         _ = Task.Run(async () => await DiscordRecordMessage(player, playerName, newTime, steamID, ranking, timesFinished, false, timeDifferenceNoCol, bonusX));
@@ -619,12 +605,11 @@ namespace SharpTimer
                     PlaySound(player, timerSound);
                 }
 
-                if (enableReplays == true && enableSRreplayBot == true && newSR && (oldticks > newticks || oldticks == 0))
-                {
+                if (enableReplays && enableSRreplayBot && newSR && (oldticks > newticks || oldticks == 0))
                     _ = Task.Run(async () => await SpawnReplayBot());
-                }
             });
         }
+
         public async Task PrintStageTimeToChat(CCSPlayerController player, string steamID, string playerName, int oldticks, int newticks, int stage, int bonusX = 0, int prevSR = 0)
         {
             if (!IsAllowedPlayer(player))
