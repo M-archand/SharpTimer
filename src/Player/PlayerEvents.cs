@@ -82,7 +82,7 @@ namespace SharpTimer
                             if (string.IsNullOrEmpty(playerTimers[player.Slot].Mode))
                             {
                                 Utils.LogDebug($"Player has null mode, falling back to default");
-                                SetPlayerMode(player, defaultMode);
+                                playerTimers[player.Slot].Mode = GetModeName(defaultMode);
                             }
                         });
 
