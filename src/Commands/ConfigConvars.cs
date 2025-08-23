@@ -818,11 +818,11 @@ namespace SharpTimer
             if (TryParseMode(args.ToLower(), out Mode newMode))
             {
                 defaultMode = newMode;
-                Server.PrintToConsole($"Default mode set to: {GetModeName(defaultMode)}");
+                Utils.LogDebug($"Default mode set to: {GetModeName(defaultMode)}");
             }
             else
             {
-                Server.PrintToConsole($"Invalid mode: {args}");
+                Utils.LogError($"Invalid mode: {args}");
             }
         }
         

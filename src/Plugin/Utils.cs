@@ -141,17 +141,17 @@ namespace SharpTimer
         public void LogDebug(string msg)
         {
             if (Plugin.enableDebug == true)
-                Plugin.Logger.LogInformation($"\u001b[33m[LogDebug] \u001b[37m{msg}");
+                Plugin.Logger.LogInformation($"[ST-DEBUG] {msg}");
         }
 
         public void LogError(string msg)
         {
-            Plugin.Logger.LogError($"\u001b[31m[LogError] \u001b[37m{msg}");
+            Plugin.Logger.LogError($"[ST-ERROR] {msg}");
         }
 
         public void ConPrint(string msg)
         {
-            Plugin.Logger.LogInformation($"\u001b[36m[SharpTimer] \u001b[37m{msg}");
+            Plugin.Logger.LogInformation($"[SharpTimer] {msg}");
         }
 
         public string FormatTime(int ticks)

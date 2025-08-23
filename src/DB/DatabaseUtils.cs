@@ -1275,6 +1275,9 @@ namespace SharpTimer
                             lastConnected = timeNowUnix;
                             Server.NextFrame(() =>
                             {
+                                if (string.IsNullOrEmpty(mode))
+                                    mode = GetModeName(defaultMode);
+                                
                                 if (playerTimers.TryGetValue(slot, out PlayerTimerInfo? value))
                                 {
                                     value.HideTimerHud = hideTimerHud;
