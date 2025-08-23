@@ -76,7 +76,15 @@ namespace SharpTimer
                     {
                         string steamID = player.SteamID.ToString();
                         
-                        if (enableDb) _ = Task.Run(async () => await GetPlayerStats(player, steamID, playerName, player.Slot, true));
+                        if (enableDb) _ = Task.Run(async () =>
+                        {
+                            await GetPlayerStats(player, steamID, playerName, player.Slot, true);
+                            if (string.IsNullOrEmpty(playerTimers[player.Slot].Mode))
+                            {
+                                Utils.LogDebug($"Player has null mode, falling back to default");
+                                SetPlayerMode(player, defaultMode);
+                            }
+                        });
 
                         if (cmdJoinMsgEnabled)
                             PrintAllEnabledCommands(player);

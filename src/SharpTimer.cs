@@ -436,17 +436,21 @@ public partial class SharpTimer : BasePlugin
             if (enableStyles)
                 setStyle(player, playerTimers[player.Slot].currentStyle);
 
-            if (!string.IsNullOrEmpty(playerTimer.Mode) && TryParseMode(playerTimer.Mode.ToLower(), out Mode newMode) &&
-                newMode != defaultMode)
+            Server.NextFrame( () =>
             {
-                SetPlayerMode(player, newMode);
-                Utils.LogDebug($"Player has been set to custom mode: {GetModeName(newMode)}");
-            }
-            else
-            {
-                SetPlayerMode(player, defaultMode);
-                Utils.LogDebug($"Player has been set to default mode: {GetModeName(defaultMode)}");
-            }
+                if (!string.IsNullOrEmpty(playerTimer.Mode) &&
+                    TryParseMode(playerTimer.Mode.ToLower(), out Mode newMode) &&
+                    newMode != defaultMode)
+                {
+                    SetPlayerMode(player, newMode);
+                    Utils.LogDebug($"Player has been set to custom mode: {playerTimer.Mode}");
+                }
+                else
+                {
+                    SetPlayerMode(player, defaultMode);
+                    Utils.LogDebug($"Player has been set to default mode: {playerTimer.Mode}");
+                }
+            });
 
             AddTimer(3.0f, () =>
             {
