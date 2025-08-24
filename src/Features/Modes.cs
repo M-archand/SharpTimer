@@ -9,6 +9,9 @@ namespace SharpTimer;
 
 public partial class SharpTimer
 {
+    private static readonly MemoryFunctionVoid<CCSPlayer_MovementServices, IntPtr> ProcessMovement =
+        new (GameData.GetSignature("ProcessMovement"));
+    
     private readonly ConVar? _wishspeed = ConVar.Find("sv_air_max_wishspeed");
     private readonly ConVar? _airaccel = ConVar.Find("sv_airaccelerate");
     private readonly ConVar? _accel = ConVar.Find("sv_accelerate");
@@ -226,113 +229,58 @@ public partial class SharpTimer
         }
     }
 
-    public int? GetSlot(CCSPlayer_MovementServices? movementServices)
+    public Mode? GetPlayerMode(CCSPlayerController player)
     {
-        uint? index = movementServices?.Pawn.Value?.Controller.Value?.Index;
-        if (index == null)
-        {
-            return null;
-        }
-
-        return (int)index.Value - 1;
-    }
-
-    public Mode? GetPlayerMode(CCSPlayer_MovementServices movementServices)
-    {
-        int? slot = GetSlot(movementServices);
-        if (slot == null)
-        {
-            return null;
-        }
-
+        int? slot = player.Slot;
         return _playerModes[slot.Value];
     }
-
-    private readonly Dictionary<string, bool> _wasConVarChanged = new();
-
-    private HookResult ApplyConvar(DynamicHook hook)
+    
+    private HookResult ProcessMovementPre(DynamicHook h)
     {
-        CCSPlayerController player = hook.GetParam<CCSPlayer_MovementServices>(0).Pawn.Value.Controller.Value?.As<CCSPlayerController>();
-        CCSPlayer_MovementServices movementServices = hook.GetParam<CCSPlayer_MovementServices>(0);
-        Mode? playerMode = GetPlayerMode(movementServices);
+        var player = h.GetParam<CCSPlayer_MovementServices>(movementServices).Pawn.Value.Controller.Value
+            ?.As<CCSPlayerController>();
+
+        if (player == null || player.IsBot || !player.IsValid || player.IsHLTV) return HookResult.Continue;
         
-        if (_accel == null || _airaccel == null || _wishspeed == null || _friction == null || player == null)
+        Mode? playerMode = GetPlayerMode(player);
+        
+        if (_accel == null || _airaccel == null || _wishspeed == null || _friction == null)
         {
+            Utils.LogDebug("ApplyConvar: Mode convar values are null");
             return HookResult.Continue;
         }
 
-        _wasConVarChanged["sv_accelerate"] = false;
-        _wasConVarChanged["sv_airaccelerate"] = false;
-        _wasConVarChanged["sv_air_max_wishspeed"] = false;
-        _wasConVarChanged["sv_friction"] = false;
-
-        if (playerMode == null || !ModeIndexLookup.ContainsKey(playerMode.Value))
-        {
-            return HookResult.Continue;
-        }
-
-        ModeConfig modeConfig = _configValues[ModeIndexLookup[playerMode.Value]];
-
-        if (!_accel.GetPrimitiveValue<float>().ToString().Equals(modeConfig.Accelerate))
-        {
-            _accel.SetValue(modeConfig.Accelerate);
-            _wasConVarChanged["sv_accelerate"] = true;
-        }
-
-        if (!_airaccel.GetPrimitiveValue<float>().ToString().Equals(modeConfig.AirAccelerate))
-        {
-            _airaccel.SetValue(modeConfig.AirAccelerate);
-            _wasConVarChanged["sv_airaccelerate"] = true;
-        }
-
-        if (!_wishspeed.GetPrimitiveValue<float>().ToString().Equals(modeConfig.Wishspeed))
-        {
-            _wishspeed.SetValue(modeConfig.Wishspeed);
-            _wasConVarChanged["sv_air_max_wishspeed"] = true;
-        }
-
-        if (!_friction.GetPrimitiveValue<float>().ToString().Equals(modeConfig.Friction))
-        {
-            _friction.SetValue(modeConfig.Friction);
-            _wasConVarChanged["sv_friction"] = true;
-        }
-
+        ModeConfig modeConfig = _configValues[ModeIndexLookup[playerMode!.Value]];
+        
+        _accel.SetValue(modeConfig.Accelerate);
+        _airaccel.SetValue(modeConfig.AirAccelerate);
+        _wishspeed.SetValue(modeConfig.Wishspeed);
+        _friction.SetValue(modeConfig.Friction);
+        
+        
         return HookResult.Continue;
     }
 
-    private HookResult ResetConvar(DynamicHook hook)
+    private HookResult ProcessMovementPost(DynamicHook h)
     {
-        CCSPlayer_MovementServices movementServices = hook.GetParam<CCSPlayer_MovementServices>(0);
-        CCSPlayerController player = hook.GetParam<CCSPlayer_MovementServices>(0).Pawn.Value.Controller.Value?.As<CCSPlayerController>();
-        Mode? playerMode = GetPlayerMode(movementServices);
+        var player = h.GetParam<CCSPlayer_MovementServices>(movementServices).Pawn.Value.Controller.Value
+            ?.As<CCSPlayerController>();
 
-        if (_accel == null || _airaccel == null || _wishspeed == null || _friction == null || player == null)
+        if (player == null || player.IsBot || !player.IsValid || player.IsHLTV) return HookResult.Continue;
+        
+        if (_accel == null || _airaccel == null || _wishspeed == null || _friction == null)
         {
+            Utils.LogDebug("ResetConvar: Mode convar values are null");
             return HookResult.Continue;
         }
 
         var defaultConfig = _configValues[ModeIndexLookup[defaultMode]];
-
-        if (_wasConVarChanged.TryGetValue("sv_accelerate", out bool accelChanged) && accelChanged)
-        {
-            _accel.SetValue(defaultConfig.Accelerate);
-        }
-
-        if (_wasConVarChanged.TryGetValue("sv_airaccelerate", out bool airAccelChanged) && airAccelChanged)
-        {
-            _airaccel.SetValue(defaultConfig.AirAccelerate);
-        }
-
-        if (_wasConVarChanged.TryGetValue("sv_air_max_wishspeed", out bool wishspeedChanged) && wishspeedChanged)
-        {
-            _wishspeed.SetValue(defaultConfig.Wishspeed);
-        }
-
-        if (_wasConVarChanged.TryGetValue("sv_friction", out bool frictionChanged) && frictionChanged)
-        {
-            _friction.SetValue(defaultConfig.Friction);
-        }
-
+        
+        _accel.SetValue(defaultConfig.Accelerate);
+        _airaccel.SetValue(defaultConfig.AirAccelerate);
+        _wishspeed.SetValue(defaultConfig.Wishspeed);
+        _friction.SetValue(defaultConfig.Friction);
+        
         return HookResult.Continue;
     }
 }

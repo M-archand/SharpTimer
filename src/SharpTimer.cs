@@ -67,7 +67,8 @@ public partial class SharpTimer : BasePlugin
         if (isLinux)
         {
             RunCommand?.Hook(OnRunCommandPre, HookMode.Pre);
-            RunCommand?.Hook(OnRunCommandPost, HookMode.Post);
+            ProcessMovement.Hook(ProcessMovementPre, HookMode.Pre);
+            ProcessMovement.Hook(ProcessMovementPost, HookMode.Post);
         }
 
         StateTransition.Hook(Hook_StateTransition, HookMode.Post);
@@ -103,7 +104,8 @@ public partial class SharpTimer : BasePlugin
         if (isLinux)
         {
             RunCommand?.Unhook(OnRunCommandPre, HookMode.Pre);
-            RunCommand?.Unhook(OnRunCommandPost, HookMode.Post);
+            ProcessMovement.Unhook(ProcessMovementPre, HookMode.Pre);
+            ProcessMovement.Unhook(ProcessMovementPost, HookMode.Post);
         }
 
         StateTransition.Unhook(Hook_StateTransition, HookMode.Post);
@@ -162,9 +164,6 @@ public partial class SharpTimer : BasePlugin
                     QAngle_t viewAngle = userCmd.GetViewAngles()!.Value;
                     ParseStrafes(player, new(viewAngle.X, viewAngle.Y, viewAngle.Z));
                 }
-
-                // Mode Stuff
-                ApplyConvar(h);
 
                 // Style Stuff
                 if ((playerTimers[player.Slot].IsTimerRunning || playerTimers[player.Slot].IsBonusTimerRunning) &&
@@ -266,11 +265,6 @@ public partial class SharpTimer : BasePlugin
         }
 
         return HookResult.Continue;
-    }
-
-    private HookResult OnRunCommandPost(DynamicHook h)
-    {
-        return ResetConvar(h);
     }
 
     private HookResult Hook_StateTransition(DynamicHook h)
