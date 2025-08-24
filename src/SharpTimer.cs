@@ -29,6 +29,8 @@ namespace SharpTimer
             gameDir = Server.GameDirectory;
             SharpTimerDebug($"Set gameDir to {gameDir}");
 
+            CheckMissingFakeConvars();
+
             string recordsFileName = $"SharpTimer/PlayerRecords/";
             playerRecordsPath = Path.Join(gameDir + "/csgo/cfg", recordsFileName);
 

@@ -10,6 +10,72 @@ namespace SharpTimer
 {
     public partial class SharpTimer
     {
+        private bool _hasWarnedAboutMissingFakeConvars = false;
+
+        private void CheckMissingFakeConvars()
+        {
+            try
+            {
+                var cfgPath = Path.Join(gameDir, "csgo", "cfg", "SharpTimer", "config.cfg");
+
+                if (!File.Exists(cfgPath))
+                {
+                    SharpTimerDebug($"[CFG] SharpTimer/config.cfg not found at '{cfgPath}'. Skipping fake convar check.");
+                    return;
+                }
+
+                // Parse which convar names are in config.cfg
+                var present = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var raw in File.ReadLines(cfgPath))
+                {
+                    var line = raw.Trim();
+                    if (string.IsNullOrEmpty(line)) continue;
+                    if (line.StartsWith("//")) continue;
+
+                    int i = 0;
+                    while (i < line.Length && !char.IsWhiteSpace(line[i])) i++;
+                    if (i == 0) continue;
+
+                    var token = line[..i];
+                    if (token.StartsWith("sharptimer_", StringComparison.OrdinalIgnoreCase))
+                        present.Add(token);
+                }
+
+                // Check expected fake convars
+                var expected = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var methods = typeof(SharpTimer).GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+                foreach (var m in methods)
+                {
+                    foreach (var cad in m.GetCustomAttributesData())
+                    {
+                        if (cad.AttributeType.Name == "ConsoleCommandAttribute" && cad.ConstructorArguments.Count >= 1)
+                        {
+                            var arg0 = cad.ConstructorArguments[0].Value;
+                            if (arg0 is string commandName && commandName.StartsWith("sharptimer_", StringComparison.OrdinalIgnoreCase))
+                                expected.Add(commandName);
+                        }
+                    }
+                }
+
+                // Log missing fake convars
+                var missing = expected.Except(present).OrderBy(x => x).ToList();
+
+                if (_hasWarnedAboutMissingFakeConvars)
+                    return;
+
+                SharpTimerDebug($"[CFG] {missing.Count} fake convar(s) are not set in cfg/SharpTimer/config.cfg:");
+                foreach (var name in missing)
+                    SharpTimerDebug($"[CFG]   - {name} (Falling back to default)");
+
+                _hasWarnedAboutMissingFakeConvars = true;
+            }
+            catch (Exception ex)
+            {
+                SharpTimerError($"Error in CheckMissingFakeConvars: {ex.Message}");
+            }
+        }
+
         [ConsoleCommand("sharptimer_hostname", "Default Server Hostname.")]
         [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
         public void SharpTimerServerHostname(CCSPlayerController? player, CommandInfo command)
