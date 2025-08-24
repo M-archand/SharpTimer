@@ -32,15 +32,21 @@ namespace SharpTimer
             PropertyNameCaseInsensitive = true
         };
 
+        // HUD COLORS
         public string primaryHUDcolor = "green";
         public string secondaryHUDcolor = "orange";
         public bool useDynamicColor = false;
         public string tertiaryHUDcolor = "white";
         public string primaryChatColor = "";
+
+        // BEAM COLORS
         public string startBeamColor = "";
         public string endBeamColor = "";
+        public string bonusStartBeamColor = "";
+        public string bonusEndBeamColor = "";
         public bool beamColorOverride = false;
 
+        // ZONE TRIGGERS
         private bool useStageTriggers = false;
         public Vector? currentMapStartTriggerMins = null;
         public Vector? currentMapStartTriggerMaxs = null;

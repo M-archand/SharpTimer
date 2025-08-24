@@ -3,6 +3,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Commands;
 using System.Globalization;
+using System.Reflection;
 
 
 namespace SharpTimer
@@ -920,6 +921,7 @@ namespace SharpTimer
             }
 
             startBeamColor = $"{args}";
+            SharpTimerDebug($"[CFG] sharptimer_start_beam_color = '{args}'");
         }
 
         [ConsoleCommand("sharptimer_end_beam_color", "Start beam color, Requires sharptimer_override_beam_colors_enabled true")]
@@ -935,6 +937,39 @@ namespace SharpTimer
             }
 
             endBeamColor = $"{args}";
+            SharpTimerDebug($"[CFG] sharptimer_end_beam_color = '{args}'");
+        }
+
+        [ConsoleCommand("sharptimer_bonus_start_beam_color", "Bonus start beam color, Requires sharptimer_override_beam_colors_enabled true")]
+        [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
+        public void SharpTimerBonusStartBeamColor(CCSPlayerController? player, CommandInfo command)
+        {
+            string args = command.ArgString.Trim();
+
+            if (string.IsNullOrEmpty(args))
+            {
+                bonusStartBeamColor = $"";
+                return;
+            }
+
+            bonusStartBeamColor = $"{args}";
+            SharpTimerDebug($"[CFG] sharptimer_bonus_start_beam_color = '{args}'");
+        }
+
+        [ConsoleCommand("sharptimer_bonus_end_beam_color", "Start beam color, Requires sharptimer_override_beam_colors_enabled true")]
+        [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
+        public void SharpTimerBonusEndBeamColor(CCSPlayerController? player, CommandInfo command)
+        {
+            string args = command.ArgString.Trim();
+
+            if (string.IsNullOrEmpty(args))
+            {
+                bonusEndBeamColor = $"";
+                return;
+            }
+
+            bonusEndBeamColor = $"{args}";
+            SharpTimerDebug($"[CFG] sharptimer_bonus_end_beam_color = '{args}'");
         }
 
         [ConsoleCommand("sharptimer_mysql_enabled", "Whether player times should be put into a mysql database by default or not. Default value: false")]

@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using Vector = CounterStrikeSharp.API.Modules.Utils.Vector;
 using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 
 namespace SharpTimer
 {
@@ -255,26 +256,40 @@ namespace SharpTimer
             return "\u0010";
         }
 
-        bool IsHexColorCode(string input)
+        bool IsHexColorCode(
+            string? input,
+            string? source = null,                                  // e.g., "sharptimer_end_beam_color"
+            [CallerMemberName] string? caller = null,
+            [CallerArgumentExpression("input")] string? inputExpr = null)
         {
-            if (input.StartsWith("#") && (input.Length == 7 || input.Length == 9))
+            var shown = string.IsNullOrWhiteSpace(input) ? "<empty>" : input!;
+            var where = !string.IsNullOrWhiteSpace(source) ? source : inputExpr ?? "unknown";
+
+            if (string.IsNullOrWhiteSpace(input))
             {
-                try
-                {
-                    Color color = ColorTranslator.FromHtml(input);
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    SharpTimerError($"Error parsing hex color code: {ex.Message}");
-                }
-            }
-            else
-            {
-                SharpTimerError("Invalid hex color code format. Please check SharpTimer/config.cfg");
+                SharpTimerError($"Invalid hex color: empty value (source={where}, caller={caller}).");
+                return false;
             }
 
-            return false;
+            if (!(input.StartsWith("#") && (input.Length == 7 || input.Length == 9)))
+            {
+                SharpTimerError(
+                    $"Invalid hex color format '{shown}' (source={where}, caller={caller}). " +
+                    "Expected #RRGGBB or #AARRGGBB. Please check SharpTimer/config.cfg");
+                return false;
+            }
+
+            try
+            {
+                // NOTE: ColorTranslator.FromHtml supports #RRGGBB; it may throw on #AARRGGBB.
+                _ = ColorTranslator.FromHtml(input);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                SharpTimerError($"Error parsing hex color '{shown}' (source={where}, caller={caller}): {ex.Message}");
+                return false;
+            }
         }
 
         static string ParseHexToSymbol(string hexColorCode)
@@ -1075,8 +1090,11 @@ namespace SharpTimer
                             }
                             if (currentBonusStartC1[bonus] != null && currentBonusStartC2[bonus] != null && currentBonusEndC1[bonus] != null && currentBonusEndC2[bonus] != null)
                             {
-                                DrawWireframe3D(currentBonusStartC1[bonus], currentBonusStartC2[bonus], startBeamColor);
-                                DrawWireframe3D(currentBonusEndC1[bonus], currentBonusEndC2[bonus], endBeamColor);
+                                DrawWireframe3D(currentBonusStartC1[bonus], currentBonusStartC2[bonus], bonusStartBeamColor);
+                                SharpTimerDebug($"[CFG] sharptimer_bonus_start_beam_color = {bonusStartBeamColor}");
+
+                                DrawWireframe3D(currentBonusEndC1[bonus], currentBonusEndC2[bonus], bonusEndBeamColor);
+                                SharpTimerDebug($"[CFG] sharptimer_bonus_end_beam_color = {bonusEndBeamColor}");
                             }
                         }
                     }
@@ -1298,6 +1316,32 @@ namespace SharpTimer
                         DrawWireframe3D(startRight, startLeft, startBeamColor);
                         DrawWireframe3D(endRight, endLeft, endBeamColor);
                     }
+
+                    // BONUS ZONE HELPER
+                    bool HasTrigger(string name)
+                    {
+                        foreach (var t in entityCache!.Triggers)
+                            if (t?.Entity?.Name != null &&
+                                string.Equals(t.Entity.Name.ToString(), name, StringComparison.OrdinalIgnoreCase))
+                                return true;
+                        return false;
+                    }
+
+                    static bool VAlmostEq(Vector? a, Vector? b, float eps = 0.5f)
+                    {
+                        if (a == null || b == null) return false;
+                        return Math.Abs(a.X - b.X) < eps &&
+                            Math.Abs(a.Y - b.Y) < eps &&
+                            Math.Abs(a.Z - b.Z) < eps;
+                    }
+
+                    static bool BoundsAlmostEq((Vector?, Vector?, Vector?, Vector?) A, (Vector?, Vector?, Vector?, Vector?) B, float eps = 0.5f)
+                    {
+                        return VAlmostEq(A.Item1, B.Item1, eps) &&
+                            VAlmostEq(A.Item2, B.Item2, eps) &&
+                            VAlmostEq(A.Item3, B.Item3, eps) &&
+                            VAlmostEq(A.Item4, B.Item4, eps);
+                    }
                     
                     // DRAW BONUS ZONE BEAMS
                     (Vector? startRight, Vector? startLeft, Vector? endRight, Vector? endLeft) GetBonusBounds(string startName, string endName)
@@ -1312,37 +1356,55 @@ namespace SharpTimer
                         currentMapEndTrigger = prevEnd;
                         return bounds;
                     }
-                    
+
                     void DrawOneBonus(string startName, string endName)
                     {
-                        var (startRight, startLeft, endRight, endLeft) = GetBonusBounds(startName, endName);
-                        if (startRight == null || startLeft == null || endRight == null || endLeft == null)
+                        if (!HasTrigger(startName) || !HasTrigger(endName))
                         {
-                            SharpTimerDebug($"[bonus] missing bounds for {startName}/{endName}");
+                            SharpTimerDebug($"[BONUS] skip: triggers not found {startName}/{endName}");
                             return;
                         }
-                        DrawWireframe3D(startRight, startLeft, startBeamColor);
-                        DrawWireframe3D(endRight, endLeft, endBeamColor);
-                        SharpTimerDebug($"[Bonus] Drew beams for {startName}/{endName}");
+
+                        // Calc bonus bounds and main bounds. If identical, skip to avoid repainting main with bonus colors
+                        var bonusBounds = GetBonusBounds(startName, endName);
+                        var mainBounds  = FindTriggerBounds();
+
+                        if (bonusBounds.startRight == null || bonusBounds.startLeft == null || bonusBounds.endRight == null || bonusBounds.endLeft == null)
+                        {
+                            SharpTimerDebug($"[BONUS] skip: missing bounds for {startName}/{endName}");
+                            return;
+                        }
+
+                        if (BoundsAlmostEq(bonusBounds, mainBounds))
+                        {
+                            SharpTimerDebug($"[BONUS] skip: {startName}/{endName} resolved to MAIN bounds (fallback detected)");
+                            return;
+                        }
+
+                        // Draw with bonus colors
+                        DrawWireframe3D(bonusBounds.startRight, bonusBounds.startLeft, bonusStartBeamColor);
+                        DrawWireframe3D(bonusBounds.endRight,   bonusBounds.endLeft,   bonusEndBeamColor);
+                        SharpTimerDebug($"[BONUS] drew {startName}/{endName} with {bonusStartBeamColor}/{bonusEndBeamColor}");
                     }
 
-                    // 1) Gather all bonus-X values from real triggers
+                    // Only draw one naming scheme per index. Prefer "bX_start/end", else "bonusX_start/end"
                     var bonusIndices = new HashSet<int>();
                     foreach (var trigger in entityCache!.Triggers)
                     {
                         if (trigger?.Entity?.Name == null) continue;
-
                         var (valid, idx) = IsValidStartBonusTriggerName(trigger.Entity.Name.ToString());
-                        if (valid)
-                            bonusIndices.Add(idx);
+                        if (valid) bonusIndices.Add(idx);
                     }
                     SharpTimerDebug($"[Bonus] found indices: {string.Join(",", bonusIndices)}");
 
-                    // 2) For each index, draw both naming conventions
                     foreach (var i in bonusIndices)
                     {
-                        DrawOneBonus($"b{i}_start", $"b{i}_end");
-                        DrawOneBonus($"bonus{i}_start", $"bonus{i}_end");
+                        if (HasTrigger($"b{i}_start") && HasTrigger($"b{i}_end"))
+                            DrawOneBonus($"b{i}_start", $"b{i}_end");
+                        else if (HasTrigger($"bonus{i}_start") && HasTrigger($"bonus{i}_end"))
+                            DrawOneBonus($"bonus{i}_start", $"bonus{i}_end");
+                        else
+                            SharpTimerDebug($"[Bonus] no trigger pair for index {i}");
                     }
 
                     useTriggers = true;
