@@ -11,6 +11,16 @@ namespace SharpTimer
         {
             if (!IsAllowedPlayer(player)) return;
 
+            var info = playerTimers[player!.Slot];
+
+            const int SUPPRESS_TICKS_AFTER_CMD = 2;
+            if (info.TicksSinceLastCmd <= SUPPRESS_TICKS_AFTER_CMD)
+            {
+                info.IsTimerRunning = false;
+                info.IsBonusTimerRunning = false;
+                return;
+            }
+
             if (bonusX != 0)
             {
                 if (useTriggers || useTriggersAndFakeZones) SharpTimerDebug($"Starting Bonus Timer for {player!.PlayerName}");
