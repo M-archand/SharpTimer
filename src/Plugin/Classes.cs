@@ -373,6 +373,7 @@ namespace SharpTimer
         public string? MapName { get; set; }
         public int TimerTicks { get; set; }
         public bool Replay { get; set; }
+        public int BonusX { get; set; }
     }
 
     public class Record

@@ -2609,11 +2609,11 @@ namespace SharpTimer
                         switch (dbType)
                         {
                             case DatabaseType.MySQL:
-                                selectQuery = $@"SELECT SteamID, PlayerName, TimerTicks, MapName FROM PlayerRecords WHERE Style = @Style ORDER BY TimerTicks ASC LIMIT {limit}";
+                                selectQuery = $@"SELECT SteamID, PlayerName, TimerTicks, MapName, BonusX FROM PlayerRecords WHERE Style = @Style ORDER BY TimerTicks ASC LIMIT {limit}";
                                 selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
                                 break;
                             case DatabaseType.PostgreSQL:
-                                selectQuery = $@"SELECT ""SteamID"", ""PlayerName"", ""TimerTicks"", ""MapName"" FROM ""PlayerRecords"" WHERE ""Style"" = @Style ORDER BY ""TimerTicks"" ASC LIMIT {limit}";
+                                selectQuery = $@"SELECT ""SteamID"", ""PlayerName"", ""TimerTicks"", ""MapName"", ""BonusX"" FROM ""PlayerRecords"" WHERE ""Style"" = @Style ORDER BY ""TimerTicks"" ASC LIMIT {limit}";
                                 selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
                                 break;
                             default:
@@ -2627,11 +2627,11 @@ namespace SharpTimer
                         switch (dbType)
                         {
                             case DatabaseType.MySQL:
-                                selectQuery = @"SELECT SteamID, PlayerName, TimerTicks, MapName FROM PlayerRecords WHERE Style = @Style";
+                                selectQuery = @"SELECT SteamID, PlayerName, TimerTicks, MapName, BonusX FROM PlayerRecords WHERE Style = @Style";
                                 selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
                                 break;
                             case DatabaseType.PostgreSQL:
-                                selectQuery = @"SELECT ""SteamID"", ""PlayerName"", ""TimerTicks"", ""MapName"" FROM ""PlayerRecords"" WHERE ""Style"" = @Style";
+                                selectQuery = @"SELECT ""SteamID"", ""PlayerName"", ""TimerTicks"", ""MapName"", ""BonusX"" FROM ""PlayerRecords"" WHERE ""Style"" = @Style";
                                 selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
                                 break;
                             default:
@@ -2652,17 +2652,21 @@ namespace SharpTimer
                                 string playerName = reader.IsDBNull(1) ? "Unknown" : reader.GetString(1);
                                 int timerTicks = reader.GetInt32(2);
                                 string mapname = reader.GetString(3);
+                                int bonus = reader.IsDBNull(4) ? 0 : reader.GetInt32(4);
+
                                 if (!sortedRecords.ContainsKey(steamId))
                                 {
                                     // If steamId doesn't exist, create a new list for the steamId
                                     sortedRecords[steamId] = new List<PlayerRecord>();
                                 }
+
                                 sortedRecords[steamId].Add(new PlayerRecord
                                 {
                                     PlayerName = playerName,
                                     SteamID = steamId,
                                     TimerTicks = timerTicks,
-                                    MapName = mapname
+                                    MapName = mapname,
+                                    BonusX = bonus
                                 });
                             }
 
@@ -2873,9 +2877,9 @@ namespace SharpTimer
                                 timerTicks: record.TimerTicks,
                                 oldTicks: 0,
                                 beatPB: false,
-                                bonusX: 0,
+                                bonusX: record.BonusX,
                                 style: styleValue,
-                                completions: 0,
+                                completions: 1,
                                 mapname: record.MapName!,
                                 import: true
                             )
