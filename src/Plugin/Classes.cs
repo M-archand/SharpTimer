@@ -47,9 +47,10 @@ namespace SharpTimer
     {
         public Dictionary<int, GlobalRecord>? CachedStandardWorldRecords { get; set; } = new();
         public Dictionary<int, GlobalRecord>? Cached85tWorldRecords { get; set; } = new();
-        public Dictionary<int, GlobalRecord>? CachedSourceWorldRecords { get; set; } = new();
-        public Dictionary<int, GlobalRecord>? CachedArcadeWorldRecords { get; set; } = new();
+        public Dictionary<int, GlobalRecord>? Cached102tWorldRecords { get; set; } = new();
         public Dictionary<int, GlobalRecord>? Cached128tWorldRecords { get; set; } = new();
+        public Dictionary<int, GlobalRecord>? CachedSourceWorldRecords { get; set; } = new();
+        public Dictionary<int, GlobalRecord>? CachedBhopWorldRecords { get; set; } = new();
         public List<PlayerPoints>? CachedGlobalPoints { get; set; } = new();
     }
 
@@ -280,6 +281,7 @@ namespace SharpTimer
         public int BonusX { get; set; }
         public int Style { get; set; }
         public List<ReplayFrames> replayFrames { get; set; } = [];
+        [Serializable]
         public class ReplayFrames
         {
             public ReplayVector? Position { get; set; }
@@ -290,7 +292,8 @@ namespace SharpTimer
             public MoveType_t MoveType { get; set; }
         }
     }
-
+    
+    [Serializable]
     public class IndexedReplayFrames
     {
         public int Index { get; set; }
@@ -358,6 +361,7 @@ namespace SharpTimer
     
     public class GlobalRecord
     {
+        public int record_id { get; set; }
         public int player_id { get; set; }
         public string player_name { get; set; }
         public int server_id { get; set; }
@@ -392,8 +396,9 @@ namespace SharpTimer
     public class ReplayData
     {
         public int record_id { get; set; }
-        public string? map_name { get; set; }
-        public int style { get; set; }
+        public int map_id { get; set; }
+        public int bonus { get; set; }
+        public string mode { get; set; }
         public string? hash { get; set; }
         public string? replay_data { get; set; }
     }

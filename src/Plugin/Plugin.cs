@@ -634,7 +634,7 @@ public partial class SharpTimer
         entityCache.Triggers.Clear();
         entityCache.InfoTeleportDestinations.Clear();
         entityCache.UpdateCache();
-        ClearGlobalCache();
+        //ClearGlobalCache();
 
         useTriggers = true;
         useTriggersAndFakeZones = false;

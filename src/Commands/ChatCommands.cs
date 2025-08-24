@@ -129,9 +129,8 @@ namespace SharpTimer
             _ = Task.Run(async () => await ReplayHandler(player, slot, arg, "69", "unknown", 0, playerTimers[slot].currentStyle, false, playerTimers[slot].Mode));
         }
 
-        //TODO: Implement binary replay formatting and re-enable global replays
-        /*[ConsoleCommand("css_replaywr", "Replay a top 10 world record")]
-        [CommandHelper(minArgs: 1, usage: "[1-10]", whoCanExecute: CommandUsage.CLIENT_ONLY)]
+        [ConsoleCommand("css_replaywr", "Replay the current map/mode world record")]
+        [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
         public void ReplayTop10WRCommand(CCSPlayerController? player, CommandInfo command)
         {
             if (!IsAllowedPlayer(player) || enableReplays == false)
@@ -146,11 +145,9 @@ namespace SharpTimer
 
             if (ReplayCheck(player))
                 return;
-
-            string arg = command.ArgByIndex(1);
-
-            _ = Task.Run(async () => await ReplayHandler(player, slot, arg, "69", "unknown", 0, playerTimers[slot].currentStyle, true));
-        }*/
+            
+            _ = Task.Run(async () => await ReplayHandler(player, slot, "1", "69", "unknown", 0, playerTimers[slot].currentStyle, true, playerTimers[slot].Mode));
+        }
 
         [ConsoleCommand("css_gc", "Globalcheck")]
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
@@ -176,9 +173,8 @@ namespace SharpTimer
                 Server.NextFrame(() => Utils.PrintToChat(player, $"[GC] {ChatColors.LightRed}Invalid ST build!"));
             else
                 Server.NextFrame(() => Utils.PrintToChat(player, $"[GC] {ChatColors.Green}Valid ST build"));
-
-            var validAddon = await CheckAddonAsync(mapCache.AddonID);
-            if (!validAddon)
+            
+            if (!mapCache.Verified)
                 Server.NextFrame(() => Utils.PrintToChat(player, $"[GC] {ChatColors.LightRed}Map is not verified!"));
             else
                 Server.NextFrame(() => Utils.PrintToChat(player, $"[GC] {ChatColors.Green}Map is verified"));
@@ -192,7 +188,7 @@ namespace SharpTimer
                     Utils.PrintToChat(player, $"[GC] {ChatColors.Green}Cvar Check Passed");
             });
 
-            if (!globalDisabled && validKey && validHash && validAddon)
+            if (!globalDisabled && validKey && validHash && mapCache.Verified)
                 Server.NextFrame(() => Utils.PrintToChat(player, $"[GC] {ChatColors.Green}All checks passed!"));
             else
                 Server.NextFrame(() => Utils.PrintToChat(player, $"[GC] {ChatColors.LightRed}Some checks failed"));
@@ -275,8 +271,7 @@ namespace SharpTimer
             playerReplays[slot] = new PlayerReplays();
 
             var (srSteamID, srPlayerName, srTime) = ("null", "null", "null");
-            var (wrID, wrSteamID, wrPlayerName, wrTime) = (0, "null", "null", "null");
-
+            var (wrID, wrPlayerName, wrTime) = (0, "null", "null");
             if (!self)
             {
                 if (enableDb)
@@ -285,15 +280,13 @@ namespace SharpTimer
                 else
                     (srSteamID, srPlayerName, srTime) = await GetMapRecordSteamID(bonusX, top10);
 
-                //TODO: global replays
-                /*if (wr)
+                if (wr)
                 {
-                    var sortedRecords = await GetSortedRecordsFromGlobal(10, bonusX, currentMapName!, style);
-                    wrID = sortedRecords[top10-1].RecordID;
-                    wrSteamID = sortedRecords[top10-1].SteamID;
-                    wrPlayerName = sortedRecords[top10-1].PlayerName;
-                    wrTime = Utils.FormatTime(sortedRecords[top10-1].TimerTicks);
-                }*/
+                    var sortedRecords = await GetSortedRecordsFromGlobal(GetNamedStyle(style), mode, bonusX, 1);
+                    wrID = sortedRecords[0].record_id;
+                    wrPlayerName = sortedRecords[0].player_name;
+                    wrTime = Utils.FormatDecimalTime(sortedRecords[0].time);
+                }
             }
 
             if ((srSteamID == "null" || srPlayerName == "null" || srTime == "null") && !self)
@@ -306,10 +299,15 @@ namespace SharpTimer
             }
 
             if (wr)
-                await ReadReplayFromGlobal(player, wrID, style, bonusX);
+                await ReadReplayFromGlobal(player, wrID, mode, bonusX);
             else
-                await ReadReplayFromJson(player, !self ? srSteamID : pbSteamID, slot, bonusX, style, mode);
-
+            {
+                if (useBinaryReplays)
+                    await ReadReplayFromBinary(player, !self ? srSteamID : pbSteamID, slot, bonusX, style, mode);
+                else
+                    await ReadReplayFromJson(player, !self ? srSteamID : pbSteamID, slot, bonusX, style, mode);
+            }
+            
             if (playerReplays[slot].replayFrames.Count == 0) return;
 
             if (!wr) await GetReplayVIPGif(!self ? srSteamID : pbSteamID, slot);

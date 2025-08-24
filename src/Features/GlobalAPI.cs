@@ -335,9 +335,10 @@ namespace SharpTimer
         {
             recordCache.CachedStandardWorldRecords = new Dictionary<int, GlobalRecord>();
             recordCache.Cached85tWorldRecords = new Dictionary<int, GlobalRecord>();
-            recordCache.CachedSourceWorldRecords = new Dictionary<int, GlobalRecord>();
-            recordCache.CachedArcadeWorldRecords = new Dictionary<int, GlobalRecord>();
+            recordCache.Cached102tWorldRecords = new Dictionary<int, GlobalRecord>();
             recordCache.Cached128tWorldRecords = new Dictionary<int, GlobalRecord>();
+            recordCache.CachedSourceWorldRecords = new Dictionary<int, GlobalRecord>();
+            recordCache.CachedBhopWorldRecords = new Dictionary<int, GlobalRecord>();
             recordCache.CachedGlobalPoints = new List<PlayerPoints>();
             
             mapCache.MapID = 0;
@@ -355,15 +356,17 @@ namespace SharpTimer
             
             var sortedStandardRecords = await GetSortedRecordsFromGlobal("Normal", "Standard", 0, 10);
             var sorted85tRecords = await GetSortedRecordsFromGlobal("Normal", "85t", 0, 10);
-            var sortedSourceRecords = await GetSortedRecordsFromGlobal("Normal", "Source", 0, 10);
-            var sortedArcadeRecords = await GetSortedRecordsFromGlobal("Normal", "Arcade", 0, 10);
+            var sorted102tRecords = await GetSortedRecordsFromGlobal("Normal", "102t", 0, 10);
             var sorted128tRecords = await GetSortedRecordsFromGlobal("Normal", "128t", 0, 10);
+            var sortedSourceRecords = await GetSortedRecordsFromGlobal("Normal", "Source", 0, 10);
+            var sortedBhopRecords = await GetSortedRecordsFromGlobal("Normal", "Bhop", 0, 10);
             
             recordCache.CachedStandardWorldRecords = sortedStandardRecords;
             recordCache.Cached85tWorldRecords = sorted85tRecords;
-            recordCache.CachedSourceWorldRecords = sortedSourceRecords;
-            recordCache.CachedArcadeWorldRecords = sortedArcadeRecords;
+            recordCache.Cached102tWorldRecords = sorted102tRecords;
             recordCache.Cached128tWorldRecords = sorted128tRecords;
+            recordCache.CachedSourceWorldRecords = sortedSourceRecords;
+            recordCache.CachedBhopWorldRecords = sortedBhopRecords;
         }
 
         public async Task CacheGlobalPoints(bool initial = false)
@@ -628,20 +631,22 @@ namespace SharpTimer
             {
                 if (recordCache.CachedStandardWorldRecords is null
                     || recordCache.Cached85tWorldRecords is null
+                    || recordCache.Cached102tWorldRecords is null
+                    || recordCache.Cached128tWorldRecords is null
                     || recordCache.CachedSourceWorldRecords is null
-                    || recordCache.CachedArcadeWorldRecords is null
-                    || recordCache.Cached128tWorldRecords is null)
+                    || recordCache.CachedBhopWorldRecords is null)
                     _ = Task.Run(async () => await CacheWorldRecords());
                 
                 Server.NextFrame(() =>
                 {
                     Utils.PrintToChat(player, Localizer["current_wr", currentMapName!]);
 
-                    if (recordCache.CachedStandardWorldRecords == null
-                        || recordCache.Cached85tWorldRecords == null
-                        || recordCache.CachedSourceWorldRecords == null
-                        || recordCache.CachedArcadeWorldRecords == null
-                        || recordCache.Cached128tWorldRecords == null)
+                    if (recordCache.CachedStandardWorldRecords is null
+                        || recordCache.Cached85tWorldRecords is null
+                        || recordCache.Cached102tWorldRecords is null
+                        || recordCache.Cached128tWorldRecords is null
+                        || recordCache.CachedSourceWorldRecords is null
+                        || recordCache.CachedBhopWorldRecords is null)
                         return;
 
                     int position = 1;
@@ -654,14 +659,17 @@ namespace SharpTimer
                         case "85t":
                             tempCache = recordCache.Cached85tWorldRecords;
                             break;
-                        case "Source":
-                            tempCache = recordCache.CachedSourceWorldRecords;
-                            break;
-                        case "Arcade":
-                            tempCache = recordCache.CachedArcadeWorldRecords;
+                        case "102t":
+                            tempCache = recordCache.Cached102tWorldRecords;
                             break;
                         case "128t":
                             tempCache = recordCache.Cached128tWorldRecords;
+                            break;
+                        case "Source":
+                            tempCache = recordCache.CachedSourceWorldRecords;
+                            break;
+                        case "Bhop":
+                            tempCache = recordCache.CachedBhopWorldRecords;
                             break;
                         default:
                             tempCache = recordCache.CachedStandardWorldRecords;
@@ -750,6 +758,7 @@ namespace SharpTimer
                                 int record = 0;
                                 foreach (var playerRecord in dataArray.EnumerateArray())
                                 {
+                                    int recordId = playerRecord.GetProperty("record_id").GetInt32();
                                     int playerId = playerRecord.GetProperty("player_id").GetInt32();
                                     string playerName = playerRecord.GetProperty("player_name").GetString()!;
                                     decimal time = playerRecord.GetProperty("time").GetDecimal();
@@ -757,6 +766,7 @@ namespace SharpTimer
 
                                     sortedRecords[record] = new GlobalRecord
                                     {
+                                        record_id = recordId,
                                         player_id = playerId,
                                         player_name = playerName,
                                         time = time,

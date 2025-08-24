@@ -49,6 +49,8 @@ namespace SharpTimer
         private int movementServices;
         private int movementPtr;
         private readonly CSPlayerState[] _oldPlayerState = new CSPlayerState[65];
+        
+        public const int REPLAY_VERSION = 1;
 
         public Dictionary<int, PlayerTimerInfo> playerTimers = [];
         private Dictionary<int, PlayerReplays> playerReplays = [];
@@ -139,6 +141,7 @@ namespace SharpTimer
         public bool enableStageSR = true;
         public bool ignoreJSON = false;
         public bool enableReplays = false;
+        public bool useBinaryReplays = true;
         public bool onlySRReplay = false;
         public bool enableSRreplayBot = false;
         public CCSPlayerController? replayBotController;

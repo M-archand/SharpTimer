@@ -215,9 +215,11 @@ namespace SharpTimer
                             {
                                 _ = Task.Run(async () => await DumpPlayerStageTimesToJson(player, steamId, slot));
                             }
-                            if (enableReplays == true && !enableDb)
-                            {
-                                _ = Task.Run(async () => await DumpReplayToJson(player!, steamId, slot, bonusX, playerTimers[player.Slot].currentStyle));
+                            if (enableReplays && !enableDb){
+                                if (useBinaryReplays)
+                                    _ = Task.Run(async () => await DumpReplayToBinary(player!, steamId, slot, bonusX, playerTimers[slot].currentStyle, playerTimers[slot].Mode!));
+                                else
+                                    _ = Task.Run(async () => await DumpReplayToJson(player!, steamId, slot, bonusX, playerTimers[slot].currentStyle, playerTimers[slot].Mode!));
                             }
                         }
                         else

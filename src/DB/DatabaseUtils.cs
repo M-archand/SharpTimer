@@ -844,9 +844,12 @@ namespace SharpTimer
                             dBFormattedTime = formattedTime;
                             playerPoints = timerTicks;
                             beatPB = true;
-                            if (enableReplays && !onlySRReplay)
-                                _ = Task.Run(async () => await DumpReplayToJson(player!, steamId, slot, bonusX,
-                                    playerTimers[slot].currentStyle, mode));
+                            if (enableReplays && !onlySRReplay) {
+                                if(useBinaryReplays)
+                                    _ = Task.Run(async () => await DumpReplayToBinary(player!, steamId, slot, bonusX, playerTimers[slot].currentStyle, playerTimers[slot].Mode));
+                                else
+                                    _ = Task.Run(async () => await DumpReplayToJson(player!, steamId, slot, bonusX, playerTimers[slot].currentStyle, playerTimers[slot].Mode));
+                            }
                         }
                         else
                         {
@@ -957,9 +960,12 @@ namespace SharpTimer
                                 Server.NextFrame(() => _ = Task.Run(async () => await PrintMapTimeToChat(player!,
                                     steamId, playerName, dBtimerTicks, timerTicks, bonusX, dBtimesFinished, style,
                                     prevSR, mode)));
-                            if (enableReplays && onlySRReplay && (prevSR == 0 || prevSR > timerTicks))
-                                _ = Task.Run(async () => await DumpReplayToJson(player!, steamId, slot, bonusX,
-                                    playerTimers[slot].currentStyle, mode));
+                            if (enableReplays && onlySRReplay && (prevSR == 0 || prevSR > timerTicks)){
+                                if(useBinaryReplays)
+                                    _ = Task.Run(async () => await DumpReplayToBinary(player!, steamId, slot, bonusX, playerTimers[slot].currentStyle, playerTimers[slot].Mode));
+                                else
+                                    _ = Task.Run(async () => await DumpReplayToJson(player!, steamId, slot, bonusX, playerTimers[slot].currentStyle, playerTimers[slot].Mode));
+                            }
 
                             Server.NextFrame(async () =>
                             {
@@ -971,15 +977,12 @@ namespace SharpTimer
                                 DateTimeOffset timeCreated = DateTimeOffset.UtcNow;
                                 int playerId = playerCache.PlayerID[player];
 
-                                Mode playerMode = _playerModes[slot];
-                                string modeString = GetModeName(playerMode);
-
-                                if (modeString == "Custom")
+                                if (playerTimers[slot].Mode == "Custom")
                                     return;
 
                                 //first lets see if the new record beats global pb
                                 var beatGlobalPB = false;
-                                var prevPBTime = await GetPreviousPlayerRecordFromGlobal(playerId, modeString,
+                                var prevPBTime = await GetPreviousPlayerRecordFromGlobal(playerId, playerTimers[slot].Mode,
                                     GetNamedStyle(style), bonusX);
                                 if (prevPBTime > Utils.TicksToDecimal(timerTicks) || prevPBTime == 0)
                                     beatGlobalPB = true;
@@ -992,51 +995,48 @@ namespace SharpTimer
                                         server_id = serverCache.ServerID,
                                         map_id = mapCache.MapID,
                                         bonus = bonusX,
-                                        mode = modeString,
+                                        mode = playerTimers[slot].Mode,
                                         style = GetNamedStyle(style),
                                         time = Utils.TicksToDecimal(timerTicks),
                                         created_on = timeCreated
                                     }
                                 };
 
-                                //TODO: Implement binary formatting and re-enable replay submission
                                 _ = Task.Run(async () =>
                                 {
-                                    await SubmitRecordAsync(record_payload); // submit the record to DB
+                                    await SubmitRecordAsync(record_payload);
                                     int recordID = await GetRecordIDAsync(playerId, timeCreated);
                                     int globalPoints = await CalculateGlobalPoints(playerId,
                                         Utils.TicksToDecimal(timerTicks), bonusX, style, mode);
                                     await SubmitPointsAsync(playerId, globalPoints, recordID);
                                     await UpdateTotalPointsAsync(playerId);
-                                }).ConfigureAwait(false);
-
-                                /*.ContinueWith(async task =>                // THEN submit the replay using the record_id
-                                {
-                                    // only submit replay if beat global pb
-                                    if (beatGlobalPB)
+                                    if (beatGlobalPB && useBinaryReplays && style == 0)
                                     {
                                         var replay_payload = new ReplayData
                                         {
-                                            record_id = await GetRecordIDAsync(new { map_name = record_payload[0].map_name, unix_stamp = record_payload[0].unix_stamp}),
-                                            map_name = currentMapNamee,
-                                            style = style,
+                                            record_id = recordID,
+                                            map_id = mapCache.MapID,
+                                            bonus = bonusX,
+                                            mode = mode,
                                             hash = GetHash(),
-                                            replay_data = GetReplayJson(player!, player!.Slot)
+                                            replay_data = GetReplayBinary(player!, player!.Slot)
                                         };
 
-                                        //await SubmitReplayAsync(replay_payload);
+                                        await SubmitReplayAsync(replay_payload);
                                     }
-                                });*/
+                                }).ConfigureAwait(false);
                             });
                         }
                     }
                     else
                     {
                         Server.NextFrame(() => Utils.LogDebug($"No player record yet"));
-                        if (enableReplays && !onlySRReplay)
-                            _ = Task.Run(async () =>
-                                await DumpReplayToJson(player!, steamId, slot, bonusX,
-                                    playerTimers[slot].currentStyle, mode));
+                        if (enableReplays && !onlySRReplay){
+                            if(useBinaryReplays)
+                                _ = Task.Run(async () => await DumpReplayToBinary(player!, steamId, slot, bonusX, playerTimers[slot].currentStyle, playerTimers[slot].Mode));
+                            else
+                                _ = Task.Run(async () => await DumpReplayToJson(player!, steamId, slot, bonusX, playerTimers[slot].currentStyle, playerTimers[slot].Mode));
+                        }
                         await row.CloseAsync();
 
                         string? upsertQuery;
@@ -1098,9 +1098,12 @@ namespace SharpTimer
                             if (IsAllowedPlayer(player))
                                 Server.NextFrame(() => _ = Task.Run(async () => await PrintMapTimeToChat(player!,
                                     steamId, playerName, dBtimerTicks, timerTicks, bonusX, 1, style, prevSR, mode)));
-                            if (enableReplays && onlySRReplay && (prevSR == 0 || prevSR > timerTicks))
-                                _ = Task.Run(async () => await DumpReplayToJson(player!, steamId, slot, bonusX,
-                                    playerTimers[slot].currentStyle, mode));
+                            if (enableReplays && onlySRReplay && (prevSR == 0 || prevSR > timerTicks)){
+                                if(useBinaryReplays)
+                                    _ = Task.Run(async () => await DumpReplayToBinary(player!, steamId, slot, bonusX, playerTimers[slot].currentStyle, playerTimers[slot].Mode));
+                                else
+                                    _ = Task.Run(async () => await DumpReplayToJson(player!, steamId, slot, bonusX, playerTimers[slot].currentStyle, playerTimers[slot].Mode));
+                            }
 
                             Server.NextFrame(async () =>
                             {
@@ -1110,15 +1113,12 @@ namespace SharpTimer
                                 DateTimeOffset timeCreated = DateTimeOffset.UtcNow;
                                 int playerId = playerCache.PlayerID[player];
 
-                                Mode playerMode = _playerModes[slot];
-                                string modeString = GetModeName(playerMode);
-
-                                if (modeString == "Custom")
+                                if (playerTimers[slot].Mode == "Custom")
                                     return;
 
                                 //first lets see if the new record beats global pb
                                 var beatGlobalPB = false;
-                                var prevPBTime = await GetPreviousPlayerRecordFromGlobal(playerId, modeString,
+                                var prevPBTime = await GetPreviousPlayerRecordFromGlobal(playerId, playerTimers[slot].Mode,
                                     GetNamedStyle(style), bonusX);
                                 if (prevPBTime > Utils.TicksToDecimal(timerTicks) || prevPBTime == 0)
                                     beatGlobalPB = true;
@@ -1131,39 +1131,36 @@ namespace SharpTimer
                                         server_id = serverCache.ServerID,
                                         map_id = mapCache.MapID,
                                         bonus = bonusX,
-                                        mode = modeString,
+                                        mode = playerTimers[slot].Mode,
                                         style = GetNamedStyle(style),
                                         time = Utils.TicksToDecimal(timerTicks),
                                         created_on = timeCreated
                                     }
                                 };
 
-                                //TODO: Implement binary formatting and re-enable replay submission
                                 _ = Task.Run(async () =>
                                 {
-                                    await SubmitRecordAsync(record_payload); // submit the record to DB
+                                    await SubmitRecordAsync(record_payload);
                                     int recordID = await GetRecordIDAsync(playerId, timeCreated);
                                     int globalPoints = await CalculateGlobalPoints(playerId,
                                         Utils.TicksToDecimal(timerTicks), bonusX, style, mode);
                                     await SubmitPointsAsync(playerId, globalPoints, recordID);
                                     await UpdateTotalPointsAsync(playerId);
-                                }).ConfigureAwait(false);
-                                /*.ContinueWith(async task =>                // THEN submit the replay using the record_id
+                                    if (beatGlobalPB && useBinaryReplays && style == 0)
                                     {
-                                        if (beatGlobalPB)
+                                        var replay_payload = new ReplayData
                                         {
-                                            var replay_payload = new ReplayData
-                                            {
-                                                record_id = await GetRecordIDAsync(new { record_payload[0].map_name, record_payload[0].unix_stamp}),
-                                                map_name = currentMapNamee,
-                                                style = style,
-                                                hash = GetHash(),
-                                                replay_data = GetReplayJson(player!, player!.Slot)
-                                            };
+                                            record_id = recordID,
+                                            map_id = mapCache.MapID,
+                                            bonus = bonusX,
+                                            mode = mode,
+                                            hash = GetHash(),
+                                            replay_data = GetReplayBinary(player!, player!.Slot)
+                                        };
 
-                                            await SubmitReplayAsync(replay_payload);
-                                        }
-                                    });*/
+                                        await SubmitReplayAsync(replay_payload);
+                                    }
+                                }).ConfigureAwait(false);
                             });
                         }
                     }
