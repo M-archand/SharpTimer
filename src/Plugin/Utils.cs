@@ -256,11 +256,7 @@ namespace SharpTimer
             return "\u0010";
         }
 
-        bool IsHexColorCode(
-            string? input,
-            string? source = null,                                  // e.g., "sharptimer_end_beam_color"
-            [CallerMemberName] string? caller = null,
-            [CallerArgumentExpression("input")] string? inputExpr = null)
+        bool IsHexColorCode(string? input,string? source = null, [CallerMemberName] string? caller = null, [CallerArgumentExpression("input")] string? inputExpr = null)
         {
             var shown = string.IsNullOrWhiteSpace(input) ? "<empty>" : input!;
             var where = !string.IsNullOrWhiteSpace(source) ? source : inputExpr ?? "unknown";
@@ -273,9 +269,7 @@ namespace SharpTimer
 
             if (!(input.StartsWith("#") && (input.Length == 7 || input.Length == 9)))
             {
-                SharpTimerError(
-                    $"Invalid hex color format '{shown}' (source={where}, caller={caller}). " +
-                    "Expected #RRGGBB or #AARRGGBB. Please check SharpTimer/config.cfg");
+                SharpTimerError($"Invalid hex color format. Expected #RRGGBB or #AARRGGBB. Please check SharpTimer/config.cfg");
                 return false;
             }
 
