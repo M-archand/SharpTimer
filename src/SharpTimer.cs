@@ -23,6 +23,7 @@ using CounterStrikeSharp.API.Modules.UserMessages;
 using CounterStrikeSharp.API.Core.Capabilities;
 using System.Runtime.InteropServices;
 using System.Drawing;
+using System.Globalization;
 using CounterStrikeSharp.API.Modules.Memory;
 using FixVectorLeak;
 
@@ -32,6 +33,8 @@ public partial class SharpTimer : BasePlugin
 {
     public override void Load(bool hotReload)
     {
+        CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+        CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
         Instance = this;
 
         Utils = new Utils(this);

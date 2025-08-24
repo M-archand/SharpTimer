@@ -860,6 +860,23 @@ namespace SharpTimer
             }
         }
         
+        [ConsoleCommand("sharptimer_mode_multiplier_102t", "Point modifier for 102t mode. Default value: 0.85")]
+        [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
+        public void SharpTimerArcadeModeMultiplierConvar(CCSPlayerController? player, CommandInfo command)
+        {
+            string args = command.ArgString;
+
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double pointModifier) && pointModifier is >= 0 and <= 2)
+            {
+                _102tModeModifier = pointModifier;
+                Utils.LogDebug($"SharpTimer 102t mode point modifier set to {pointModifier}.");
+            }
+            else
+            {
+                Utils.LogError("Invalid 102t mode point modifier. Please provide a positive integer.");
+            }
+        }
+        
         [ConsoleCommand("sharptimer_mode_multiplier_128t", "Point modifier for 128t mode. Default value: 0.8")]
         [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
         public void SharpTimer128tModeMultiplierConvar(CCSPlayerController? player, CommandInfo command)
@@ -877,23 +894,6 @@ namespace SharpTimer
             }
         }
         
-        [ConsoleCommand("sharptimer_mode_multiplier_arcade", "Point modifier for arcade mode. Default value: 0.8")]
-        [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
-        public void SharpTimerArcadeModeMultiplierConvar(CCSPlayerController? player, CommandInfo command)
-        {
-            string args = command.ArgString;
-
-            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double pointModifier) && pointModifier is >= 0 and <= 2)
-            {
-                arcadeModeModifier = pointModifier;
-                Utils.LogDebug($"SharpTimer arcade mode point modifier set to {pointModifier}.");
-            }
-            else
-            {
-                Utils.LogError("Invalid arcade mode point modifier. Please provide a positive integer.");
-            }
-        }
-        
         [ConsoleCommand("sharptimer_mode_multiplier_source", "Point modifier for source mode. Default value: 1.1")]
         [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
         public void SharpTimerSourceModeMultiplierConvar(CCSPlayerController? player, CommandInfo command)
@@ -908,6 +908,22 @@ namespace SharpTimer
             else
             {
                 Utils.LogError("Invalid source mode point modifier. Please provide a positive integer.");
+            }
+        }
+        [ConsoleCommand("sharptimer_mode_multiplier_bhop", "Point modifier for bhop mode. Default value: 0.8")]
+        [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
+        public void SharpTimerBhopModeMultiplierConvar(CCSPlayerController? player, CommandInfo command)
+        {
+            string args = command.ArgString;
+
+            if (double.TryParse(args, NumberStyles.Any, CultureInfo.InvariantCulture, out double pointModifier) && pointModifier is >= 0 and <= 2)
+            {
+                bhopModeModifier = pointModifier;
+                Utils.LogDebug($"SharpTimer bhop mode point modifier set to {pointModifier}.");
+            }
+            else
+            {
+                Utils.LogError("Invalid bhop mode point modifier. Please provide a positive integer.");
             }
         }
         

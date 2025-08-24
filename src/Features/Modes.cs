@@ -45,9 +45,10 @@ public partial class SharpTimer
         {
             new(Mode.Standard, 150f, 10f, 30.0f, 5.2f),
             new(Mode._85t, 150f, 10f, 37.41f, 5.2f),
-            new(Mode.Source, 150f, 5f, 30.71f, 4f),
-            new(Mode.Arcade, 1000f, 10f, 43.55f, 4f),
+            new(Mode._102t, 150f, 10f, 43.55f, 5.2f),
             new(Mode._128t, 150f, 10f, 52.59f, 5.2f),
+            new(Mode.Source, 150f, 5f, 30.71f, 4f),
+            new(Mode.Bhop, 1000f, 10f, 52.59f, 5.2f),
             new(Mode.Custom, customAirAccel, customAccel, customWishSpeed, customFriction)
         };
     }
@@ -56,10 +57,11 @@ public partial class SharpTimer
     {
         { Mode.Standard, 0 },
         { Mode._85t, 1 },
-        { Mode.Source, 2 },
-        { Mode.Arcade, 3 },
-        { Mode._128t, 4 },
-        { Mode.Custom, 5 }
+        { Mode._102t, 2 },
+        { Mode._128t, 3 },
+        { Mode.Source, 4 },
+        { Mode.Bhop, 5 },
+        { Mode.Custom, 6 }
     };
 
     private bool TryParseMode(string input, out Mode mode)
@@ -112,9 +114,10 @@ public partial class SharpTimer
         {
             Mode.Standard => "Standard",
             Mode._85t => "85t",
-            Mode.Source => "Source",
-            Mode.Arcade => "Arcade",
+            Mode._102t => "102t",
             Mode._128t => "128t",
+            Mode.Source => "Source",
+            Mode.Bhop => "Bhop",
             Mode.Custom => "Custom",
             _ => mode.ToString()
         };
@@ -123,23 +126,7 @@ public partial class SharpTimer
     public double GetModeMultiplier(string mode, bool global = false)
     {
         if (global)
-        {
-            switch (mode.ToLower())
-            {
-                case "source":
-                    return 1.1;
-                case "standard":
-                    return 1;
-                case "85t":
-                    return 0.9;
-                case "arcade":
-                    return 0.8;
-                case "128t":
-                    return 0.8;
-                default:
-                    return 1;
-            }
-        }
+            return 1;
 
         switch (mode.ToLower())
         {
@@ -149,10 +136,12 @@ public partial class SharpTimer
                 return standardModeModifier;
             case "85t":
                 return _85tModeModifier;
-            case "arcade":
-                return arcadeModeModifier;
+            case "102t":
+                return _102tModeModifier;
             case "128t":
                 return _128tModeModifier;
+            case "bhop":
+                return bhopModeModifier;
             case "custom":
                 return 1;
             default:
@@ -290,8 +279,9 @@ public enum Mode
 {
     Standard = 0,  // default csgo 1:1 cfg (64 tick)
     _85t = 1,      // 85t-ish speed (37.41 wishspeed)
-    Source = 2,    // 66t-ish + lower accel + cs:s friction (30.71 wishspeed & 5 accel & 4 friction)
-    Arcade = 3,    // 102.4t-ish + higher aa + cs:s friction (43.55 wishspeed & 1000 aa & 4 friction)
-    _128t = 4,     // 128t-ish speed (52.59 wishspeed)
-    Custom = 5     // Use custom server cvars (WILL NOT SUBMIT TO GLOBAL)
+    _102t = 2,     // 102.4t-ish speed (43.55 wishspeed)
+    _128t = 3,     // 128t-ish speed (52.59 wishspeed)
+    Source = 4,    // 66t-ish + lower accel + cs:s friction (30.71 wishspeed & 5 accel & 4 friction)
+    Bhop = 5,      // 128t-ish + 1000 aa (52.59 wishspeed & 1000 aa)
+    Custom = 6     // Use custom server cvars (WILL NOT SUBMIT TO GLOBAL)
 }
