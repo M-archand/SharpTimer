@@ -1536,7 +1536,10 @@ namespace SharpTimer
 
         public void GainPointsMessage(string playerName, double newPoints, double playerPoints)
         {
-            PrintToChatAll(Localizer["gained_points", playerName, Convert.ToInt32(newPoints - playerPoints), newPoints]);
+            if (Convert.ToInt32(newPoints - playerPoints) == 0)
+                return;
+            else
+                PrintToChatAll(Localizer["gained_points", playerName, Convert.ToInt32(newPoints - playerPoints), newPoints]);
         }
 
         public (string, int) FixMapAndBonus(string mapName)
@@ -1792,6 +1795,9 @@ namespace SharpTimer
 
                 // First calculate baseline map completion points based on tier
                 double newPoints = CalculateCompletion(forGlobal);
+
+                if (completions != 0 && globalPointsMaxCompletions > 0 && await PlayerCompletions(steamId, bonusX, style) > globalPointsMaxCompletions && !beatPB)
+                    return 0;
 
                 // Bonus AND Style → zero for all runs
                 if (bonusX != 0 && style != 0)
