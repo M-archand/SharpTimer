@@ -40,7 +40,6 @@ namespace SharpTimer
                 {
                     connectedPlayers[playerSlot] = new CCSPlayerController(player.Handle);
                     playerTimers[playerSlot] = new PlayerTimerInfo();
-                    playerJumpStats[playerSlot] = new PlayerJumpStats();
                     if (enableReplays) playerReplays[playerSlot] = new PlayerReplays();
                     playerTimers[playerSlot].MovementService = new CCSPlayer_MovementServices(player.PlayerPawn.Value.MovementServices!.Handle);
                     playerTimers[playerSlot].StageTimes = new Dictionary<int, int>();

@@ -287,42 +287,6 @@ namespace SharpTimer
                 return HookResult.Continue;
             });
 
-            RegisterEventHandler<EventPlayerJump>((@event, info) =>
-            {
-                if (@event.Userid!.IsValid)
-                {
-                    var player = @event.Userid;
-
-                    if (player.IsBot || !player.IsValid)
-                    {
-                        return HookResult.Continue;
-                    }
-                    else
-                    {
-                        if (jumpStatsEnabled == true) OnJumpStatJumped(player);
-                    }
-                }
-                return HookResult.Continue;
-            });
-
-            RegisterEventHandler<EventPlayerSound>((@event, info) =>
-            {
-                if (@event.Userid!.IsValid)
-                {
-                    var player = @event.Userid;
-
-                    if (player.IsBot || !player.IsValid)
-                    {
-                        return HookResult.Continue;
-                    }
-                    else
-                    {
-                        if (jumpStatsEnabled == true && @event.Step == true) OnJumpStatSound(player);
-                    }
-                }
-                return HookResult.Continue;
-            });
-
             RegisterListener<Listeners.OnTick>(PlayerOnTick);
 
             AddTimer(1.0f, () =>

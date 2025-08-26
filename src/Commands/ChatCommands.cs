@@ -1046,8 +1046,6 @@ namespace SharpTimer
                     playerCheckpoints.Remove(player.Slot);
                 }
 
-                if (jumpStatsEnabled) InvalidateJS(player.Slot);
-
                 if (bonusRespawnPoses[bonusX] != null)
                 {
                     if (bonusRespawnAngs.TryGetValue(bonusX, out QAngle? bonusAng) && bonusAng != null)
@@ -1186,8 +1184,6 @@ namespace SharpTimer
                 {
                     playerCheckpoints.Remove(player.Slot);
                 }
-
-                if (jumpStatsEnabled) InvalidateJS(player.Slot);
 
                 if (stageTriggerPoses.TryGetValue(stageX, out Vector? stagePos) && stagePos != null)
                 {
@@ -1491,8 +1487,6 @@ namespace SharpTimer
                     playerCheckpoints.Remove(player.Slot);
                 }
 
-                if (jumpStatsEnabled) InvalidateJS(player.Slot);
-
                 if (stageTriggerCount != 0 || cpTriggerCount != 0)//remove previous stage times and checkpoints if the map has stages or checkpoints
                 {
                     playerTimers[player.Slot].StageTimes!.Clear();
@@ -1596,7 +1590,6 @@ namespace SharpTimer
 
                 if (stageTriggerPoses.TryGetValue(currStage, out Vector? stagePos) && stagePos != null)
                 {
-                    if (jumpStatsEnabled) InvalidateJS(player.Slot);
                     player.PlayerPawn.Value!.Teleport(stagePos, stageTriggerAngs[currStage] ?? player.PlayerPawn.Value.EyeAngles, new Vector(0, 0, 0));
                     SharpTimerDebug($"{player.PlayerName} css_rs {player.PlayerName}");
                 }
@@ -1805,7 +1798,6 @@ namespace SharpTimer
 
                 if (player != null && IsAllowedPlayer(foundPlayer) && playerTimers[player.Slot].IsTimerBlocked)
                 {
-                    if (jumpStatsEnabled) InvalidateJS(player.Slot);
                     player.PlayerPawn.Value!.Teleport(foundPlayer.Pawn.Value!.CBodyComponent?.SceneNode?.AbsOrigin ?? new Vector(0, 0, 0),
                         foundPlayer.PlayerPawn.Value!.EyeAngles ?? new QAngle(0, 0, 0), new Vector(0, 0, 0));
                     SharpTimerDebug($"{player.PlayerName} css_goto to {foundPlayer.Pawn.Value.CBodyComponent?.SceneNode?.AbsOrigin ?? new Vector(0, 0, 0)}");
@@ -1916,8 +1908,6 @@ namespace SharpTimer
                 return;
             }
 
-            if (jumpStatsEnabled) InvalidateJS(player.Slot);
-
             // Get the most recent checkpoint from the player's list
             PlayerCheckpoint lastCheckpoint = playerCheckpoints[player.Slot][playerTimers[player.Slot].CheckpointIndex];
 
@@ -1972,13 +1962,11 @@ namespace SharpTimer
             }
             else
             {
-                if (jumpStatsEnabled) InvalidateJS(player.Slot);
                 // Calculate the index of the previous checkpoint, circling back if necessary
                 index = (index - 1 + checkpoints.Count) % checkpoints.Count;
 
                 PlayerCheckpoint previousCheckpoint = checkpoints[index];
                 
-
                 // Update the player's checkpoint index and timer ticks
                 playerTimers[player.Slot].CheckpointIndex = index;
                 if (playerTimers[player.Slot].currentStyle == 12)
@@ -2029,7 +2017,6 @@ namespace SharpTimer
             }
             else
             {
-                if (jumpStatsEnabled) InvalidateJS(player.Slot);
                 // Calculate the index of the next checkpoint, circling back if necessary
                 index = (index + 1) % checkpoints.Count;
 

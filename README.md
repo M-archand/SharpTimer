@@ -43,10 +43,6 @@ SharpTimer is a "simple" Surf/KZ/Bhop/MG/Deathrun/etc. CS2 Timer plugin using Co
 </details>
 
 <details> 
-  <summary>JumpStats</summary>
-</details>
-
-<details> 
   <summary>Map CFGs</summary>
 </details>
 
@@ -148,26 +144,11 @@ SharpTimer is a "simple" Surf/KZ/Bhop/MG/Deathrun/etc. CS2 Timer plugin using Co
   - [x] Player Server Stats
   - [x] Player Map Stats
 - [x] Replays
-- [x] Jumpstats
-  - [x] Distance
-  - [x] Pre
-  - [x] Max
-  - [x] Height
-  - [x] Width
-  - [ ] Sync
-  - [ ] Jump Types
-    - [x] Long Jump
-    - [x] BunnyHop
-    - [x] MultiBunnyHop
-    - [x] Jump Bug
-    - [ ] Edge Bug
-    - [ ] Ladder Jump
 - [ ] Silly Stuff
   - [x] Color customization
   - [x] Special Tester Gifs
   - [x] Custom Player Gifs
-  - [x] Dioscord Webhook
-  - [ ] Strafe Sync Bar on HUD
+  - [x] Discord Webhook
 
 
 ## Authors:

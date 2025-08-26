@@ -56,7 +56,6 @@ namespace SharpTimer
                 //player.PrintToConsole($"{Localizer["console_replaybonuspb"]}");
             }
 
-            if (jumpStatsEnabled) player.PrintToConsole($"{Localizer["console_jumpstats"]}");
             player.PrintToConsole($"{Localizer["console_hideweapon"]}");
             player.PrintToConsole($"{Localizer["console_hide"]}");
             player.PrintToConsole($"{Localizer["console_spec"]}");

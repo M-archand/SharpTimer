@@ -317,8 +317,6 @@ namespace SharpTimer
                     return HookResult.Continue;
                 }
 
-                if (jumpStatsEnabled) InvalidateJS(player.Slot);
-
                 return HookResult.Continue;
             }
             catch (Exception)

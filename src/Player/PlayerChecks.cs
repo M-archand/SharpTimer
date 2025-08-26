@@ -22,9 +22,8 @@ namespace SharpTimer
 
             bool isTeamSpectatorOrNone = teamNum != CsTeam.Spectator && teamNum != CsTeam.None;
             bool isConnected = connectedPlayers.ContainsKey(playerSlot) && playerTimers.ContainsKey(playerSlot);
-            bool isConnectedJS = !jumpStatsEnabled || playerJumpStats.ContainsKey(playerSlot);
 
-            return isTeamValid && isTeamSpectatorOrNone && isConnected && isConnectedJS && isAlive;
+            return isTeamValid && isTeamSpectatorOrNone && isConnected && isAlive;
         }
 
         private bool IsAllowedSpectator(CCSPlayerController? player)

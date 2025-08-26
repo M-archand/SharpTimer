@@ -61,8 +61,6 @@
   "hud_hidden": "Hud is now: {red}Hidden",
   "keys_shown": "Keys is now: {green}Shown",
   "keys_hidden": "Keys is now: {red}Hidden",
-  "jumpstats_shown": "Jump Stats are now: {green}Shown",
-  "jumpstats_hidden": "Jump Stats are now: {red}Hidden",
   "sounds_on": "Sounds are now: {green}ON",
   "sounds_off": "Sounds are now: {red}OFF",
 
@@ -117,7 +115,6 @@
   "ad_hud": "Type {primary}!hud{default} to toggle timer hud!",
   "ad_keys": "Type {primary}!keys{default} to toggle hud keys!",
   "ad_styles": "Type {primary}!styles{default} to list all available styles!",
-  "ad_jumpstats": "Type {primaryChatColor}!jumpstats{default} to toggle JumpStats!",
 
   "command_cooldown": "Command is on cooldown. Chill...",
   "error_occured": "{lightred}Error occured.",

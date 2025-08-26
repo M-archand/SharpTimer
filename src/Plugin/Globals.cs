@@ -14,7 +14,6 @@ namespace SharpTimer
         public override string ModuleAuthor => "dea + rc + Marchand";
 
         public Dictionary<int, PlayerTimerInfo> playerTimers = [];
-        private Dictionary<int, PlayerJumpStats> playerJumpStats = [];
         private Dictionary<int, PlayerReplays> playerReplays = [];
         private Dictionary<int, List<PlayerCheckpoint>> playerCheckpoints = [];
         public Dictionary<int, CCSPlayerController> connectedPlayers = [];
@@ -238,12 +237,6 @@ namespace SharpTimer
         public double fastForwardPointModifier = 0.8;
         public double parachutePointModifier = 0.8;
         public double tasPointModifier = 0.0;
-
-        public bool jumpStatsEnabled = false;
-        public float jumpStatsMinDist = 175;
-        public float jumpStatsMaxVert = 32;
-        public bool movementUnlockerCapEnabled = true;
-        public float movementUnlockerCapValue = 250;
 
         public bool execCustomMapCFG = false;
 

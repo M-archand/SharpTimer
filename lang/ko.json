@@ -67,8 +67,6 @@
   "hud_hidden": "HUD: {red}숨겨짐",
   "keys_shown": "키: {green}표시됨",
   "keys_hidden": "키: {red}숨겨짐",
-  "jumpstats_shown": "점프 통계: {green}표시됨",
-  "jumpstats_hidden": "점프 통계: {red}숨겨짐",
   "sounds_on": "소리: {green}켜짐",
   "sounds_off": "소리: {red}꺼짐",
 
@@ -128,7 +126,6 @@
   "ad_hud": "{primary}!hud{default}를 입력하여 타이머 HUD를 켜거나 끄세요!",
   "ad_keys": "{primary}!keys{default}를 입력하여 키 HUD를 켜거나 끄세요!",
   "ad_styles": "{primary}!styles{default}를 입력하여 사용 가능한 모든 스타일을 확인하세요!",
-  "ad_jumpstats": "{primaryChatColor}!jumpstats{default}를 입력하여 점프 통계를 켜거나 끄세요!",
 
   // 기타
   "command_cooldown": "명령어 쿨다운 중입니다. 잠시 기다리세요...",
@@ -174,7 +171,6 @@
   "console_replaypb": "• !replaypb (css_replaypb) - 현재 맵의 PB를 재생합니다",
   "console_replaybonus": "• !replaybonus / !replayb [1-10] [보너스 스테이지] (css_replaybonus) - 서버 상위 10개 보너스 기록을 재생합니다",
   "console_replaybonuspb": "• !replaybonuspb / !replaybpb (css_replaybonuspb) - 보너스의 PB를 재생합니다",
-  "console_jumpstats": "• !jumpstats (css_jumpstats) - 점프 통계를 전환합니다",
   "console_hideweapon": "• !hideweapon (css_hideweapon) - 무기 가시성을 전환합니다",
   "console_spec": "• !spec (css_spec) - 관전자 모드로 이동하거나 팀으로 돌아갑니다",
   "console_styles": "• !styles (css_styles) - 모든 스타일을 나열합니다"

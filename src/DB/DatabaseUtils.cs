@@ -179,7 +179,6 @@ namespace SharpTimer
                                                     "GlobalPoints INT DEFAULT 0",
                                                     "HideTimerHud BOOL DEFAULT false",
                                                     "HideKeys BOOL DEFAULT false",
-                                                    "HideJS BOOL DEFAULT false",
                                                     "SoundsEnabled BOOL DEFAULT false",
                                                     "PlayerFov INT DEFAULT 0",
                                                     "HudType INT DEFAULT 1",
@@ -205,7 +204,6 @@ namespace SharpTimer
                                                     @"""GlobalPoints"" INT DEFAULT 0",
                                                     @"""HideTimerHud"" BOOL DEFAULT false",
                                                     @"""HideKeys"" BOOL DEFAULT false",
-                                                    @"""HideJS"" BOOL DEFAULT false",
                                                     @"""SoundsEnabled"" BOOL DEFAULT false",
                                                     @"""PlayerFov"" INT DEFAULT 0",
                                                     @"""IsVip"" BOOL DEFAULT false",
@@ -415,7 +413,6 @@ namespace SharpTimer
                                             GlobalPoints INT,
                                             HideTimerHud BOOL,
                                             HideKeys BOOL,
-                                            HideJS BOOL,
                                             SoundsEnabled BOOL,
                                             PlayerFov INT,
                                             HudType INT,
@@ -434,7 +431,6 @@ namespace SharpTimer
                                             ""GlobalPoints"" INT,
                                             ""HideTimerHud"" BOOL,
                                             ""HideKeys"" BOOL,
-                                            ""HideJS"" BOOL,
                                             ""SoundsEnabled"" BOOL,
                                             ""PlayerFov"" INT,
                                             ""IsVip"" BOOL,
@@ -851,7 +847,6 @@ namespace SharpTimer
                 int lastConnected = 0;
                 bool hideTimerHud = false;
                 bool hideKeys = false;
-                bool hideJS = false;
                 bool soundsEnabled = true;
                 int playerFov = 0;
                 int hudType = 1;
@@ -870,11 +865,11 @@ namespace SharpTimer
                     switch (dbType)
                     {
                         case DatabaseType.MySQL:
-                            selectQuery = $@"SELECT PlayerName, TimesConnected, LastConnected, HideTimerHud, HideKeys, HideJS, SoundsEnabled, PlayerFov, HudType, IsVip, BigGifID, GlobalPoints, HideWeapon, HidePlayers FROM {PlayerStatsTable} WHERE SteamID = @SteamID";
+                            selectQuery = $@"SELECT PlayerName, TimesConnected, LastConnected, HideTimerHud, HideKeys, SoundsEnabled, PlayerFov, HudType, IsVip, BigGifID, GlobalPoints, HideWeapon, HidePlayers FROM {PlayerStatsTable} WHERE SteamID = @SteamID";
                             selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
                             break;
                         case DatabaseType.PostgreSQL:
-                            selectQuery = $@"SELECT ""PlayerName"", ""TimesConnected"", ""LastConnected"", ""HideTimerHud"", ""HideKeys"", ""HideJS"", ""SoundsEnabled"", ""PlayerFov"", ""IsVip"", ""BigGifID"", ""GlobalPoints"", ""HideWeapon"", ""HidePlayers"" FROM ""{PlayerStatsTable}"" WHERE ""SteamID"" = @SteamID";
+                            selectQuery = $@"SELECT ""PlayerName"", ""TimesConnected"", ""LastConnected"", ""HideTimerHud"", ""HideKeys"", ""SoundsEnabled"", ""PlayerFov"", ""IsVip"", ""BigGifID"", ""GlobalPoints"", ""HideWeapon"", ""HidePlayers"" FROM ""{PlayerStatsTable}"" WHERE ""SteamID"" = @SteamID";
                             selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
                             break;
                         default:
@@ -899,7 +894,6 @@ namespace SharpTimer
                                     timesConnected = row.GetInt32("TimesConnected");
                                     hideTimerHud = row.GetBoolean("HideTimerHud");
                                     hideKeys = row.GetBoolean("HideKeys");
-                                    hideJS = row.GetBoolean("HideJS");
                                     hideWeapon = row.GetBoolean("HideWeapon");
                                     hidePlayers = row.GetBoolean("HidePlayers");
                                     soundsEnabled = row.GetBoolean("SoundsEnabled");
@@ -920,7 +914,6 @@ namespace SharpTimer
                                 {
                                     value.HideTimerHud = hideTimerHud;
                                     value.HideKeys = hideKeys;
-                                    value.HideJumpStats = hideJS;
                                     value.HideWeapon = hideWeapon;
                                     value.HidePlayers = hidePlayers;
                                     value.SoundsEnabled = soundsEnabled;
@@ -947,16 +940,15 @@ namespace SharpTimer
                                 case DatabaseType.MySQL:
                                     upsertQuery = $@"
                                     INSERT INTO {PlayerStatsTable}
-                                        (PlayerName, SteamID, TimesConnected, LastConnected, HideTimerHud, HideKeys, HideJS, SoundsEnabled, PlayerFov, HudType, IsVip, BigGifID, GlobalPoints, HideWeapon, HidePlayers)
+                                        (PlayerName, SteamID, TimesConnected, LastConnected, HideTimerHud, HideKeys, SoundsEnabled, PlayerFov, HudType, IsVip, BigGifID, GlobalPoints, HideWeapon, HidePlayers)
                                     VALUES
-                                        (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @HideJS, @SoundsEnabled, @PlayerFov, @HudType, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)
+                                        (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @SoundsEnabled, @PlayerFov, @HudType, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)
                                     ON DUPLICATE KEY UPDATE
                                         PlayerName     = @PlayerName,
                                         TimesConnected = @TimesConnected,
                                         LastConnected  = @LastConnected,
                                         HideTimerHud   = @HideTimerHud,
                                         HideKeys       = @HideKeys,
-                                        HideJS         = @HideJS,
                                         SoundsEnabled  = @SoundsEnabled,
                                         PlayerFov      = @PlayerFov,
                                         HudType        = @HudType,
@@ -971,9 +963,9 @@ namespace SharpTimer
                                 case DatabaseType.PostgreSQL:
                                     upsertQuery = $@"
                                     INSERT INTO ""{PlayerStatsTable}""
-                                        (""PlayerName"", ""SteamID"", ""TimesConnected"", ""LastConnected"", ""HideTimerHud"", ""HideKeys"", ""HideJS"", ""SoundsEnabled"", ""PlayerFov"", ""IsVip"", ""BigGifID"", ""GlobalPoints"", ""HideWeapon"", ""HidePlayers"")
+                                        (""PlayerName"", ""SteamID"", ""TimesConnected"", ""LastConnected"", ""HideTimerHud"", ""HideKeys"", ""SoundsEnabled"", ""PlayerFov"", ""IsVip"", ""BigGifID"", ""GlobalPoints"", ""HideWeapon"", ""HidePlayers"")
                                     VALUES
-                                        (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @HideJS, @SoundsEnabled, @PlayerFov, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)
+                                        (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @SoundsEnabled, @PlayerFov, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)
                                     ON CONFLICT (""SteamID"")
                                     DO UPDATE SET
                                         ""PlayerName""     = EXCLUDED.""PlayerName"",
@@ -981,7 +973,6 @@ namespace SharpTimer
                                         ""LastConnected""  = EXCLUDED.""LastConnected"",
                                         ""HideTimerHud""   = EXCLUDED.""HideTimerHud"",
                                         ""HideKeys""       = EXCLUDED.""HideKeys"",
-                                        ""HideJS""         = EXCLUDED.""HideJS"",
                                         ""SoundsEnabled""  = EXCLUDED.""SoundsEnabled"",
                                         ""PlayerFov""      = EXCLUDED.""PlayerFov"",
                                         ""IsVip""          = EXCLUDED.""IsVip"",
@@ -1006,7 +997,6 @@ namespace SharpTimer
                                 upsertCommand!.AddParameterWithValue("@LastConnected", lastConnected);
                                 upsertCommand!.AddParameterWithValue("@HideTimerHud", hideTimerHud);
                                 upsertCommand!.AddParameterWithValue("@HideKeys", hideKeys);
-                                upsertCommand!.AddParameterWithValue("@HideJS", hideJS);
                                 upsertCommand!.AddParameterWithValue("@SoundsEnabled", soundsEnabled);
                                 upsertCommand!.AddParameterWithValue("@PlayerFov", playerFov);
                                 upsertCommand!.AddParameterWithValue("@HudType", hudType);
@@ -1032,11 +1022,11 @@ namespace SharpTimer
                             switch (dbType)
                             {
                                 case DatabaseType.MySQL:
-                                    upsertQuery = $@"REPLACE INTO {PlayerStatsTable} (PlayerName, SteamID, TimesConnected, LastConnected, HideTimerHud, HideKeys, HideJS, SoundsEnabled, PlayerFov, HudType, IsVip, BigGifID, GlobalPoints, HideWeapon, HidePlayers) VALUES (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @HideJS, @SoundsEnabled, @PlayerFov, @HudType, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)";
+                                    upsertQuery = $@"REPLACE INTO {PlayerStatsTable} (PlayerName, SteamID, TimesConnected, LastConnected, HideTimerHud, HideKeys, SoundsEnabled, PlayerFov, HudType, IsVip, BigGifID, GlobalPoints, HideWeapon, HidePlayers) VALUES (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @SoundsEnabled, @PlayerFov, @HudType, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)";
                                     upsertCommand = new MySqlCommand(upsertQuery, (MySqlConnection)connection);
                                     break;
                                 case DatabaseType.PostgreSQL:
-                                    upsertQuery = $@"INSERT INTO ""{PlayerStatsTable}"" (""PlayerName"", ""SteamID"", ""TimesConnected"", ""LastConnected"", ""HideTimerHud"", ""HideKeys"", ""HideJS"", ""SoundsEnabled"", ""PlayerFov"", ""IsVip"", ""BigGifID"", ""GlobalPoints"", ""HideWeapon"", ""HidePlayers"") VALUES (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @HideJS, @SoundsEnabled, @PlayerFov, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)";
+                                    upsertQuery = $@"INSERT INTO ""{PlayerStatsTable}"" (""PlayerName"", ""SteamID"", ""TimesConnected"", ""LastConnected"", ""HideTimerHud"", ""HideKeys"", ""SoundsEnabled"", ""PlayerFov"", ""IsVip"", ""BigGifID"", ""GlobalPoints"", ""HideWeapon"", ""HidePlayers"") VALUES (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @SoundsEnabled, @PlayerFov, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)";
                                     upsertCommand = new NpgsqlCommand(upsertQuery, (NpgsqlConnection)connection);
                                     break;
                                 default:
@@ -1053,7 +1043,6 @@ namespace SharpTimer
                                 upsertCommand!.AddParameterWithValue("@LastConnected", timeNowUnix);
                                 upsertCommand!.AddParameterWithValue("@HideTimerHud", false);
                                 upsertCommand!.AddParameterWithValue("@HideKeys", false);
-                                upsertCommand!.AddParameterWithValue("@HideJS", false);
                                 upsertCommand!.AddParameterWithValue("@SoundsEnabled", soundsEnabledByDefault);
                                 upsertCommand!.AddParameterWithValue("@PlayerFov", 0);
                                 upsertCommand!.AddParameterWithValue("@HudType", 1);
@@ -1330,16 +1319,15 @@ namespace SharpTimer
                                 case DatabaseType.MySQL:
                                 upsertQuery = $@"
                                 INSERT INTO {PlayerStatsTable}
-                                    (PlayerName, SteamID, TimesConnected, LastConnected, HideTimerHud, HideKeys, HideJS, SoundsEnabled, PlayerFov, HudType, IsVip, BigGifID, GlobalPoints, HideWeapon, HidePlayers)
+                                    (PlayerName, SteamID, TimesConnected, LastConnected, HideTimerHud, HideKeys, SoundsEnabled, PlayerFov, HudType, IsVip, BigGifID, GlobalPoints, HideWeapon, HidePlayers)
                                 VALUES
-                                    (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @HideJS, @SoundsEnabled, @PlayerFov, @HudType, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)
+                                    (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @SoundsEnabled, @PlayerFov, @HudType, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)
                                 ON DUPLICATE KEY UPDATE
                                     PlayerName     = @PlayerName,
                                     TimesConnected = @TimesConnected,
                                     LastConnected  = @LastConnected,
                                     HideTimerHud   = @HideTimerHud,
                                     HideKeys       = @HideKeys,
-                                    HideJS         = @HideJS,
                                     SoundsEnabled  = @SoundsEnabled,
                                     PlayerFov      = @PlayerFov,
                                     HudType        = @HudType,
@@ -1354,9 +1342,9 @@ namespace SharpTimer
                                 case DatabaseType.PostgreSQL:
                                     upsertQuery = $@"
                                     INSERT INTO ""{PlayerStatsTable}""
-                                        (""PlayerName"", ""SteamID"", ""TimesConnected"", ""LastConnected"", ""HideTimerHud"", ""HideKeys"", ""HideJS"", ""SoundsEnabled"", ""PlayerFov"", ""IsVip"", ""BigGifID"", ""GlobalPoints"", ""HideWeapon"", ""HidePlayers"")
+                                        (""PlayerName"", ""SteamID"", ""TimesConnected"", ""LastConnected"", ""HideTimerHud"", ""HideKeys"", ""SoundsEnabled"", ""PlayerFov"", ""IsVip"", ""BigGifID"", ""GlobalPoints"", ""HideWeapon"", ""HidePlayers"")
                                     VALUES
-                                        (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @HideJS, @SoundsEnabled, @PlayerFov, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)
+                                        (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @SoundsEnabled, @PlayerFov, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)
                                     ON CONFLICT (""SteamID"")
                                     DO UPDATE SET
                                         ""PlayerName""     = EXCLUDED.""PlayerName"",
@@ -1364,7 +1352,6 @@ namespace SharpTimer
                                         ""LastConnected""  = EXCLUDED.""LastConnected"",
                                         ""HideTimerHud""   = EXCLUDED.""HideTimerHud"",
                                         ""HideKeys""       = EXCLUDED.""HideKeys"",
-                                        ""HideJS""         = EXCLUDED.""HideJS"",
                                         ""SoundsEnabled""  = EXCLUDED.""SoundsEnabled"",
                                         ""PlayerFov""      = EXCLUDED.""PlayerFov"",
                                         ""IsVip""          = EXCLUDED.""IsVip"",
@@ -1394,7 +1381,6 @@ namespace SharpTimer
                                     upsertCommand!.AddParameterWithValue("@HideKeys",      playerSlot != -1 && value!.HideKeys);
                                     upsertCommand!.AddParameterWithValue("@HideWeapon",    playerSlot != -1 && value!.HideWeapon);
                                     upsertCommand!.AddParameterWithValue("@HidePlayers",   playerSlot != -1 && value!.HidePlayers);
-                                    upsertCommand!.AddParameterWithValue("@HideJS",        playerSlot != -1 && value!.HideJumpStats);
                                     upsertCommand!.AddParameterWithValue("@SoundsEnabled", playerSlot != -1 && value!.SoundsEnabled);
 
                                     upsertCommand!.AddParameterWithValue("@PlayerFov",     playerSlot == -1 ? 0 : value!.PlayerFov);
@@ -1426,11 +1412,11 @@ namespace SharpTimer
                             switch (dbType)
                             {
                                 case DatabaseType.MySQL:
-                                    upsertQuery = $"REPLACE INTO {PlayerStatsTable} (PlayerName, SteamID, TimesConnected, LastConnected, HideTimerHud, HideKeys, HideJS, SoundsEnabled, PlayerFov, HudType, IsVip, BigGifID, GlobalPoints, HideWeapon, HidePlayers) VALUES (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @HideJS, @SoundsEnabled, @PlayerFov, @HudType, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)";
+                                    upsertQuery = $"REPLACE INTO {PlayerStatsTable} (PlayerName, SteamID, TimesConnected, LastConnected, HideTimerHud, HideKeys, SoundsEnabled, PlayerFov, HudType, IsVip, BigGifID, GlobalPoints, HideWeapon, HidePlayers) VALUES (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @SoundsEnabled, @PlayerFov, @HudType, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)";
                                     upsertCommand = new MySqlCommand(upsertQuery, (MySqlConnection)connection);
                                     break;
                                 case DatabaseType.PostgreSQL:
-                                    upsertQuery = $@"INSERT INTO ""{PlayerStatsTable}"" (""PlayerName"", ""SteamID"", ""TimesConnected"", ""LastConnected"", ""HideTimerHud"", ""HideKeys"", ""HideJS"", ""SoundsEnabled"", ""PlayerFov"", ""IsVip"", ""BigGifID"", ""GlobalPoints"", ""HideWeapon"", ""HidePlayers"") VALUES (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @HideJS, @SoundsEnabled, @PlayerFov, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)";
+                                    upsertQuery = $@"INSERT INTO ""{PlayerStatsTable}"" (""PlayerName"", ""SteamID"", ""TimesConnected"", ""LastConnected"", ""HideTimerHud"", ""HideKeys"", ""SoundsEnabled"", ""PlayerFov"", ""IsVip"", ""BigGifID"", ""GlobalPoints"", ""HideWeapon"", ""HidePlayers"") VALUES (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @SoundsEnabled, @PlayerFov, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)";
                                     upsertCommand = new NpgsqlCommand(upsertQuery, (NpgsqlConnection)connection);
                                     break;
                                 default:
@@ -1453,7 +1439,6 @@ namespace SharpTimer
                                     upsertCommand!.AddParameterWithValue("@HideKeys",      playerSlot != -1 && value!.HideKeys);
                                     upsertCommand!.AddParameterWithValue("@HideWeapon",    playerSlot != -1 && value!.HideWeapon);
                                     upsertCommand!.AddParameterWithValue("@HidePlayers",   playerSlot != -1 && value!.HidePlayers);
-                                    upsertCommand!.AddParameterWithValue("@HideJS",        playerSlot != -1 && value!.HideJumpStats);
                                     upsertCommand!.AddParameterWithValue("@SoundsEnabled", playerSlot != -1 && value!.SoundsEnabled);
 
                                     upsertCommand!.AddParameterWithValue("@PlayerFov",     playerSlot == -1 ? 0 : value!.PlayerFov);
@@ -1587,16 +1572,15 @@ namespace SharpTimer
                                 case DatabaseType.MySQL:
                                     upsertQuery = $@"
                                     INSERT INTO {PlayerStatsTable}
-                                        (PlayerName, SteamID, TimesConnected, LastConnected, HideTimerHud, HideKeys, HideJS, SoundsEnabled, PlayerFov, HudType, IsVip, BigGifID, GlobalPoints, HideWeapon, HidePlayers)
+                                        (PlayerName, SteamID, TimesConnected, LastConnected, HideTimerHud, HideKeys, SoundsEnabled, PlayerFov, HudType, IsVip, BigGifID, GlobalPoints, HideWeapon, HidePlayers)
                                     VALUES
-                                        (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @HideJS, @SoundsEnabled, @PlayerFov, @HudType, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)
+                                        (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @SoundsEnabled, @PlayerFov, @HudType, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)
                                     ON DUPLICATE KEY UPDATE
                                         PlayerName     = @PlayerName,
                                         TimesConnected = @TimesConnected,
                                         LastConnected  = @LastConnected,
                                         HideTimerHud   = @HideTimerHud,
                                         HideKeys       = @HideKeys,
-                                        HideJS         = @HideJS,
                                         SoundsEnabled  = @SoundsEnabled,
                                         PlayerFov      = @PlayerFov,
                                         HudType        = @HudType,
@@ -1611,9 +1595,9 @@ namespace SharpTimer
                                 case DatabaseType.PostgreSQL:
                                     upsertQuery = $@"
                                     INSERT INTO ""{PlayerStatsTable}""
-                                        (""PlayerName"", ""SteamID"", ""TimesConnected"", ""LastConnected"", ""HideTimerHud"", ""HideKeys"", ""HideJS"", ""SoundsEnabled"", ""PlayerFov"", ""IsVip"", ""BigGifID"", ""GlobalPoints"", ""HideWeapon"", ""HidePlayers"")
+                                        (""PlayerName"", ""SteamID"", ""TimesConnected"", ""LastConnected"", ""HideTimerHud"", ""HideKeys"", ""SoundsEnabled"", ""PlayerFov"", ""IsVip"", ""BigGifID"", ""GlobalPoints"", ""HideWeapon"", ""HidePlayers"")
                                     VALUES
-                                        (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @HideJS, @SoundsEnabled, @PlayerFov, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)
+                                        (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @SoundsEnabled, @PlayerFov, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)
                                     ON CONFLICT (""SteamID"")
                                     DO UPDATE SET
                                         ""PlayerName""     = EXCLUDED.""PlayerName"",
@@ -1621,7 +1605,6 @@ namespace SharpTimer
                                         ""LastConnected""  = EXCLUDED.""LastConnected"",
                                         ""HideTimerHud""   = EXCLUDED.""HideTimerHud"",
                                         ""HideKeys""       = EXCLUDED.""HideKeys"",
-                                        ""HideJS""         = EXCLUDED.""HideJS"",
                                         ""SoundsEnabled""  = EXCLUDED.""SoundsEnabled"",
                                         ""PlayerFov""      = EXCLUDED.""PlayerFov"",
                                         ""IsVip""          = EXCLUDED.""IsVip"",
@@ -1650,7 +1633,6 @@ namespace SharpTimer
                                     upsertCommand!.AddParameterWithValue("@HideKeys", playerSlot != -1 && value!.HideKeys);
                                     upsertCommand!.AddParameterWithValue("@HideWeapon", playerSlot != -1 && value!.HideWeapon);
                                     upsertCommand!.AddParameterWithValue("@HidePlayers", playerSlot != -1 && value!.HidePlayers);
-                                    upsertCommand!.AddParameterWithValue("@HideJS", playerSlot != -1 && value!.HideJumpStats);
                                     upsertCommand!.AddParameterWithValue("@SoundsEnabled", playerSlot != -1 && value!.SoundsEnabled);
                                     upsertCommand!.AddParameterWithValue("@PlayerFov", playerSlot == -1 ? 0 : value!.PlayerFov);
                                     upsertCommand!.AddParameterWithValue("@HudType", playerSlot == -1 ? 1 : value!.CurrentHudType);
@@ -1684,11 +1666,11 @@ namespace SharpTimer
                             switch (dbType)
                             {
                                 case DatabaseType.MySQL:
-                                    upsertQuery = $@"REPLACE INTO {PlayerStatsTable} (PlayerName, SteamID, TimesConnected, LastConnected, HideTimerHud, HideKeys, HideJS, SoundsEnabled, PlayerFov, HudType, IsVip, BigGifID, GlobalPoints, HideWeapon, HidePlayers) VALUES (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @HideJS, @SoundsEnabled, @PlayerFov, @HudType, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)";
+                                    upsertQuery = $@"REPLACE INTO {PlayerStatsTable} (PlayerName, SteamID, TimesConnected, LastConnected, HideTimerHud, HideKeys, SoundsEnabled, PlayerFov, HudType, IsVip, BigGifID, GlobalPoints, HideWeapon, HidePlayers) VALUES (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @SoundsEnabled, @PlayerFov, @HudType, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)";
                                     upsertCommand = new MySqlCommand(upsertQuery, (MySqlConnection)connection);
                                     break;
                                 case DatabaseType.PostgreSQL:
-                                    upsertQuery = $@"INSERT INTO ""{PlayerStatsTable}"" (""PlayerName"", ""SteamID"", ""TimesConnected"", ""LastConnected"", ""HideTimerHud"", ""HideKeys"", ""HideJS"", ""SoundsEnabled"", ""PlayerFov"", ""IsVip"", ""BigGifID"", ""GlobalPoints"", ""HideWeapon"", ""HidePlayers"") VALUES (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @HideJS, @SoundsEnabled, @PlayerFov, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)";
+                                    upsertQuery = $@"INSERT INTO ""{PlayerStatsTable}"" (""PlayerName"", ""SteamID"", ""TimesConnected"", ""LastConnected"", ""HideTimerHud"", ""HideKeys"", ""SoundsEnabled"", ""PlayerFov"", ""IsVip"", ""BigGifID"", ""GlobalPoints"", ""HideWeapon"", ""HidePlayers"") VALUES (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @SoundsEnabled, @PlayerFov, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)";
                                     upsertCommand = new NpgsqlCommand(upsertQuery, (NpgsqlConnection)connection);
                                     break;
                                 default:
@@ -1709,7 +1691,6 @@ namespace SharpTimer
                                     upsertCommand!.AddParameterWithValue("@HideKeys", playerSlot != -1 && value!.HideKeys);
                                     upsertCommand!.AddParameterWithValue("@HideWeapon", playerSlot != -1 && value!.HideWeapon);
                                     upsertCommand!.AddParameterWithValue("@HidePlayers", playerSlot != -1 && value!.HidePlayers);
-                                    upsertCommand!.AddParameterWithValue("@HideJS", playerSlot != -1 && value!.HideJumpStats);
                                     upsertCommand!.AddParameterWithValue("@SoundsEnabled", playerSlot != -1 && value!.SoundsEnabled);
                                     upsertCommand!.AddParameterWithValue("@PlayerFov", playerSlot == -1 ? 0 : value!.PlayerFov);
                                     upsertCommand!.AddParameterWithValue("@HudType", playerSlot == -1 ? 1 : value!.CurrentHudType);

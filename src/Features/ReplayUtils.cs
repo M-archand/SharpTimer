@@ -127,7 +127,6 @@ namespace SharpTimer
                     adjustVelocity(player, 0, false);
                 }
 
-                if (jumpStatsEnabled) InvalidateJS(player.Slot);
                 ReplayPlayback(player, playerReplays[player.Slot].CurrentPlaybackFrame);
 
                 playerReplays[player.Slot].CurrentPlaybackFrame++;

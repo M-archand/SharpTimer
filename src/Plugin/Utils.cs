@@ -73,8 +73,7 @@ namespace SharpTimer
                 $"{Localizer["prefix"]} {Localizer["ad_sounds"]}",
                 $"{Localizer["prefix"]} {Localizer["ad_hud"]}",
                 $"{Localizer["prefix"]} {Localizer["ad_keys"]}",
-                $"{(enableStyles ? $"{Localizer["prefix"]} {Localizer["ad_styles"]}" : "")}",
-                $"{(jumpStatsEnabled ? $"{Localizer["prefix"]} {Localizer["ad_jumpstats"]}" : "")}"
+                $"{(enableStyles ? $"{Localizer["prefix"]} {Localizer["ad_styles"]}" : "")}"
             };
 
             return adMessages;
