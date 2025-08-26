@@ -163,8 +163,8 @@
   "console_replaypb": "• !replaypb (css_replaypb) - Replay your pb for the current map",
   "console_replaybonus": "• !replaybonus / !replayb [1-10] [bonus stage] (css_replaybonus) - Replay a top 10 server bonus record",
   "console_replaybonuspb": "• !replaybonuspb / !replaybpb (css_replaybonuspb) - Replay your pb for a bonus",
-  "console_jumpstats": "• !jumpstats (css_jumpstats) - Toggles JumpStats",
   "console_hideweapon": "• !hw/!hideweapon (css_hideweapon/css_hw) - Toggles weapon visibility",
+  "console_hide": "• !hide (css_hide) - Toggles other player visibility",
   "console_spec": "• !spec (css_spec) - Moves you to Spectator or back to a team",
   "console_styles": "• !styles (css_styles) - List all styles"
 }
