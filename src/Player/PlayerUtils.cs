@@ -573,15 +573,19 @@ namespace SharpTimer
                 }
                 else if (beatPB)
                 {
-                    if (bonusX != 0) player.PrintToChat(Localizer["new_pb_record_bonus", playerName, bonusX]);
-                    else             player.PrintToChat(Localizer["new_pb_record", playerName]);
+                    if (bonusX != 0)
+                        PrintToChatAll(Localizer["new_pb_record_bonus", playerName, bonusX]);
+                    else
+                        PrintToChatAll(Localizer["new_pb_record", playerName]);
 
                     if (enableDb || bonusX != 0)
                         player.PrintToChat($"Rank: [{primaryChatColor}{ranking}{ChatColors.White}] " +
                                         (timesFinished != 0 && enableDb ? $"Times Finished: [{primaryChatColor}{timesFinished}{ChatColors.White}]" : ""));
 
                     player.PrintToChat(Localizer["timer_time", newTime, timeDifference]);
-                    if (enableStyles) player.PrintToChat(Localizer["timer_style", GetNamedStyle(style)]);
+                    
+                    if (enableStyles)
+                        player.PrintToChat(Localizer["timer_style", GetNamedStyle(style)]);
 
                     if (discordWebhookPrintPB && discordWebhookEnabled && enableDb)
                         _ = Task.Run(async () => await DiscordRecordMessage(player, playerName, newTime, steamID, ranking, timesFinished, false, timeDifferenceNoCol, bonusX));
