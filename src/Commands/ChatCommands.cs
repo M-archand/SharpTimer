@@ -569,43 +569,6 @@ namespace SharpTimer
             }
         }
 
-        [ConsoleCommand("css_jumpstats", "Toggles JumpStats")]
-        [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
-        public void JSSwitchCommand(CCSPlayerController? player, CommandInfo command)
-        {
-            if (!IsAllowedPlayer(player) || jumpStatsEnabled == false)
-            {
-                if (!IsAllowedSpectator(player))
-                    return;
-            }
-
-            var playerName = player!.PlayerName;
-            var playerSlot = player.Slot;
-            var steamID = player.SteamID.ToString();
-
-            SharpTimerDebug($"{playerName} calling css_jumpstats...");
-
-            if (CommandCooldown(player))
-                return;
-
-            playerTimers[playerSlot].TicksSinceLastCmd = 0;
-
-            playerTimers[playerSlot].HideJumpStats = playerTimers[playerSlot].HideJumpStats ? false : true;
-
-            if (playerTimers[playerSlot].HideJumpStats)
-                PrintToChat(player, Localizer["jumpstats_hidden"]);
-            else
-                PrintToChat(player, Localizer["jumpstats_shown"]);
-
-            SharpTimerDebug($"Hide Jump Stats set to: {playerTimers[playerSlot].HideJumpStats} for {playerName}");
-
-            if (enableDb)
-            {
-                _ = Task.Run(async () => await SetPlayerStats(player, steamID, playerName, playerSlot));
-            }
-
-        }
-
         [ConsoleCommand("css_hideweapon", "Toggles the player's weapon visibility")]
         [ConsoleCommand("css_hw", "Toggles the player's weapon visibility")]
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
