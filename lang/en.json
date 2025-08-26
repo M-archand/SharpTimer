@@ -40,7 +40,7 @@
   "current_wr": "Current World Record on {lime}{0}{white}:",
   "current_wr_player": "{lime}{0} {white}- {lime}{1}",
   "reached_max_free": "You reached your maximum free points rewards of {lime}{0}{default}!",
-  "gained_points": "{lime}{0} {default}gained {green}+{1} {default}Points {grey}({2})",
+  "gained_points": "{lime}{0} {default}gained {green}+{1} {default}Points {grey}(Total: {2})",
   "total_gpoints": "Total Global Points",
   "grank": "Global Rank",
   "top_10_points": "Top 10 Players with the most points:",
@@ -98,7 +98,7 @@
 
   "ad_see_all_commands": "{primary}Type !sthelp{default} to see all commands!",
   "ad_replay_pb": "Type {primary}!replaypb{default} to watch a replay of your personal best run!",
-  "ad_replay_sr": "Type {primary}!replay or {primary}!replaysr{default} to watch a replay of the SR on {primary}{current_map}{default}!",
+  "ad_replay_sr": "Type {primary}!replay {default} to watch a replay of the SR on {primary}{current_map}{default}!",
   "ad_replay_top": "Type {primary}!replaytop <1-10>{default} to watch a replay of a top run on {primary}{current_map}{default}!",
   "ad_replay_bonus": "Type {primary}!replaybonus <1-10> <bonus #> (or !replayb){default} to watch a replay of a top run on a bonus stage{default}!",
   "ad_replay_bonus_pb": "Type {primary}!replaybonuspb <bonus #> (or !replaybpb){default} to watch a replay of your personal best run on a bonus stage{default}!",

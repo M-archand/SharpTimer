@@ -1484,12 +1484,15 @@ namespace SharpTimer
             }
         }
 
-        public void GainPointsMessage(string playerName, double newPoints, double playerPoints)
+        public void GainPointsMessage(int playerSlot, string playerName, double newPoints, double playerPoints)
         {
-            if (Convert.ToInt32(newPoints - playerPoints) == 0)
-                return;
-            else
-                PrintToChatAll(Localizer["gained_points", playerName, Convert.ToInt32(newPoints - playerPoints), newPoints]);
+            int delta = Convert.ToInt32(newPoints - playerPoints);
+            if (delta == 0) return;
+
+            if (connectedPlayers.TryGetValue(playerSlot, out var player) && IsAllowedPlayer(player))
+            {
+                player.PrintToChat(Localizer["gained_points", playerName, delta, newPoints]);
+            }
         }
 
         public (string, int) FixMapAndBonus(string mapName)
@@ -1657,7 +1660,8 @@ namespace SharpTimer
 
                                     await upsertCommand!.ExecuteNonQueryAsync();
 
-                                    if (!import) Server.NextFrame(() => GainPointsMessage(playerName, newPoints, playerPoints));
+                                    if (!import) Server.NextFrame(() => GainPointsMessage(playerSlot, playerName, newPoints, playerPoints));
+
                                     Server.NextFrame(() => SharpTimerDebug($"Set points in database for {playerName} from {playerPoints} to {newPoints}"));
                                 }
                                 else
@@ -1715,7 +1719,8 @@ namespace SharpTimer
 
                                     await upsertCommand!.ExecuteNonQueryAsync();
 
-                                    if (!import) Server.NextFrame(() => GainPointsMessage(playerName, newPoints, playerPoints));
+                                    if (!import) Server.NextFrame(() => GainPointsMessage(playerSlot, playerName, newPoints, playerPoints));
+
                                     Server.NextFrame(() => SharpTimerDebug($"Set points in database for {playerName} from {playerPoints} to {newPoints}"));
                                 }
                                 else
