@@ -51,29 +51,6 @@ namespace SharpTimer
             isADServerRecordTimerRunning = true;
         }
 
-        private void ADtimerMessages()
-        {
-            if (isADMessagesTimerRunning) return;
-
-            var timer = AddTimer(adMessagesTimer, () =>
-            {
-                List<string> allAdMessages = [.. GetAdMessages()];
-
-                var customAdMessageFilePath = Path.Join(gameDir + "/csgo/cfg/SharpTimer/admessages.txt");
-                if (File.Exists(customAdMessageFilePath))
-                {
-                    string[] customAdMessages = File.ReadAllLines(customAdMessageFilePath);
-                    var nonEmptyCustomAds = customAdMessages.Where(ad => !string.IsNullOrEmpty(ad) && !ad.TrimStart().StartsWith("//")).ToList();
-
-                    allAdMessages.AddRange(nonEmptyCustomAds);
-                }
-
-                Server.NextFrame(() => Server.PrintToChatAll($"{ReplaceVars(allAdMessages[new Random().Next(allAdMessages.Count)])}"));
-            }, TimerFlags.REPEAT);
-
-            isADMessagesTimerRunning = true;
-        }
-
         private List<string> GetAdMessages()
         {
             var adMessages = new List<string>() 
@@ -993,7 +970,6 @@ namespace SharpTimer
                 });
 
                 if (adServerRecordEnabled == true) ADtimerServerRecord();
-                if (adMessagesEnabled == true) ADtimerMessages();
 
                 entityCache = new EntityCache();
                 UpdateEntityCache();

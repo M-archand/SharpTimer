@@ -205,10 +205,6 @@ namespace SharpTimer
         public bool isADServerRecordTimerRunning = false;
         public int adServerRecordTimer = 120;
 
-        public bool adMessagesEnabled = true;
-        public bool isADMessagesTimerRunning = false;
-        public int adMessagesTimer = 120;
-
         public int rankHUDTimer = 170;
         public bool isRankHUDTimerRunning = false;
 

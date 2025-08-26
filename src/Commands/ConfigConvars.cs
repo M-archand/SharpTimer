@@ -1396,33 +1396,6 @@ namespace SharpTimer
             }
         }
 
-        [ConsoleCommand("sharptimer_ad_messages_enabled", "Whether to print ad message or not. Default value: true")]
-        [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
-        public void SharpTimerAdMessagesEnabled(CCSPlayerController? player, CommandInfo command)
-        {
-            string args = command.ArgString;
-
-            adMessagesEnabled = bool.TryParse(args, out bool adCommandsEnabledValue) ? adCommandsEnabledValue : args != "0" && adMessagesEnabled;
-        }
-
-        [ConsoleCommand("sharptimer_ad_messages_timer", "Interval how often the messages shall be printed to chat. Default value: 120")]
-        [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
-        public void SharpTimerAdMessagesTimer(CCSPlayerController? player, CommandInfo command)
-        {
-            string args = command.ArgString;
-
-            if (int.TryParse(args, out int interval) && interval > 0)
-            {
-                adMessagesTimer = interval;
-                //SharpTimerConPrint($"SharpTimer messages ad interval set to {interval} seconds.");
-            }
-            else
-            {
-                SharpTimerConPrint("Invalid messages ad interval value. Please provide a positive integer.");
-            }
-        }
-        /* ad messages */
-
         [ConsoleCommand("sharptimer_hud_primary_color", "Primary Color for Timer HUD. Default value: green")]
         [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
         public void SharpTimerPrimaryHUDcolor(CCSPlayerController? player, CommandInfo command)
