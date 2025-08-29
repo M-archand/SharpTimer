@@ -34,19 +34,19 @@ namespace SharpTimer
         {
             playerTimers[player.Slot].currentStyle = 0; // reset currentStyle
             playerTimers[player.Slot].changedStyle = true;
-            player!.Pawn.Value!.GravityScale = 1f;
+            player!.Pawn.Value!.ActualGravityScale = 1f;
         }
 
         public void SetLowGravity(CCSPlayerController player)
         {
             playerTimers[player.Slot].currentStyle = 1; // 1 = low-gravity
-            player!.Pawn.Value!.GravityScale = 0.5f;
+            player!.Pawn.Value!.ActualGravityScale = 0.5f;
             playerTimers[player.Slot].changedStyle = true;
         }
         public void SetHighGravity(CCSPlayerController player)
         {
             playerTimers[player.Slot].currentStyle = 5; // 5 = high-gravity
-            player!.Pawn.Value!.GravityScale = 1.5f;
+            player!.Pawn.Value!.ActualGravityScale = 1.5f;
             playerTimers[player.Slot].changedStyle = true;
         }
         public void SetSlowMo(CCSPlayerController player)

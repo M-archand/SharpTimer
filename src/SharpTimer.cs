@@ -452,12 +452,12 @@ namespace SharpTimer
                     }
                     if ((playerTimers[player.Slot].IsTimerRunning || playerTimers[player.Slot].IsBonusTimerRunning) && playerTimers[player.Slot].currentStyle.Equals(11) && usingUse) //parachute
                     {
-                        player.Pawn.Value!.GravityScale = 0.2f;
+                        player.Pawn.Value!.ActualGravityScale = 0.2f;
                         return HookResult.Changed;
                     }
                     if ((playerTimers[player.Slot].IsTimerRunning || playerTimers[player.Slot].IsBonusTimerRunning) && playerTimers[player.Slot].currentStyle.Equals(11) && !usingUse) //parachute
                     {
-                        player.Pawn.Value!.GravityScale = 1f;
+                        player.Pawn.Value!.ActualGravityScale = 1f;
                         return HookResult.Changed;
                     }
                     return HookResult.Changed;
