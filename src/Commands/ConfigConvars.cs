@@ -1024,6 +1024,7 @@ namespace SharpTimer
             }
         }
 
+        /*
         [ConsoleCommand("sharptimer_max_bhop_block_time", "Defines the time the player is allowed to stand on a Bhop block (if the map supports it). Default value: 1")]
         [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
         public void SharpTimerBhopBlockConvar(CCSPlayerController? player, CommandInfo command)
@@ -1040,6 +1041,7 @@ namespace SharpTimer
                 SharpTimerConPrint("Invalid max bhop block time value. Please provide a positive float.");
             }
         }
+        */
 
         [ConsoleCommand("sharptimer_respawn_enabled", "Whether !r is enabled by default or not. Default value: true")]
         [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
@@ -1222,6 +1224,7 @@ namespace SharpTimer
             }
         }
 
+        /*
         [ConsoleCommand("sharptimer_bhop_block_ticks", "Ticks allowed on bhop_block. Default value: 16")]
         [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
         public void SharpTimerBhopBlockTicksConvar(CCSPlayerController? player, CommandInfo command)
@@ -1238,6 +1241,7 @@ namespace SharpTimer
                 SharpTimerConPrint("Invalid bhop_block ticks value. Please provide a positive integer.");
             }
         }
+        */
 
         [ConsoleCommand("sharptimer_stage_times_enabled", "Whether stage time records are enabled by default or not. Default value: true")]
         [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]

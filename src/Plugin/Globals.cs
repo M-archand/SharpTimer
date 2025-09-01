@@ -10,7 +10,7 @@ namespace SharpTimer
     public partial class SharpTimer
     {
         public override string ModuleName => "SharpTimer";
-        public override string ModuleVersion => $"0.3.1w - 2025-08-19";
+        public override string ModuleVersion => $"0.3.1w - 2025-09-01";
         public override string ModuleAuthor => "dea + rc + Marchand";
 
         public Dictionary<int, PlayerTimerInfo> playerTimers = [];
@@ -220,7 +220,7 @@ namespace SharpTimer
         public bool Box3DZones = false;
         public bool forcePlayerSpeedEnabled = false;
         public float forcedPlayerSpeed = 250;
-        public int bhopBlockTime = 16;
+        //public int bhopBlockTime = 16;
         public bool afkHibernation = true;
         public bool afkWarning = true;
         public int afkSeconds = 60;

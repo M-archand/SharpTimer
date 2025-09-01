@@ -44,7 +44,7 @@ namespace SharpTimer
                         if (playerTimer.inStartzone)
                             playerTimer.TicksInStartZone++;
 
-                        bool isOnBhopBlock       = playerTimer.IsOnBhopBlock;
+                        //bool isOnBhopBlock       = playerTimer.IsOnBhopBlock;
                         bool isTimerRunning      = playerTimer.IsTimerRunning;
                         bool isBonusTimerRunning = playerTimer.IsBonusTimerRunning;
                         bool isTimerBlocked      = playerTimer.IsTimerBlocked;
@@ -144,6 +144,7 @@ namespace SharpTimer
                             if (currentTick % 2 != 0) IncreaseVelocity(player);
                         }
 
+                        /*
                         if (isOnBhopBlock)
                         {
                             playerTimer.TicksOnBhopBlock++;
@@ -152,6 +153,7 @@ namespace SharpTimer
                                 RespawnPlayer(player);
                             }
                         }
+                        */
 
                         // Coords checks still accept engine Vector
                         if (!useTriggers && !isTimerBlocked)
