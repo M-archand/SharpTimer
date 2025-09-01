@@ -1,5 +1,4 @@
 using MySqlConnector;
-using Npgsql;
 using System.Data;
 using System.Data.Common;
 

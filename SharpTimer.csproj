@@ -4,7 +4,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <GenerateRuntimeConfigurationFiles>false</GenerateRuntimeConfigurationFiles>
   </PropertyGroup>
   <ItemGroup>
@@ -15,11 +15,9 @@
     </PackageReference>
     <PackageReference Include="Dapper" Version="2.1.66" />
     <PackageReference Include="MySqlConnector" Version="2.4.0" />
-    <PackageReference Include="Nexd.MySQL" Version="1.0.2" />
-    <PackageReference Include="Npgsql" Version="9.0.3" />
 
     <Reference Include="TagsApi">
-      <HintPath>$(MSBuildProjectDirectory)/../../TagsApi.dll</HintPath>
+      <HintPath>C:/CounterStrikeSharp/cs2-tags/BuildOutput/shared/TagsApi/TagsApi.dll</HintPath>
       <Private>false</Private>
     </Reference>
 

@@ -5,7 +5,6 @@ using CounterStrikeSharp.API.Modules.Entities.Constants;
 using System.Text.Json;
 using System.Data.Common;
 using MySqlConnector;
-using Npgsql;
 using System.Numerics;
 using static SharpTimer.PlayerReplays;
 
