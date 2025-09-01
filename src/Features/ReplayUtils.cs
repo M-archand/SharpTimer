@@ -546,9 +546,8 @@ namespace SharpTimer
                     string query = @"
                         INSERT INTO `PlayerReplays` (`SteamID`, `MapName`, `Style`, `ReplayData`)
                         VALUES (@SteamID, @MapName, @Style, @ReplayData)
-                        AS new
                         ON DUPLICATE KEY UPDATE
-                            `ReplayData` = new.`ReplayData`;";
+                            `ReplayData` = VALUES(`ReplayData`);";
 
                     DbCommand command = new MySqlCommand(query, (MySqlConnection)connection);
                     
