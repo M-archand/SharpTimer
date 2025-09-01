@@ -27,7 +27,6 @@ namespace SharpTimer
             Server.ExecuteCommand($"execifexists SharpTimer/config.cfg");
 
             gameDir = Server.GameDirectory;
-            SharpTimerDebug($"Set gameDir to {gameDir}");
 
             CheckMissingFakeConvars();
 
