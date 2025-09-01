@@ -13,57 +13,52 @@ using System.Text.RegularExpressions;
 
 namespace SharpTimer
 {
-    public enum DatabaseType
-    {
-        MySQL,
-        PostgreSQL
-    }
     partial class SharpTimer
     {
         public async Task<IDbConnection> OpenConnectionAsync()
         {
-            IDbConnection? connection = null;
-            switch (dbType)
+            try
             {
-                case DatabaseType.MySQL:
-                    connection = new MySqlConnection(await GetConnectionStringFromConfigFile());
-                    await (connection as MySqlConnection)!.OpenAsync();
-                    break;
-                case DatabaseType.PostgreSQL:
-                    connection = new NpgsqlConnection(await GetConnectionStringFromConfigFile());
-                    await (connection as NpgsqlConnection)!.OpenAsync();
-                    break;
+                var connection = new MySqlConnection(await GetConnectionStringFromConfigFile());
+                await connection.OpenAsync();
+                if (connection.State != ConnectionState.Open)
+                {
+                    useMySQL = false;
+                    enableDb = false;
+                }
+                return connection;
             }
-            if (connection!.State != ConnectionState.Open)
+            catch
             {
                 useMySQL = false;
-                usePostgres = false;
                 enableDb = false;
+                throw;
             }
-            return connection;
         }
+
         public IDbConnection OpenConnection()
         {
-            IDbConnection? connection = null;
-            switch (dbType)
+            try
             {
-                case DatabaseType.MySQL:
-                    connection = new MySqlConnection(GetConnectionStringOnMainThread());
-                    (connection as MySqlConnection)!.Open();
-                    break;
-                case DatabaseType.PostgreSQL:
-                    connection = new NpgsqlConnection(GetConnectionStringOnMainThread());
-                    (connection as NpgsqlConnection)!.Open();
-                    break;
+                var connection = new MySqlConnection(GetConnectionStringOnMainThread());
+                connection.Open();
+                if (connection.State != ConnectionState.Open)
+                {
+                    useMySQL = false;
+                    usePostgres = false;
+                    enableDb = false;
+                }
+                return connection;
             }
-            if (connection!.State != ConnectionState.Open)
+            catch
             {
                 useMySQL = false;
                 usePostgres = false;
                 enableDb = false;
+                throw;
             }
-            return connection;
         }
+
         private string GetConnectionStringOnMainThread()
         {
             try
@@ -74,32 +69,21 @@ namespace SharpTimer
                     {
                         JsonElement root = jsonConfig.RootElement;
 
-                        string host = root.TryGetProperty("Host", out var hostProperty) ? hostProperty.GetString()! : "localhost";
-                        string database = root.TryGetProperty("Database", out var databaseProperty) ? databaseProperty.GetString()! : "database";
-                        string username = root.TryGetProperty("Username", out var usernameProperty) ? usernameProperty.GetString()! : "root";
-                        string password = root.TryGetProperty("Password", out var passwordProperty) ? passwordProperty.GetString()! : "root";
-                        int port = root.TryGetProperty("Port", out var portProperty) ? portProperty.GetInt32()! : 3306;
-                        string tableprefix = root.TryGetProperty("TablePrefix", out var tableprefixProperty) ? tableprefixProperty.GetString()! : "";
+                        string host = root.TryGetProperty("Host", out var hostProp) ? hostProp.GetString()! : "localhost";
+                        string database = root.TryGetProperty("Database", out var dbProp) ? dbProp.GetString()! : "database";
+                        string username = root.TryGetProperty("Username", out var userProp) ? userProp.GetString()! : "root";
+                        string password = root.TryGetProperty("Password", out var passProp) ? passProp.GetString()! : "root";
+                        int port = root.TryGetProperty("Port", out var portProp) ? portProp.GetInt32() : 3306;
+                        int timeout = root.TryGetProperty("Timeout", out var toProp) ? toProp.GetInt32() : 30;
+                        string tableprefix = root.TryGetProperty("TablePrefix", out var tpProp) ? tpProp.GetString()! : "";
 
-                        PlayerStatsTable = $"{(tableprefix != "" ? $"PlayerStats_{tableprefix}" : "PlayerStats")}";
+                        PlayerStatsTable = tableprefix != "" ? $"PlayerStats_{tableprefix}" : "PlayerStats";
 
-                        if (dbType.Equals(DatabaseType.MySQL))
-                        {
-                            int timeout = root.TryGetProperty("Timeout", out var timeoutProperty) ? timeoutProperty.GetInt32()! : 30;
-                            return $"Server={host};Database={database};User ID={username};Password={password};Port={port};CharSet=utf8mb4;Connection Timeout={timeout};";
-                        }
-                        else if (dbType.Equals(DatabaseType.PostgreSQL))
-                        {
-                            return $"Server={host};Database={database};User ID={username};Password={password};Port={port};SslMode=Disable";
-                        }
-                        else
-                        {
-                            SharpTimerError($"Database type not supported");
-                        }
+                        return $"Server={host};Database={database};User ID={username};Password={password};Port={port};CharSet=utf8mb4;Connection Timeout={timeout};";
                     }
                     else
                     {
-                        SharpTimerError($"Database json was null");
+                        SharpTimerError("Database json was null");
                     }
                 }
             }
@@ -109,6 +93,7 @@ namespace SharpTimer
             }
             return "Server=localhost;Database=database;User ID=root;Password=root;Port=3306;";
         }
+
         private async Task<string> GetConnectionStringFromConfigFile()
         {
             try
@@ -119,32 +104,21 @@ namespace SharpTimer
                     {
                         JsonElement root = jsonConfig.RootElement;
 
-                        string host = root.TryGetProperty("Host", out var hostProperty) ? hostProperty.GetString()! : "localhost";
-                        string database = root.TryGetProperty("Database", out var databaseProperty) ? databaseProperty.GetString()! : "database";
-                        string username = root.TryGetProperty("Username", out var usernameProperty) ? usernameProperty.GetString()! : "root";
-                        string password = root.TryGetProperty("Password", out var passwordProperty) ? passwordProperty.GetString()! : "root";
-                        int port = root.TryGetProperty("Port", out var portProperty) ? portProperty.GetInt32()! : 3306;
-                        string tableprefix = root.TryGetProperty("TablePrefix", out var tableprefixProperty) ? tableprefixProperty.GetString()! : "";
+                        string host = root.TryGetProperty("Host", out var hostProp) ? hostProp.GetString()! : "localhost";
+                        string database = root.TryGetProperty("Database", out var dbProp) ? dbProp.GetString()! : "database";
+                        string username = root.TryGetProperty("Username", out var userProp) ? userProp.GetString()! : "root";
+                        string password = root.TryGetProperty("Password", out var passProp) ? passProp.GetString()! : "root";
+                        int port = root.TryGetProperty("Port", out var portProp) ? portProp.GetInt32() : 3306;
+                        int timeout = root.TryGetProperty("Timeout", out var toProp) ? toProp.GetInt32() : 30;
+                        string tableprefix = root.TryGetProperty("TablePrefix", out var tpProp) ? tpProp.GetString()! : "";
 
-                        PlayerStatsTable = $"{(tableprefix != "" ? $"PlayerStats_{tableprefix}" : "PlayerStats")}";
+                        PlayerStatsTable = tableprefix != "" ? $"PlayerStats_{tableprefix}" : "PlayerStats";
 
-                        if (dbType.Equals(DatabaseType.MySQL))
-                        {
-                            int timeout = root.TryGetProperty("Timeout", out var timeoutProperty) ? timeoutProperty.GetInt32()! : 30;
-                            return $"Server={host};Database={database};User ID={username};Password={password};Port={port};CharSet=utf8mb4;Connection Timeout={timeout};";
-                        }
-                        else if (dbType.Equals(DatabaseType.PostgreSQL))
-                        {
-                            return $"Server={host};Database={database};User ID={username};Password={password};Port={port};SslMode=Disable";
-                        }
-                        else
-                        {
-                            SharpTimerError($"Database type not supported");
-                        }
+                        return $"Server={host};Database={database};User ID={username};Password={password};Port={port};CharSet=utf8mb4;Connection Timeout={timeout};";
                     }
                     else
                     {
-                        SharpTimerError($"Database json was null");
+                        SharpTimerError("Database json was null");
                     }
                 }
             }
@@ -157,78 +131,44 @@ namespace SharpTimer
 
         public async Task CheckTablesAsync()
         {
-            string[]? playerRecords;
-            string[]? playerStats;
-            switch (dbType)
-            {
-                case DatabaseType.MySQL:
-                    playerRecords = [       "MapName VARCHAR(255) DEFAULT ''",
-                                                    "SteamID VARCHAR(20) DEFAULT ''",
-                                                    "PlayerName VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT ''",
-                                                    "TimerTicks INT DEFAULT 0",
-                                                    "FormattedTime VARCHAR(255) DEFAULT ''",
-                                                    "UnixStamp INT DEFAULT 0",
-                                                    "LastFinished INT DEFAULT 0",
-                                                    "TimesFinished INT DEFAULT 0",
-                                                    "Style INT DEFAULT 0"
-                                                ];
-                    playerStats = [         "SteamID VARCHAR(20) DEFAULT ''",
-                                                    "PlayerName VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT ''",
-                                                    "TimesConnected INT DEFAULT 0",
-                                                    "LastConnected INT DEFAULT 0",
-                                                    "GlobalPoints INT DEFAULT 0",
-                                                    "HideTimerHud BOOL DEFAULT false",
-                                                    "HideKeys BOOL DEFAULT false",
-                                                    "SoundsEnabled BOOL DEFAULT false",
-                                                    "PlayerFov INT DEFAULT 0",
-                                                    "HudType INT DEFAULT 1",
-                                                    "IsVip BOOL DEFAULT false",
-                                                    "BigGifID VARCHAR(16) DEFAULT 'x'"
-                                                ];
-                    break;
-                case DatabaseType.PostgreSQL:
-                    playerRecords = [       @"""MapName"" VARCHAR(255) DEFAULT ''",
-                                                    @"""SteamID"" VARCHAR(20) DEFAULT ''",
-                                                    @"""PlayerName"" VARCHAR(32) DEFAULT ''",
-                                                    @"""TimerTicks"" INT DEFAULT 0",
-                                                    @"""FormattedTime"" VARCHAR(255) DEFAULT ''",
-                                                    @"""UnixStamp"" INT DEFAULT 0",
-                                                    @"""LastFinished"" INT DEFAULT 0",
-                                                    @"""TimesFinished"" INT DEFAULT 0",
-                                                    @"""Style"" INT DEFAULT 0"
-                                                ];
-                    playerStats = [         @"""SteamID"" VARCHAR(20) DEFAULT ''",
-                                                    @"""PlayerName"" VARCHAR(32) DEFAULT ''",
-                                                    @"""TimesConnected"" INT DEFAULT 0",
-                                                    @"""LastConnected"" INT DEFAULT 0",
-                                                    @"""GlobalPoints"" INT DEFAULT 0",
-                                                    @"""HideTimerHud"" BOOL DEFAULT false",
-                                                    @"""HideKeys"" BOOL DEFAULT false",
-                                                    @"""SoundsEnabled"" BOOL DEFAULT false",
-                                                    @"""PlayerFov"" INT DEFAULT 0",
-                                                    @"""IsVip"" BOOL DEFAULT false",
-                                                    @"""BigGifID"" VARCHAR(16) DEFAULT 'x'"
-                                                ];
-                    break;
-                default:
-                    playerRecords = null;
-                    playerStats = null;
-                    SharpTimerError($"Database type not supported");
-                    break;
-            }
+            string[] playerRecords = {
+                "MapName VARCHAR(255) DEFAULT ''",
+                "SteamID VARCHAR(20) DEFAULT ''",
+                "PlayerName VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT ''",
+                "TimerTicks INT DEFAULT 0",
+                "FormattedTime VARCHAR(255) DEFAULT ''",
+                "UnixStamp INT DEFAULT 0",
+                "LastFinished INT DEFAULT 0",
+                "TimesFinished INT DEFAULT 0",
+                "Style INT DEFAULT 0"
+            };
+
+            string[] playerStats = {
+                "SteamID VARCHAR(20) DEFAULT ''",
+                "PlayerName VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT ''",
+                "TimesConnected INT DEFAULT 0",
+                "LastConnected INT DEFAULT 0",
+                "GlobalPoints INT DEFAULT 0",
+                "HideTimerHud BOOL DEFAULT false",
+                "HideKeys BOOL DEFAULT false",
+                "SoundsEnabled BOOL DEFAULT false",
+                "PlayerFov INT DEFAULT 0",
+                "HudType INT DEFAULT 1",
+                "IsVip BOOL DEFAULT false",
+                "BigGifID VARCHAR(16) DEFAULT 'x'"
+            };
+
             using (var connection = await OpenConnectionAsync())
             {
                 try
                 {
-                    // Check PlayerRecords
-                    SharpTimerDebug($"Checking PlayerRecords Table...");
+                    SharpTimerDebug("Checking PlayerRecords Table...");
                     await CreatePlayerRecordsTableAsync(connection);
-                    await UpdateTableColumnsAsync(connection, "PlayerRecords", playerRecords!);
+                    await UpdateTableColumnsAsync(connection, "PlayerRecords", playerRecords);
 
-                    // Check PlayerStats
-                    SharpTimerDebug($"Checking PlayerStats Table...");
+                    SharpTimerDebug("Checking PlayerStats Table...");
                     await CreatePlayerStatsTableAsync(connection);
-                    await UpdateTableColumnsAsync(connection, $"{PlayerStatsTable}", playerStats!);
+                    await UpdateTableColumnsAsync(connection, PlayerStatsTable!, playerStats);
                 }
                 catch (Exception ex)
                 {
@@ -236,58 +176,41 @@ namespace SharpTimer
                 }
             }
         }
+
         private async Task CreatePlayerRecordsTableAsync(IDbConnection connection)
         {
-            DbCommand? createTableCommand;
-            string createTableQuery;
-            switch (dbType)
+            if (connection is not MySqlConnection myConn)
             {
-                case DatabaseType.MySQL:
-                    createTableQuery = @"CREATE TABLE IF NOT EXISTS PlayerRecords (
-                                            MapName VARCHAR(255),
-                                            SteamID VARCHAR(20),
-                                            PlayerName VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-                                            TimerTicks INT,
-                                            FormattedTime VARCHAR(255),
-                                            UnixStamp INT,
-                                            TimesFinished INT,
-                                            LastFinished INT,
-                                            Style INT,
-                                            PRIMARY KEY (MapName, SteamID, Style)
-                                        )";
-                    createTableCommand = new MySqlCommand(createTableQuery, (MySqlConnection)connection);
-                    break;
-                case DatabaseType.PostgreSQL:
-                    createTableQuery = @"CREATE TABLE IF NOT EXISTS ""PlayerRecords"" (
-                                            ""MapName"" VARCHAR(255),
-                                            ""SteamID"" VARCHAR(20),
-                                            ""PlayerName"" VARCHAR(32),
-                                            ""TimerTicks"" INT,
-                                            ""FormattedTime"" VARCHAR(255),
-                                            ""UnixStamp"" INT,
-                                            ""TimesFinished"" INT,
-                                            ""LastFinished"" INT,
-                                            ""Style"" INT,
-                                            PRIMARY KEY (""MapName"", ""SteamID"", ""Style"")
-                                        )";
-                    createTableCommand = new NpgsqlCommand(createTableQuery, (NpgsqlConnection)connection);
-                    break;
-                default:
-                    createTableCommand = null;
-                    break;
+                SharpTimerError("CreatePlayerRecordsTableAsync: expected MySqlConnection.");
+                return;
             }
-            using (createTableCommand)
+
+            const string createTableSql = @"
+                CREATE TABLE IF NOT EXISTS `PlayerRecords` (
+                    `MapName`        VARCHAR(255) NOT NULL DEFAULT '',
+                    `SteamID`        VARCHAR(20)  NOT NULL DEFAULT '',
+                    `PlayerName`     VARCHAR(32)  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+                    `TimerTicks`     INT          NOT NULL DEFAULT 0,
+                    `FormattedTime`  VARCHAR(255) NOT NULL DEFAULT '',
+                    `UnixStamp`      INT          NOT NULL DEFAULT 0,
+                    `TimesFinished`  INT          NOT NULL DEFAULT 0,
+                    `LastFinished`   INT          NOT NULL DEFAULT 0,
+                    `Style`          INT          NOT NULL DEFAULT 0,
+                    PRIMARY KEY (`MapName`, `SteamID`, `Style`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            ";
+
+            try
             {
-                try
-                {
-                    await createTableCommand!.ExecuteNonQueryAsync();
-                }
-                catch (Exception ex)
-                {
-                    SharpTimerError($"Error in CreatePlayerRecordsTableAsync: {ex.Message}");
-                }
+                using var cmd = new MySqlCommand(createTableSql, myConn);
+                await cmd.ExecuteNonQueryAsync();
+            }
+            catch (Exception ex)
+            {
+                SharpTimerError($"Error in CreatePlayerRecordsTableAsync: {ex.Message}");
             }
         }
+
         private async Task UpdateTableColumnsAsync(IDbConnection connection, string tableName, string[] columns)
         {
             if (await TableExistsAsync(connection, tableName))
@@ -303,146 +226,111 @@ namespace SharpTimer
                 }
             }
         }
+
         private async Task<bool> TableExistsAsync(IDbConnection connection, string tableName)
         {
-            DbCommand? command;
-            string query;
-            switch (dbType)
+            if (connection is not MySqlConnection myConn)
             {
-                case DatabaseType.MySQL:
-                    query = $"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '{connection.Database}' AND table_name = '{tableName}'";
-                    command = new MySqlCommand(query, (MySqlConnection)connection);
-                    break;
-                case DatabaseType.PostgreSQL:
-                    query = $@"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name = '""{tableName}""'";
-                    command = new NpgsqlCommand(query, (NpgsqlConnection)connection);
-                    break;
-                default:
-                    command = null;
-                    break;
+                SharpTimerError("TableExistsAsync: expected MySqlConnection.");
+                return false;
             }
-            using (command)
+
+            const string sql = @"
+                SELECT COUNT(*) 
+                FROM information_schema.tables
+                WHERE table_schema = @schema AND table_name = @table
+                LIMIT 1;";
+
+            try
             {
-                try
-                {
-                    int count = Convert.ToInt32(await command!.ExecuteScalarAsync());
-                    return count > 0;
-                }
-                catch (Exception ex)
-                {
-                    SharpTimerError($"Error in TableExistsAsync: {ex.Message}");
-                    return false;
-                }
+                using var cmd = new MySqlCommand(sql, myConn);
+                cmd.Parameters.AddWithValue("@schema", myConn.Database);
+                cmd.Parameters.AddWithValue("@table", tableName);
+                int count = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+                return count > 0;
+            }
+            catch (Exception ex)
+            {
+                SharpTimerError($"Error in TableExistsAsync: {ex.Message}");
+                return false;
             }
         }
+
         private async Task<bool> ColumnExistsAsync(IDbConnection connection, string tableName, string columnName)
         {
-            DbCommand? command;
-            string query;
-            switch (dbType)
+            if (connection is not MySqlConnection myConn)
             {
-                case DatabaseType.MySQL:
-                    query = $"SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = '{connection.Database}' AND table_name = '{tableName}' AND column_name = '{columnName}'";
-                    command = new MySqlCommand(query, (MySqlConnection)connection);
-                    break;
-                case DatabaseType.PostgreSQL:
-                    query = $@"SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = 'public' AND table_name = '{tableName}' AND column_name = '{columnName}'";
-                    command = new NpgsqlCommand(query, (NpgsqlConnection)connection);
-                    break;
-                default:
-                    command = null;
-                    break;
+                SharpTimerError("ColumnExistsAsync: expected MySqlConnection.");
+                return false;
             }
-            using (command)
+
+            const string sql = @"
+                SELECT COUNT(*)
+                FROM information_schema.columns
+                WHERE table_schema = @schema
+                AND table_name = @table
+                AND column_name = @column
+                LIMIT 1;";
+
+            try
             {
-                try
-                {
-                    int count = Convert.ToInt32(await command!.ExecuteScalarAsync());
-                    return count > 0;
-                }
-                catch (Exception ex)
-                {
-                    SharpTimerError($"Error in ColumnExistsAsync: {ex.Message}");
-                    return false;
-                }
+                using var cmd = new MySqlCommand(sql, myConn);
+                cmd.Parameters.AddWithValue("@schema", myConn.Database);
+                cmd.Parameters.AddWithValue("@table", tableName);
+                cmd.Parameters.AddWithValue("@column", columnName);
+                int count = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+                return count > 0;
+            }
+            catch (Exception ex)
+            {
+                SharpTimerError($"Error in ColumnExistsAsync: {ex.Message}");
+                return false;
             }
         }
 
         private async Task AddColumnToTableAsync(IDbConnection connection, string tableName, string columnDefinition)
         {
-            DbCommand? command;
-            string query;
-            switch (dbType)
+            if (connection is not MySqlConnection myConn)
             {
-                case DatabaseType.MySQL:
-                    query = $"ALTER TABLE {tableName} ADD COLUMN {columnDefinition}";
-                    command = new MySqlCommand(query, (MySqlConnection)connection);
-                    break;
-                case DatabaseType.PostgreSQL:
-                    query = $@"ALTER TABLE ""{tableName}"" ADD ""{columnDefinition}""";
-                    command = new NpgsqlCommand(query, (NpgsqlConnection)connection);
-                    break;
-                default:
-                    command = null;
-                    break;
+                SharpTimerError("AddColumnToTableAsync: expected MySqlConnection.");
+                return;
             }
-            using (command)
+
+            // Note: identifiers can't be parameterized in DDL; we backtick the table name.
+            string sql = $"ALTER TABLE `{tableName}` ADD COLUMN {columnDefinition};";
+
+            try
             {
-                try
-                {
-                    await command!.ExecuteNonQueryAsync();
-                }
-                catch (Exception ex)
-                {
-                    SharpTimerError($"Error in AddColumnToTableAsync: {ex.Message}");
-                }
+                using var cmd = new MySqlCommand(sql, myConn);
+                await cmd.ExecuteNonQueryAsync();
+            }
+            catch (Exception ex)
+            {
+                SharpTimerError($"Error in AddColumnToTableAsync: {ex.Message}");
             }
         }
+
         private async Task CreatePlayerStatsTableAsync(IDbConnection connection)
         {
-            DbCommand? command;
-            string query;
-            switch (dbType)
-            {
-                case DatabaseType.MySQL:
-                    query = $@"CREATE TABLE IF NOT EXISTS {PlayerStatsTable} (
-                                            SteamID VARCHAR(20),
-                                            PlayerName VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-                                            TimesConnected INT,
-                                            LastConnected INT,
-                                            GlobalPoints INT,
-                                            HideTimerHud BOOL,
-                                            HideKeys BOOL,
-                                            SoundsEnabled BOOL,
-                                            PlayerFov INT,
-                                            HudType INT,
-                                            IsVip BOOL,
-                                            BigGifID VARCHAR(16),
-                                            PRIMARY KEY (SteamID)
-                                        )";
-                    command = new MySqlCommand(query, (MySqlConnection)connection);
-                    break;
-                case DatabaseType.PostgreSQL:
-                    query = $@"CREATE TABLE IF NOT EXISTS ""{PlayerStatsTable}"" (
-                                            ""SteamID"" VARCHAR(20) UNIQUE,
-                                            ""PlayerName"" VARCHAR(32),
-                                            ""TimesConnected"" INT,
-                                            ""LastConnected"" INT,
-                                            ""GlobalPoints"" INT,
-                                            ""HideTimerHud"" BOOL,
-                                            ""HideKeys"" BOOL,
-                                            ""SoundsEnabled"" BOOL,
-                                            ""PlayerFov"" INT,
-                                            ""IsVip"" BOOL,
-                                            ""BigGifID"" VARCHAR(16),
-                                            PRIMARY KEY (""SteamID"")
-                                        )";
-                    command = new NpgsqlCommand(query, (NpgsqlConnection)connection);
-                    break;
-                default:
-                    command = null;
-                    break;
-            }
+            string query = $@"
+                CREATE TABLE IF NOT EXISTS `{PlayerStatsTable}` (
+                    `SteamID`       VARCHAR(20),
+                    `PlayerName`    VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+                    `TimesConnected` INT,
+                    `LastConnected`  INT,
+                    `GlobalPoints`   INT,
+                    `HideTimerHud`   BOOL,
+                    `HideKeys`       BOOL,
+                    `SoundsEnabled`  BOOL,
+                    `PlayerFov`      INT,
+                    `HudType`        INT,
+                    `IsVip`          BOOL,
+                    `BigGifID`       VARCHAR(16),
+                    PRIMARY KEY (`SteamID`)
+                );";
+
+            DbCommand command = new MySqlCommand(query, (MySqlConnection)connection);
+
             using (command)
             {
                 try
@@ -461,33 +349,16 @@ namespace SharpTimer
             DbCommand command;
             string query;
 
-            switch (dbType)
-            {
-                case DatabaseType.MySQL:
-                    query = $@"
-                        CREATE TABLE IF NOT EXISTS `PlayerReplays` (
-                            `SteamID` VARCHAR(20),
-                            `MapName` VARCHAR(255),
-                            `Style` INT,
-                            `ReplayData` LONGBLOB,
-                            PRIMARY KEY (`SteamID`, `MapName`, `Style`)
-                        )";
-                    command = new MySqlCommand(query, (MySqlConnection)connection);
-                    break;
-                case DatabaseType.PostgreSQL:
-                    query = $@"
-                        CREATE TABLE IF NOT EXISTS ""PlayerReplays"" (
-                            ""SteamID"" VARCHAR(20),
-                            ""MapName"" VARCHAR(255),
-                            ""Style"" INT,
-                            ""ReplayData"" BYTEA,
-                            PRIMARY KEY (""SteamID"", ""MapName"", ""Style"")
-                        )";
-                    command = new NpgsqlCommand(query, (NpgsqlConnection)connection);
-                    break;
-                default:
-                    throw new Exception("Unsupported database type");
-            }
+            query = @"
+                CREATE TABLE IF NOT EXISTS `PlayerReplays` (
+                    `SteamID`   VARCHAR(20),
+                    `MapName`   VARCHAR(255),
+                    `Style`     INT,
+                    `ReplayData` LONGBLOB,
+                    PRIMARY KEY (`SteamID`, `MapName`, `Style`)
+                );";
+
+            command = new MySqlCommand(query, (MySqlConnection)connection);
 
             try
             {
@@ -528,23 +399,14 @@ namespace SharpTimer
                     await CreatePlayerRecordsTableAsync(connection);
 
                     string formattedTime = FormatTime(timerTicks);
-                    string? selectQuery;
-                    DbCommand? selectCommand;
-                    switch (dbType)
-                    {
-                        case DatabaseType.MySQL:
-                            selectQuery = @"SELECT TimesFinished, LastFinished, FormattedTime, TimerTicks, UnixStamp FROM PlayerRecords WHERE MapName = @MapName AND SteamID = @SteamID AND Style = @Style";
-                            selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
-                            break;
-                        case DatabaseType.PostgreSQL:
-                            selectQuery = @"SELECT ""TimesFinished"", ""LastFinished"", ""FormattedTime"", ""TimerTicks"", ""UnixStamp"" FROM ""PlayerRecords"" WHERE ""MapName"" = @MapName AND ""SteamID"" = @SteamID AND ""Style"" = @Style";
-                            selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
-                            break;
-                        default:
-                            selectQuery = null;
-                            selectCommand = null;
-                            break;
-                    }
+
+                    const string selectQuery = @"
+                        SELECT TimesFinished, LastFinished, FormattedTime, TimerTicks, UnixStamp
+                        FROM PlayerRecords
+                        WHERE MapName = @MapName AND SteamID = @SteamID AND Style = @Style";
+
+                    DbCommand selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
+
                     // Check if the record already exists or has a higher timer value
                     selectCommand!.AddParameterWithValue("@MapName", currentMapNamee);
                     selectCommand!.AddParameterWithValue("@SteamID", steamId);
@@ -597,53 +459,25 @@ namespace SharpTimer
                         }
 
                         await row.CloseAsync();
+
                         // Update or insert the record
-                        string? upsertQuery;
-                        DbCommand? upsertCommand;
-                        switch (dbType)
-                        {
-                            case DatabaseType.MySQL:
-                                upsertQuery = @"
-                                                    INSERT INTO PlayerRecords 
-                                                    (MapName, SteamID, PlayerName, TimerTicks, LastFinished, TimesFinished, FormattedTime, UnixStamp, Style)
-                                                    VALUES 
-                                                    (@MapName, @SteamID, @PlayerName, @TimerTicks, @LastFinished, @TimesFinished, @FormattedTime, @UnixStamp, @Style)
-                                                    ON DUPLICATE KEY UPDATE
-                                                    MapName = VALUES(MapName),
-                                                    PlayerName = VALUES(PlayerName),
-                                                    TimerTicks = VALUES(TimerTicks),
-                                                    LastFinished = VALUES(LastFinished),
-                                                    TimesFinished = VALUES(TimesFinished),
-                                                    FormattedTime = VALUES(FormattedTime),
-                                                    UnixStamp = VALUES(UnixStamp),
-                                                    Style = VALUES(Style);
-                                                    ";
-                                upsertCommand = new MySqlCommand(upsertQuery, (MySqlConnection)connection);
-                                break;
-                            case DatabaseType.PostgreSQL:
-                                upsertQuery = @"
-                                                    INSERT INTO ""PlayerRecords"" 
-                                                    (""MapName"", ""SteamID"", ""PlayerName"", ""TimerTicks"", ""LastFinished"", ""TimesFinished"", ""FormattedTime"", ""UnixStamp"", ""Style"")
-                                                    VALUES 
-                                                    (@MapName, @SteamID, @PlayerName, @TimerTicks, @LastFinished, @TimesFinished, @FormattedTime, @UnixStamp, @Style)
-                                                    ON CONFLICT (""MapName"", ""SteamID"", ""Style"")
-                                                    DO UPDATE SET
-                                                    ""MapName"" = EXCLUDED.""MapName"",
-                                                    ""PlayerName"" = EXCLUDED.""PlayerName"",
-                                                    ""TimerTicks"" = EXCLUDED.""TimerTicks"",
-                                                    ""LastFinished"" = EXCLUDED.""LastFinished"",
-                                                    ""TimesFinished"" = EXCLUDED.""TimesFinished"",
-                                                    ""FormattedTime"" = EXCLUDED.""FormattedTime"",
-                                                    ""UnixStamp"" = EXCLUDED.""UnixStamp"",
-                                                    ""Style"" = EXCLUDED.""Style"";
-                                                    ";
-                                upsertCommand = new NpgsqlCommand(upsertQuery, (NpgsqlConnection)connection);
-                                break;
-                            default:
-                                upsertQuery = null;
-                                upsertCommand = null;
-                                break;
-                        }
+                        string upsertQuery = @"
+                            INSERT INTO PlayerRecords 
+                                (MapName, SteamID, PlayerName, TimerTicks, LastFinished, TimesFinished, FormattedTime, UnixStamp, Style)
+                            VALUES 
+                                (@MapName, @SteamID, @PlayerName, @TimerTicks, @LastFinished, @TimesFinished, @FormattedTime, @UnixStamp, @Style)
+                            AS new
+                            ON DUPLICATE KEY UPDATE
+                                PlayerName    = new.PlayerName,
+                                TimerTicks    = new.TimerTicks,
+                                LastFinished  = new.LastFinished,
+                                TimesFinished = new.TimesFinished,
+                                FormattedTime = new.FormattedTime,
+                                UnixStamp     = new.UnixStamp,
+                                Style         = new.Style;";
+
+                        DbCommand upsertCommand = new MySqlCommand(upsertQuery, (MySqlConnection)connection);
+
                         using (upsertCommand)
                         {
                             upsertCommand!.AddParameterWithValue("@MapName", currentMapNamee);
@@ -681,67 +515,6 @@ namespace SharpTimer
                                         await DumpReplayToJson(player!, steamId, playerSlot, bonusX, currentStyle));
                                 }
                             }
-
-                            /*
-                            Server.NextFrame(async () =>
-                            {
-                                var (hostname, ip) = GetHostnameAndIp();
-                                var (globalCheck, maxVel, maxWish) = CheckCvarsAndMaxVelo();
-                                if (!globalCheck)
-                                    return;
-                                if (apiKey == "")
-                                    return;
-
-                                //first lets see if the new record beats global pb
-                                var beatGlobalPB = false;
-                                var prevPBTicks = await GetPreviousPlayerRecordFromGlobal(steamId, currentMapName!, playerName, bonusX, style);
-                                if (prevPBTicks > timerTicks || prevPBTicks == 0)
-                                    beatGlobalPB = true;
-
-                                var record_payload = new List<Record>
-                                {
-                                    new Record
-                                    {
-                                        map_name = currentMapNamee,
-                                        workshop_id = currentAddonID,
-                                        timer_ticks = timerTicks,
-                                        steamid = steamId,
-                                        player_name = playerName,
-                                        formatted_time = FormatTime(timerTicks),
-                                        unix_stamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-                                        times_finished = dBtimesFinished,
-                                        style = style,
-                                        points = await CalculatePlayerPoints(steamId, playerName, timerTicks, dBtimerTicks, beatPB, bonusX, style, dBtimesFinished, currentMapNamee, true),
-                                        max_velocity = (int)maxVel,
-                                        air_max_wishspeed = (float)maxWish,
-                                        hostname = hostname,
-                                        ip = ip,
-                                        hash = GetHash()
-                                    }
-                                };
-
-                                _ = Task.Run(async () =>
-                                {
-                                    await SubmitRecordAsync(record_payload); // submit the record to db to generate new record_id
-                                }).ContinueWith(async task =>                // THEN submit the replay using the record_id
-                                {
-                                    // only submit replay if beat global pb
-                                    if (beatGlobalPB)
-                                    {
-                                        var replay_payload = new ReplayData
-                                        {
-                                            record_id = await GetRecordIDAsync(new { map_name = record_payload[0].map_name, unix_stamp = record_payload[0].unix_stamp }),
-                                            map_name = currentMapNamee,
-                                            style = style,
-                                            hash = GetHash(),
-                                            replay_data = await GetReplayJson(player!, player!.Slot)
-                                        };
-
-                                        await SubmitReplayAsync(replay_payload);
-                                    }
-                                });
-                            });
-                            */
                         }
 
                     }
@@ -768,23 +541,14 @@ namespace SharpTimer
                         }
                         await row.CloseAsync();
 
-                        string? upsertQuery;
-                        DbCommand? upsertCommand;
-                        switch (dbType)
-                        {
-                            case DatabaseType.MySQL:
-                                upsertQuery = @"REPLACE INTO PlayerRecords (MapName, SteamID, PlayerName, TimerTicks, LastFinished, TimesFinished, FormattedTime, UnixStamp, Style) VALUES (@MapName, @SteamID, @PlayerName, @TimerTicks, @LastFinished, @TimesFinished, @FormattedTime, @UnixStamp, @Style)";
-                                upsertCommand = new MySqlCommand(upsertQuery, (MySqlConnection)connection);
-                                break;
-                            case DatabaseType.PostgreSQL:
-                                upsertQuery = @"INSERT INTO ""PlayerRecords"" (""MapName"", ""SteamID"", ""PlayerName"", ""TimerTicks"", ""LastFinished"", ""TimesFinished"", ""FormattedTime"", ""UnixStamp"", ""Style"") VALUES (@MapName, @SteamID, @PlayerName, @TimerTicks, @LastFinished, @TimesFinished, @FormattedTime, @UnixStamp, @Style)";
-                                upsertCommand = new NpgsqlCommand(upsertQuery, (NpgsqlConnection)connection);
-                                break;
-                            default:
-                                upsertQuery = null;
-                                upsertCommand = null;
-                                break;
-                        }
+                        string upsertQuery = @"
+                            REPLACE INTO `PlayerRecords`
+                                (`MapName`, `SteamID`, `PlayerName`, `TimerTicks`, `LastFinished`, `TimesFinished`, `FormattedTime`, `UnixStamp`, `Style`)
+                            VALUES
+                                (@MapName, @SteamID, @PlayerName, @TimerTicks, @LastFinished, @TimesFinished, @FormattedTime, @UnixStamp, @Style);";
+
+                        DbCommand upsertCommand = new MySqlCommand(upsertQuery, (MySqlConnection)connection);
+
 
                         using (upsertCommand)
                         {
@@ -860,23 +624,14 @@ namespace SharpTimer
                 {
                     await CreatePlayerStatsTableAsync(connection);
 
-                    string? selectQuery;
-                    DbCommand? selectCommand;
-                    switch (dbType)
-                    {
-                        case DatabaseType.MySQL:
-                            selectQuery = $@"SELECT PlayerName, TimesConnected, LastConnected, HideTimerHud, HideKeys, SoundsEnabled, PlayerFov, HudType, IsVip, BigGifID, GlobalPoints, HideWeapon, HidePlayers FROM {PlayerStatsTable} WHERE SteamID = @SteamID";
-                            selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
-                            break;
-                        case DatabaseType.PostgreSQL:
-                            selectQuery = $@"SELECT ""PlayerName"", ""TimesConnected"", ""LastConnected"", ""HideTimerHud"", ""HideKeys"", ""SoundsEnabled"", ""PlayerFov"", ""IsVip"", ""BigGifID"", ""GlobalPoints"", ""HideWeapon"", ""HidePlayers"" FROM ""{PlayerStatsTable}"" WHERE ""SteamID"" = @SteamID";
-                            selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
-                            break;
-                        default:
-                            selectQuery = null;
-                            selectCommand = null;
-                            break;
-                    }
+                    string selectQuery = $@"
+                        SELECT `PlayerName`, `TimesConnected`, `LastConnected`, `HideTimerHud`, `HideKeys`,
+                            `SoundsEnabled`, `PlayerFov`, `HudType`, `IsVip`, `BigGifID`, `GlobalPoints`,
+                            `HideWeapon`, `HidePlayers`
+                        FROM `{PlayerStatsTable}`
+                        WHERE `SteamID` = @SteamID;";
+
+                    DbCommand selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
 
                     using (selectCommand)
                     {
@@ -886,24 +641,18 @@ namespace SharpTimer
 
                         if (row.Read())
                         {
-                            // get player columns
-                            switch (dbType)
-                            {
-                                case DatabaseType.MySQL:
-                                case DatabaseType.PostgreSQL:
-                                    timesConnected = row.GetInt32("TimesConnected");
-                                    hideTimerHud = row.GetBoolean("HideTimerHud");
-                                    hideKeys = row.GetBoolean("HideKeys");
-                                    hideWeapon = row.GetBoolean("HideWeapon");
-                                    hidePlayers = row.GetBoolean("HidePlayers");
-                                    soundsEnabled = row.GetBoolean("SoundsEnabled");
-                                    playerFov = row.GetInt32("PlayerFov");
-                                    hudType = row.GetInt32("HudType");
-                                    isVip = row.GetBoolean("IsVip");
-                                    bigGif = row.GetString("BigGifID");
-                                    playerPoints = row.GetInt32("GlobalPoints");
-                                    break;
-                            }
+                            // Get player columns
+                            timesConnected = row.GetInt32("TimesConnected");
+                            hideTimerHud = row.GetBoolean("HideTimerHud");
+                            hideKeys = row.GetBoolean("HideKeys");
+                            hideWeapon = row.GetBoolean("HideWeapon");
+                            hidePlayers = row.GetBoolean("HidePlayers");
+                            soundsEnabled = row.GetBoolean("SoundsEnabled");
+                            playerFov = row.GetInt32("PlayerFov");
+                            hudType = row.GetInt32("HudType");
+                            isVip = row.GetBoolean("IsVip");
+                            bigGif = row.GetString("BigGifID");
+                            playerPoints = row.GetInt32("GlobalPoints");
 
                             // Modify the stats
                             timesConnected++;
@@ -933,61 +682,31 @@ namespace SharpTimer
                             await row.CloseAsync();
                             // Update or insert the record
 
-                            string? upsertQuery;
-                            DbCommand? upsertCommand;
-                            switch (dbType)
-                            {
-                                case DatabaseType.MySQL:
-                                    upsertQuery = $@"
-                                    INSERT INTO {PlayerStatsTable}
-                                        (PlayerName, SteamID, TimesConnected, LastConnected, HideTimerHud, HideKeys, SoundsEnabled, PlayerFov, HudType, IsVip, BigGifID, GlobalPoints, HideWeapon, HidePlayers)
-                                    VALUES
-                                        (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @SoundsEnabled, @PlayerFov, @HudType, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)
-                                    ON DUPLICATE KEY UPDATE
-                                        PlayerName     = @PlayerName,
-                                        TimesConnected = @TimesConnected,
-                                        LastConnected  = @LastConnected,
-                                        HideTimerHud   = @HideTimerHud,
-                                        HideKeys       = @HideKeys,
-                                        SoundsEnabled  = @SoundsEnabled,
-                                        PlayerFov      = @PlayerFov,
-                                        HudType        = @HudType,
-                                        IsVip          = @IsVip,
-                                        BigGifID       = @BigGifID,
-                                        GlobalPoints   = @GlobalPoints,
-                                        HideWeapon     = @HideWeapon,
-                                        HidePlayers    = @HidePlayers;";
-                                    upsertCommand = new MySqlCommand(upsertQuery, (MySqlConnection)connection);
-                                    break;
+                            string upsertQuery = $@"
+                                INSERT INTO `{PlayerStatsTable}` AS new
+                                    (`PlayerName`, `SteamID`, `TimesConnected`, `LastConnected`, `HideTimerHud`, `HideKeys`,
+                                    `SoundsEnabled`, `PlayerFov`, `HudType`, `IsVip`, `BigGifID`, `GlobalPoints`,
+                                    `HideWeapon`, `HidePlayers`)
+                                VALUES
+                                    (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys,
+                                    @SoundsEnabled, @PlayerFov, @HudType, @IsVip, @BigGifID, @GlobalPoints,
+                                    @HideWeapon, @HidePlayers)
+                                ON DUPLICATE KEY UPDATE
+                                    `PlayerName`     = new.`PlayerName`,
+                                    `TimesConnected` = new.`TimesConnected`,
+                                    `LastConnected`  = new.`LastConnected`,
+                                    `HideTimerHud`   = new.`HideTimerHud`,
+                                    `HideKeys`       = new.`HideKeys`,
+                                    `SoundsEnabled`  = new.`SoundsEnabled`,
+                                    `PlayerFov`      = new.`PlayerFov`,
+                                    `HudType`        = new.`HudType`,
+                                    `IsVip`          = new.`IsVip`,
+                                    `BigGifID`       = new.`BigGifID`,
+                                    `GlobalPoints`   = new.`GlobalPoints`,
+                                    `HideWeapon`     = new.`HideWeapon`,
+                                    `HidePlayers`    = new.`HidePlayers`;";
 
-                                case DatabaseType.PostgreSQL:
-                                    upsertQuery = $@"
-                                    INSERT INTO ""{PlayerStatsTable}""
-                                        (""PlayerName"", ""SteamID"", ""TimesConnected"", ""LastConnected"", ""HideTimerHud"", ""HideKeys"", ""SoundsEnabled"", ""PlayerFov"", ""IsVip"", ""BigGifID"", ""GlobalPoints"", ""HideWeapon"", ""HidePlayers"")
-                                    VALUES
-                                        (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @SoundsEnabled, @PlayerFov, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)
-                                    ON CONFLICT (""SteamID"")
-                                    DO UPDATE SET
-                                        ""PlayerName""     = EXCLUDED.""PlayerName"",
-                                        ""TimesConnected"" = EXCLUDED.""TimesConnected"",
-                                        ""LastConnected""  = EXCLUDED.""LastConnected"",
-                                        ""HideTimerHud""   = EXCLUDED.""HideTimerHud"",
-                                        ""HideKeys""       = EXCLUDED.""HideKeys"",
-                                        ""SoundsEnabled""  = EXCLUDED.""SoundsEnabled"",
-                                        ""PlayerFov""      = EXCLUDED.""PlayerFov"",
-                                        ""IsVip""          = EXCLUDED.""IsVip"",
-                                        ""BigGifID""       = EXCLUDED.""BigGifID"",
-                                        ""GlobalPoints""   = EXCLUDED.""GlobalPoints"",
-                                        ""HideWeapon""     = EXCLUDED.""HideWeapon"",
-                                        ""HidePlayers""    = EXCLUDED.""HidePlayers"";";
-                                    upsertCommand = new NpgsqlCommand(upsertQuery, (NpgsqlConnection)connection);
-                                    break;
-
-                                default:
-                                    upsertQuery = null;
-                                    upsertCommand = null;
-                                    break;
-                            }
+                            DbCommand upsertCommand = new MySqlCommand(upsertQuery, (MySqlConnection)connection);
 
                             using (upsertCommand)
                             {
@@ -1017,23 +736,17 @@ namespace SharpTimer
                             Server.NextFrame(() => SharpTimerDebug($"No player stats yet"));
                             await row.CloseAsync();
 
-                            string? upsertQuery;
-                            DbCommand? upsertCommand;
-                            switch (dbType)
-                            {
-                                case DatabaseType.MySQL:
-                                    upsertQuery = $@"REPLACE INTO {PlayerStatsTable} (PlayerName, SteamID, TimesConnected, LastConnected, HideTimerHud, HideKeys, SoundsEnabled, PlayerFov, HudType, IsVip, BigGifID, GlobalPoints, HideWeapon, HidePlayers) VALUES (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @SoundsEnabled, @PlayerFov, @HudType, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)";
-                                    upsertCommand = new MySqlCommand(upsertQuery, (MySqlConnection)connection);
-                                    break;
-                                case DatabaseType.PostgreSQL:
-                                    upsertQuery = $@"INSERT INTO ""{PlayerStatsTable}"" (""PlayerName"", ""SteamID"", ""TimesConnected"", ""LastConnected"", ""HideTimerHud"", ""HideKeys"", ""SoundsEnabled"", ""PlayerFov"", ""IsVip"", ""BigGifID"", ""GlobalPoints"", ""HideWeapon"", ""HidePlayers"") VALUES (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @SoundsEnabled, @PlayerFov, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)";
-                                    upsertCommand = new NpgsqlCommand(upsertQuery, (NpgsqlConnection)connection);
-                                    break;
-                                default:
-                                    upsertQuery = null;
-                                    upsertCommand = null;
-                                    break;
-                            }
+                            string upsertQuery = $@"
+                                REPLACE INTO `{PlayerStatsTable}`
+                                    (`PlayerName`, `SteamID`, `TimesConnected`, `LastConnected`, `HideTimerHud`, `HideKeys`,
+                                    `SoundsEnabled`, `PlayerFov`, `HudType`, `IsVip`, `BigGifID`, `GlobalPoints`,
+                                    `HideWeapon`, `HidePlayers`)
+                                VALUES
+                                    (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys,
+                                    @SoundsEnabled, @PlayerFov, @HudType, @IsVip, @BigGifID, @GlobalPoints,
+                                    @HideWeapon, @HidePlayers);";
+
+                            DbCommand upsertCommand = new MySqlCommand(upsertQuery, (MySqlConnection)connection);
 
                             using (upsertCommand)
                             {
@@ -1086,23 +799,13 @@ namespace SharpTimer
                 using (var connection = await OpenConnectionAsync())
                 {
                     string formattedTime = FormatTime(timerTicks);
-                    string? selectQuery;
-                    DbCommand? selectCommand;
-                    switch (dbType)
-                    {
-                        case DatabaseType.MySQL:
-                            selectQuery = @"SELECT FormattedTime, TimerTicks FROM PlayerStageTimes WHERE MapName = @MapName AND SteamID = @SteamID AND Stage = @Stage";
-                            selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
-                            break;
-                        case DatabaseType.PostgreSQL:
-                            selectQuery = @"SELECT ""FormattedTime"", ""TimerTicks"" FROM ""PlayerStageTimes"" WHERE ""MapName"" = @MapName AND ""SteamID"" = @SteamID AND ""Stage"" = @Stage";
-                            selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
-                            break;
-                        default:
-                            selectQuery = null;
-                            selectCommand = null;
-                            break;
-                    }
+                    string selectQuery = @"
+                        SELECT `FormattedTime`, `TimerTicks`
+                        FROM `PlayerStageTimes`
+                        WHERE `MapName` = @MapName AND `SteamID` = @SteamID AND `Stage` = @Stage;";
+
+                    DbCommand selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
+
                     // Check if the record already exists or has a higher timer value
                     selectCommand!.AddParameterWithValue("@MapName", currentMapNamee);
                     selectCommand!.AddParameterWithValue("@SteamID", steamId);
@@ -1137,48 +840,21 @@ namespace SharpTimer
 
                         await row.CloseAsync();
                         // Update or insert the record
-                        string? upsertQuery;
-                        DbCommand? upsertCommand;
-                        switch (dbType)
-                        {
-                            case DatabaseType.MySQL:
-                                upsertQuery = @"
-                                                    INSERT INTO PlayerStageTimes 
-                                                    (MapName, SteamID, PlayerName, Stage, TimerTicks, FormattedTime, Velocity)
-                                                    VALUES 
-                                                    (@MapName, @SteamID, @PlayerName, @Stage, @TimerTicks, @FormattedTime, @Velocity)
-                                                    ON DUPLICATE KEY UPDATE
-                                                    MapName = VALUES(MapName),
-                                                    PlayerName = VALUES(PlayerName),
-                                                    Stage = VALUES(Stage),
-                                                    TimerTicks = VALUES(TimerTicks),
-                                                    FormattedTime = VALUES(FormattedTime),
-                                                    Velocity = VALUES(Velocity);
-                                                    ";
-                                upsertCommand = new MySqlCommand(upsertQuery, (MySqlConnection)connection);
-                                break;
-                            case DatabaseType.PostgreSQL:
-                                upsertQuery = @"
-                                                    INSERT INTO ""PlayerStageTimes"" 
-                                                    (""MapName"", ""SteamID"", ""PlayerName"", ""Stage"", ""TimerTicks"", ""FormattedTime"", ""Velocity"")
-                                                    VALUES 
-                                                    (@MapName, @SteamID, @PlayerName, @Stage, @TimerTicks, @FormattedTime, @Velocity)
-                                                    ON CONFLICT (""MapName"", ""SteamID"", ""Stage"")
-                                                    DO UPDATE SET
-                                                    ""MapName"" = EXCLUDED.""MapName"",
-                                                    ""PlayerName"" = EXCLUDED.""PlayerName"",
-                                                    ""Stage"" = EXCLUDED.""Stage"",
-                                                    ""TimerTicks"" = EXCLUDED.""TimerTicks"",
-                                                    ""FormattedTime"" = EXCLUDED.""FormattedTime"",
-                                                    ""Velocity"" = EXCLUDED.""Velocity"";
-                                                    ";
-                                upsertCommand = new NpgsqlCommand(upsertQuery, (NpgsqlConnection)connection);
-                                break;
-                            default:
-                                upsertQuery = null;
-                                upsertCommand = null;
-                                break;
-                        }
+                        string upsertQuery = @"
+                            INSERT INTO `PlayerStageTimes`
+                                (`MapName`, `SteamID`, `PlayerName`, `Stage`, `TimerTicks`, `FormattedTime`, `Velocity`)
+                            VALUES
+                                (@MapName, @SteamID, @PlayerName, @Stage, @TimerTicks, @FormattedTime, @Velocity)
+                            AS new
+                            ON DUPLICATE KEY UPDATE
+                                `PlayerName`    = new.`PlayerName`,
+                                `Stage`         = new.`Stage`,
+                                `TimerTicks`    = new.`TimerTicks`,
+                                `FormattedTime` = new.`FormattedTime`,
+                                `Velocity`      = new.`Velocity`;";
+
+                        DbCommand upsertCommand = new MySqlCommand(upsertQuery, (MySqlConnection)connection);
+
                         using (upsertCommand)
                         {
                             upsertCommand!.AddParameterWithValue("@MapName", currentMapNamee);
@@ -1206,23 +882,13 @@ namespace SharpTimer
                         //if (enableReplays == true && usePostgres == true) _ = Task.Run(async () => await DumpReplayToJson(player!, steamId, playerSlot, bonusX, playerTimers[playerSlot].currentStyle));
                         await row.CloseAsync();
 
-                        string? upsertQuery;
-                        DbCommand? upsertCommand;
-                        switch (dbType)
-                        {
-                            case DatabaseType.MySQL:
-                                upsertQuery = @"REPLACE INTO PlayerStageTimes (MapName, SteamID, PlayerName, Stage, TimerTicks, FormattedTime, Velocity) VALUES (@MapName, @SteamID, @PlayerName, @Stage, @TimerTicks, @FormattedTime, @Velocity)";
-                                upsertCommand = new MySqlCommand(upsertQuery, (MySqlConnection)connection);
-                                break;
-                            case DatabaseType.PostgreSQL:
-                                upsertQuery = @"INSERT INTO ""PlayerStageTimes"" (""MapName"", ""SteamID"", ""PlayerName"", ""Stage"", ""TimerTicks"", ""FormattedTime"", ""Velocity"") VALUES (@MapName, @SteamID, @PlayerName, @Stage, @TimerTicks, @FormattedTime, @Velocity)";
-                                upsertCommand = new NpgsqlCommand(upsertQuery, (NpgsqlConnection)connection);
-                                break;
-                            default:
-                                upsertQuery = null;
-                                upsertCommand = null;
-                                break;
-                        }
+                        string upsertQuery = @"
+                            REPLACE INTO `PlayerStageTimes`
+                                (`MapName`, `SteamID`, `PlayerName`, `Stage`, `TimerTicks`, `FormattedTime`, `Velocity`)
+                            VALUES
+                                (@MapName, @SteamID, @PlayerName, @Stage, @TimerTicks, @FormattedTime, @Velocity);";
+
+                        DbCommand upsertCommand = new MySqlCommand(upsertQuery, (MySqlConnection)connection);
 
                         using (upsertCommand)
                         {
@@ -1269,23 +935,12 @@ namespace SharpTimer
                 using (var connection = await OpenConnectionAsync())
                 {
                     await CreatePlayerStatsTableAsync(connection);
-                    string? selectQuery;
-                    DbCommand? selectCommand;
-                    switch (dbType)
-                    {
-                        case DatabaseType.MySQL:
-                            selectQuery = $"SELECT PlayerName, TimesConnected, IsVip, BigGifID, GlobalPoints FROM {PlayerStatsTable} WHERE SteamID = @SteamID";
-                            selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
-                            break;
-                        case DatabaseType.PostgreSQL:
-                            selectQuery = $@"SELECT ""PlayerName"", ""TimesConnected"", ""IsVip"", ""BigGifID"", ""GlobalPoints"" FROM ""{PlayerStatsTable}"" WHERE ""SteamID"" = @SteamID";
-                            selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
-                            break;
-                        default:
-                            selectQuery = null;
-                            selectCommand = null;
-                            break;
-                    }
+                    string selectQuery = $@"
+                        SELECT `PlayerName`, `TimesConnected`, `IsVip`, `BigGifID`, `GlobalPoints`
+                        FROM `{PlayerStatsTable}`
+                        WHERE `SteamID` = @SteamID;";
+
+                    DbCommand selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
 
                     using (selectCommand)
                     {
@@ -1295,98 +950,57 @@ namespace SharpTimer
 
                         if (row.Read())
                         {
-                            // get player columns
-                            switch (dbType)
-                            {
-                                case DatabaseType.MySQL:
-                                case DatabaseType.PostgreSQL:
-                                    timesConnected = row.GetInt32("TimesConnected");
-                                    isVip = row.GetBoolean("IsVip");
-                                    bigGif = row.GetString("BigGifID");
-                                    playerPoints = row.GetInt32("GlobalPoints");
-                                    break;
-                            }
+                            // Get player columns
+                            timesConnected = row.GetInt32("TimesConnected");
+                            isVip = row.GetBoolean("IsVip");
+                            bigGif = row.GetString("BigGifID");
+                            playerPoints = row.GetInt32("GlobalPoints");
+
 
                             await row.CloseAsync();
                             // Update or insert the record
 
                             // upsert (existing-row path)
-                            string? upsertQuery;
-                            DbCommand? upsertCommand;
-                            switch (dbType)
-                            {
-                                // this one
-                                case DatabaseType.MySQL:
-                                upsertQuery = $@"
-                                INSERT INTO {PlayerStatsTable}
-                                    (PlayerName, SteamID, TimesConnected, LastConnected, HideTimerHud, HideKeys, SoundsEnabled, PlayerFov, HudType, IsVip, BigGifID, GlobalPoints, HideWeapon, HidePlayers)
-                                VALUES
-                                    (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @SoundsEnabled, @PlayerFov, @HudType, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)
-                                ON DUPLICATE KEY UPDATE
-                                    PlayerName     = @PlayerName,
-                                    TimesConnected = @TimesConnected,
-                                    LastConnected  = @LastConnected,
-                                    HideTimerHud   = @HideTimerHud,
-                                    HideKeys       = @HideKeys,
-                                    SoundsEnabled  = @SoundsEnabled,
-                                    PlayerFov      = @PlayerFov,
-                                    HudType        = @HudType,
-                                    IsVip          = @IsVip,
-                                    BigGifID       = @BigGifID,
-                                    HideWeapon     = @HideWeapon,
-                                    HidePlayers    = @HidePlayers;";
-                                    upsertCommand = new MySqlCommand(upsertQuery, (MySqlConnection)connection);
-                                    break;
+                            string upsertQuery = $@"
+                                UPDATE `{PlayerStatsTable}`
+                                SET
+                                    `PlayerName`     = @PlayerName,
+                                    `TimesConnected` = @TimesConnected,
+                                    `LastConnected`  = @LastConnected,
+                                    `HideTimerHud`   = @HideTimerHud,
+                                    `HideKeys`       = @HideKeys,
+                                    `HideJS`         = @HideJS,
+                                    `SoundsEnabled`  = @SoundsEnabled,
+                                    `PlayerFov`      = @PlayerFov,
+                                    `HudType`        = @HudType,
+                                    `IsVip`          = @IsVip,
+                                    `BigGifID`       = @BigGifID,
+                                    `HideWeapon`     = @HideWeapon,
+                                    `HidePlayers`    = @HidePlayers
+                                WHERE `SteamID` = @SteamID;";
 
-                                // this one
-                                case DatabaseType.PostgreSQL:
-                                    upsertQuery = $@"
-                                    INSERT INTO ""{PlayerStatsTable}""
-                                        (""PlayerName"", ""SteamID"", ""TimesConnected"", ""LastConnected"", ""HideTimerHud"", ""HideKeys"", ""SoundsEnabled"", ""PlayerFov"", ""IsVip"", ""BigGifID"", ""GlobalPoints"", ""HideWeapon"", ""HidePlayers"")
-                                    VALUES
-                                        (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @SoundsEnabled, @PlayerFov, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)
-                                    ON CONFLICT (""SteamID"")
-                                    DO UPDATE SET
-                                        ""PlayerName""     = EXCLUDED.""PlayerName"",
-                                        ""TimesConnected"" = EXCLUDED.""TimesConnected"",
-                                        ""LastConnected""  = EXCLUDED.""LastConnected"",
-                                        ""HideTimerHud""   = EXCLUDED.""HideTimerHud"",
-                                        ""HideKeys""       = EXCLUDED.""HideKeys"",
-                                        ""SoundsEnabled""  = EXCLUDED.""SoundsEnabled"",
-                                        ""PlayerFov""      = EXCLUDED.""PlayerFov"",
-                                        ""IsVip""          = EXCLUDED.""IsVip"",
-                                        ""BigGifID""       = EXCLUDED.""BigGifID"",
-                                        ""HideWeapon""     = EXCLUDED.""HideWeapon"",
-                                        ""HidePlayers""    = EXCLUDED.""HidePlayers"";";
-                                    upsertCommand = new NpgsqlCommand(upsertQuery, (NpgsqlConnection)connection);
-                                    break;
-
-                                default:
-                                    upsertQuery = null;
-                                    upsertCommand = null;
-                                    break;
-                            }
+                            DbCommand upsertCommand = new MySqlCommand(upsertQuery, (MySqlConnection)connection);
 
                             using (upsertCommand)
                             {
                                 // --- existing-row upsert ---
                                 if (playerTimers.TryGetValue(playerSlot, out PlayerTimerInfo? value) || playerSlot == -1)
                                 {
-                                    upsertCommand!.AddParameterWithValue("@PlayerName",   playerName);
-                                    upsertCommand!.AddParameterWithValue("@SteamID",      steamId);
+                                    upsertCommand!.AddParameterWithValue("@PlayerName", playerName);
+                                    upsertCommand!.AddParameterWithValue("@SteamID", steamId);
                                     upsertCommand!.AddParameterWithValue("@TimesConnected", timesConnected);
-                                    upsertCommand!.AddParameterWithValue("@LastConnected",  lastConnected);
+                                    upsertCommand!.AddParameterWithValue("@LastConnected", lastConnected);
 
-                                    upsertCommand!.AddParameterWithValue("@HideTimerHud",  playerSlot != -1 && value!.HideTimerHud);
-                                    upsertCommand!.AddParameterWithValue("@HideKeys",      playerSlot != -1 && value!.HideKeys);
-                                    upsertCommand!.AddParameterWithValue("@HideWeapon",    playerSlot != -1 && value!.HideWeapon);
-                                    upsertCommand!.AddParameterWithValue("@HidePlayers",   playerSlot != -1 && value!.HidePlayers);
+                                    upsertCommand!.AddParameterWithValue("@HideTimerHud", playerSlot != -1 && value!.HideTimerHud);
+                                    upsertCommand!.AddParameterWithValue("@HideKeys", playerSlot != -1 && value!.HideKeys);
+                                    upsertCommand!.AddParameterWithValue("@HideWeapon", playerSlot != -1 && value!.HideWeapon);
+                                    upsertCommand!.AddParameterWithValue("@HidePlayers", playerSlot != -1 && value!.HidePlayers);
                                     upsertCommand!.AddParameterWithValue("@SoundsEnabled", playerSlot != -1 && value!.SoundsEnabled);
 
-                                    upsertCommand!.AddParameterWithValue("@PlayerFov",     playerSlot == -1 ? 0 : value!.PlayerFov);
-                                    upsertCommand!.AddParameterWithValue("@HudType",       playerSlot == -1 ? 1 : value!.CurrentHudType);
+                                    upsertCommand!.AddParameterWithValue("@PlayerFov", playerSlot == -1 ? 0 : value!.PlayerFov);
+                                    upsertCommand!.AddParameterWithValue("@HudType", playerSlot == -1 ? 1 : value!.CurrentHudType);
 
-                                    upsertCommand!.AddParameterWithValue("@IsVip",   isVip);
+                                    upsertCommand!.AddParameterWithValue("@IsVip", isVip);
                                     upsertCommand!.AddParameterWithValue("@BigGifID", bigGif);
                                     //upsertCommand!.AddParameterWithValue("@GlobalPoints", playerPoints);
 
@@ -1407,44 +1021,38 @@ namespace SharpTimer
                             Server.NextFrame(() => SharpTimerDebug($"No player stats yet"));
                             await row.CloseAsync();
 
-                            string? upsertQuery;
-                            DbCommand? upsertCommand;
-                            switch (dbType)
-                            {
-                                case DatabaseType.MySQL:
-                                    upsertQuery = $"REPLACE INTO {PlayerStatsTable} (PlayerName, SteamID, TimesConnected, LastConnected, HideTimerHud, HideKeys, SoundsEnabled, PlayerFov, HudType, IsVip, BigGifID, GlobalPoints, HideWeapon, HidePlayers) VALUES (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @SoundsEnabled, @PlayerFov, @HudType, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)";
-                                    upsertCommand = new MySqlCommand(upsertQuery, (MySqlConnection)connection);
-                                    break;
-                                case DatabaseType.PostgreSQL:
-                                    upsertQuery = $@"INSERT INTO ""{PlayerStatsTable}"" (""PlayerName"", ""SteamID"", ""TimesConnected"", ""LastConnected"", ""HideTimerHud"", ""HideKeys"", ""SoundsEnabled"", ""PlayerFov"", ""IsVip"", ""BigGifID"", ""GlobalPoints"", ""HideWeapon"", ""HidePlayers"") VALUES (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @SoundsEnabled, @PlayerFov, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)";
-                                    upsertCommand = new NpgsqlCommand(upsertQuery, (NpgsqlConnection)connection);
-                                    break;
-                                default:
-                                    upsertQuery = null;
-                                    upsertCommand = null;
-                                    break;
-                            }
+                            string upsertQuery = $@"
+                                REPLACE INTO `{PlayerStatsTable}`
+                                    (`PlayerName`, `SteamID`, `TimesConnected`, `LastConnected`, `HideTimerHud`, `HideKeys`,
+                                    `SoundsEnabled`, `PlayerFov`, `HudType`, `IsVip`, `BigGifID`, `GlobalPoints`,
+                                    `HideWeapon`, `HidePlayers`)
+                                VALUES
+                                    (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys,
+                                    @SoundsEnabled, @PlayerFov, @HudType, @IsVip, @BigGifID, @GlobalPoints,
+                                    @HideWeapon, @HidePlayers);";
+
+                            DbCommand upsertCommand = new MySqlCommand(upsertQuery, (MySqlConnection)connection);
 
                             using (upsertCommand)
                             {
                                 // --- no-row-yet insert/replace ---
                                 if (playerTimers.TryGetValue(playerSlot, out PlayerTimerInfo? value) || playerSlot == -1)
                                 {
-                                    upsertCommand!.AddParameterWithValue("@PlayerName",   playerName);
-                                    upsertCommand!.AddParameterWithValue("@SteamID",      steamId);
+                                    upsertCommand!.AddParameterWithValue("@PlayerName", playerName);
+                                    upsertCommand!.AddParameterWithValue("@SteamID", steamId);
                                     upsertCommand!.AddParameterWithValue("@TimesConnected", 1);
-                                    upsertCommand!.AddParameterWithValue("@LastConnected",  timeNowUnix);
+                                    upsertCommand!.AddParameterWithValue("@LastConnected", timeNowUnix);
 
-                                    upsertCommand!.AddParameterWithValue("@HideTimerHud",  playerSlot != -1 && value!.HideTimerHud);
-                                    upsertCommand!.AddParameterWithValue("@HideKeys",      playerSlot != -1 && value!.HideKeys);
-                                    upsertCommand!.AddParameterWithValue("@HideWeapon",    playerSlot != -1 && value!.HideWeapon);
-                                    upsertCommand!.AddParameterWithValue("@HidePlayers",   playerSlot != -1 && value!.HidePlayers);
+                                    upsertCommand!.AddParameterWithValue("@HideTimerHud", playerSlot != -1 && value!.HideTimerHud);
+                                    upsertCommand!.AddParameterWithValue("@HideKeys", playerSlot != -1 && value!.HideKeys);
+                                    upsertCommand!.AddParameterWithValue("@HideWeapon", playerSlot != -1 && value!.HideWeapon);
+                                    upsertCommand!.AddParameterWithValue("@HidePlayers", playerSlot != -1 && value!.HidePlayers);
                                     upsertCommand!.AddParameterWithValue("@SoundsEnabled", playerSlot != -1 && value!.SoundsEnabled);
 
-                                    upsertCommand!.AddParameterWithValue("@PlayerFov",     playerSlot == -1 ? 0 : value!.PlayerFov);
-                                    upsertCommand!.AddParameterWithValue("@HudType",       playerSlot == -1 ? 1 : value!.CurrentHudType);
+                                    upsertCommand!.AddParameterWithValue("@PlayerFov", playerSlot == -1 ? 0 : value!.PlayerFov);
+                                    upsertCommand!.AddParameterWithValue("@HudType", playerSlot == -1 ? 1 : value!.CurrentHudType);
 
-                                    upsertCommand!.AddParameterWithValue("@IsVip",   false);
+                                    upsertCommand!.AddParameterWithValue("@IsVip", false);
                                     upsertCommand!.AddParameterWithValue("@BigGifID", "x");
                                     upsertCommand!.AddParameterWithValue("@GlobalPoints", 0);
 
@@ -1519,23 +1127,12 @@ namespace SharpTimer
                 {
                     await CreatePlayerStatsTableAsync(connection);
 
-                    string? selectQuery;
-                    DbCommand? selectCommand;
-                    switch (dbType)
-                    {
-                        case DatabaseType.MySQL:
-                            selectQuery = $@"SELECT PlayerName, TimesConnected, IsVip, BigGifID, GlobalPoints FROM {PlayerStatsTable} WHERE SteamID = @SteamID";
-                            selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
-                            break;
-                        case DatabaseType.PostgreSQL:
-                            selectQuery = $@"SELECT ""PlayerName"", ""TimesConnected"", ""IsVip"", ""BigGifID"", ""GlobalPoints"" FROM ""{PlayerStatsTable}"" WHERE ""SteamID"" = @SteamID";
-                            selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
-                            break;
-                        default:
-                            selectQuery = null;
-                            selectCommand = null;
-                            break;
-                    }
+                    string selectQuery = $@"
+                        SELECT `PlayerName`, `TimesConnected`, `IsVip`, `BigGifID`, `GlobalPoints`
+                        FROM `{PlayerStatsTable}`
+                        WHERE `SteamID` = @SteamID;";
+
+                    DbCommand selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
 
                     using (selectCommand)
                     {
@@ -1548,78 +1145,43 @@ namespace SharpTimer
 
                         if (row.Read())
                         {
-                            // get player columns
-                            switch (dbType)
-                            {
-                                case DatabaseType.MySQL:
-                                case DatabaseType.PostgreSQL:
-                                    timesConnected = row.GetInt32("TimesConnected");
-                                    isVip = row.GetBoolean("IsVip");
-                                    bigGif = row.GetString("BigGifID");
-                                    playerPoints = row.GetInt32("GlobalPoints");
-                                    break;
-                            }
+                            // Get player columns
+                            timesConnected = row.GetInt32("TimesConnected");
+                            isVip = row.GetBoolean("IsVip");
+                            bigGif = row.GetString("BigGifID");
+                            playerPoints = row.GetInt32("GlobalPoints");
+
 
                             int newPoints = await CalculatePlayerPoints(steamId, playerName, timerTicks, oldTicks, beatPB, bonusX, style, completions, mapname, false) + playerPoints;
 
                             await row.CloseAsync();
+
                             // Update or insert the record
+                            string upsertQuery = $@"
+                                INSERT INTO `{PlayerStatsTable}` AS new
+                                    (`PlayerName`, `SteamID`, `TimesConnected`, `LastConnected`, `HideTimerHud`, `HideKeys`,
+                                    `SoundsEnabled`, `PlayerFov`, `HudType`, `IsVip`, `BigGifID`, `GlobalPoints`,
+                                    `HideWeapon`, `HidePlayers`)
+                                VALUES
+                                    (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys,
+                                    @SoundsEnabled, @PlayerFov, @HudType, @IsVip, @BigGifID, @GlobalPoints,
+                                    @HideWeapon, @HidePlayers)
+                                ON DUPLICATE KEY UPDATE
+                                    `PlayerName`     = new.`PlayerName`,
+                                    `TimesConnected` = new.`TimesConnected`,
+                                    `LastConnected`  = new.`LastConnected`,
+                                    `HideTimerHud`   = new.`HideTimerHud`,
+                                    `HideKeys`       = new.`HideKeys`,
+                                    `SoundsEnabled`  = new.`SoundsEnabled`,
+                                    `PlayerFov`      = new.`PlayerFov`,
+                                    `HudType`        = new.`HudType`,
+                                    `IsVip`          = new.`IsVip`,
+                                    `BigGifID`       = new.`BigGifID`,
+                                    `GlobalPoints`   = new.`GlobalPoints`,
+                                    `HideWeapon`     = new.`HideWeapon`,
+                                    `HidePlayers`    = new.`HidePlayers`;";
 
-                            string? upsertQuery;
-                            DbCommand? upsertCommand;
-                            switch (dbType)
-                            {
-                                case DatabaseType.MySQL:
-                                    upsertQuery = $@"
-                                    INSERT INTO {PlayerStatsTable}
-                                        (PlayerName, SteamID, TimesConnected, LastConnected, HideTimerHud, HideKeys, SoundsEnabled, PlayerFov, HudType, IsVip, BigGifID, GlobalPoints, HideWeapon, HidePlayers)
-                                    VALUES
-                                        (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @SoundsEnabled, @PlayerFov, @HudType, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)
-                                    ON DUPLICATE KEY UPDATE
-                                        PlayerName     = @PlayerName,
-                                        TimesConnected = @TimesConnected,
-                                        LastConnected  = @LastConnected,
-                                        HideTimerHud   = @HideTimerHud,
-                                        HideKeys       = @HideKeys,
-                                        SoundsEnabled  = @SoundsEnabled,
-                                        PlayerFov      = @PlayerFov,
-                                        HudType        = @HudType,
-                                        IsVip          = @IsVip,
-                                        BigGifID       = @BigGifID,
-                                        GlobalPoints   = @GlobalPoints,
-                                        HideWeapon     = @HideWeapon,
-                                        HidePlayers    = @HidePlayers;";
-                                    upsertCommand = new MySqlCommand(upsertQuery, (MySqlConnection)connection);
-                                    break;
-
-                                case DatabaseType.PostgreSQL:
-                                    upsertQuery = $@"
-                                    INSERT INTO ""{PlayerStatsTable}""
-                                        (""PlayerName"", ""SteamID"", ""TimesConnected"", ""LastConnected"", ""HideTimerHud"", ""HideKeys"", ""SoundsEnabled"", ""PlayerFov"", ""IsVip"", ""BigGifID"", ""GlobalPoints"", ""HideWeapon"", ""HidePlayers"")
-                                    VALUES
-                                        (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @SoundsEnabled, @PlayerFov, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)
-                                    ON CONFLICT (""SteamID"")
-                                    DO UPDATE SET
-                                        ""PlayerName""     = EXCLUDED.""PlayerName"",
-                                        ""TimesConnected"" = EXCLUDED.""TimesConnected"",
-                                        ""LastConnected""  = EXCLUDED.""LastConnected"",
-                                        ""HideTimerHud""   = EXCLUDED.""HideTimerHud"",
-                                        ""HideKeys""       = EXCLUDED.""HideKeys"",
-                                        ""SoundsEnabled""  = EXCLUDED.""SoundsEnabled"",
-                                        ""PlayerFov""      = EXCLUDED.""PlayerFov"",
-                                        ""IsVip""          = EXCLUDED.""IsVip"",
-                                        ""BigGifID""       = EXCLUDED.""BigGifID"",
-                                        ""GlobalPoints""   = EXCLUDED.""GlobalPoints"",
-                                        ""HideWeapon""     = EXCLUDED.""HideWeapon"",
-                                        ""HidePlayers""    = EXCLUDED.""HidePlayers"";";
-                                    upsertCommand = new NpgsqlCommand(upsertQuery, (NpgsqlConnection)connection);
-                                    break;
-
-                                default:
-                                    upsertQuery = null;
-                                    upsertCommand = null;
-                                    break;
-                            }
+                            DbCommand upsertCommand = new MySqlCommand(upsertQuery, (MySqlConnection)connection);
 
                             using (upsertCommand)
                             {
@@ -1661,23 +1223,17 @@ namespace SharpTimer
 
                             await row.CloseAsync();
 
-                            string? upsertQuery;
-                            DbCommand? upsertCommand;
-                            switch (dbType)
-                            {
-                                case DatabaseType.MySQL:
-                                    upsertQuery = $@"REPLACE INTO {PlayerStatsTable} (PlayerName, SteamID, TimesConnected, LastConnected, HideTimerHud, HideKeys, SoundsEnabled, PlayerFov, HudType, IsVip, BigGifID, GlobalPoints, HideWeapon, HidePlayers) VALUES (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @SoundsEnabled, @PlayerFov, @HudType, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)";
-                                    upsertCommand = new MySqlCommand(upsertQuery, (MySqlConnection)connection);
-                                    break;
-                                case DatabaseType.PostgreSQL:
-                                    upsertQuery = $@"INSERT INTO ""{PlayerStatsTable}"" (""PlayerName"", ""SteamID"", ""TimesConnected"", ""LastConnected"", ""HideTimerHud"", ""HideKeys"", ""SoundsEnabled"", ""PlayerFov"", ""IsVip"", ""BigGifID"", ""GlobalPoints"", ""HideWeapon"", ""HidePlayers"") VALUES (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys, @SoundsEnabled, @PlayerFov, @IsVip, @BigGifID, @GlobalPoints, @HideWeapon, @HidePlayers)";
-                                    upsertCommand = new NpgsqlCommand(upsertQuery, (NpgsqlConnection)connection);
-                                    break;
-                                default:
-                                    upsertQuery = null;
-                                    upsertCommand = null;
-                                    break;
-                            }
+                            string upsertQuery = $@"
+                                REPLACE INTO `{PlayerStatsTable}`
+                                    (`PlayerName`, `SteamID`, `TimesConnected`, `LastConnected`, `HideTimerHud`, `HideKeys`,
+                                    `SoundsEnabled`, `PlayerFov`, `HudType`, `IsVip`, `BigGifID`, `GlobalPoints`,
+                                    `HideWeapon`, `HidePlayers`)
+                                VALUES
+                                    (@PlayerName, @SteamID, @TimesConnected, @LastConnected, @HideTimerHud, @HideKeys,
+                                    @SoundsEnabled, @PlayerFov, @HudType, @IsVip, @BigGifID, @GlobalPoints,
+                                    @HideWeapon, @HidePlayers);";
+
+                            DbCommand upsertCommand = new MySqlCommand(upsertQuery, (MySqlConnection)connection);
 
                             using (upsertCommand)
                             {
@@ -1838,23 +1394,12 @@ namespace SharpTimer
                 {
                     await CreatePlayerRecordsTableAsync(connection);
 
-                    string? selectQuery;
-                    DbCommand? selectCommand;
-                    switch (dbType)
-                    {
-                        case DatabaseType.MySQL:
-                            selectQuery = @"SELECT TimesFinished FROM PlayerRecords WHERE MapName = @MapName AND SteamID = @SteamID AND Style = @Style";
-                            selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
-                            break;
-                        case DatabaseType.PostgreSQL:
-                            selectQuery = @"SELECT ""TimesFinished"" FROM ""PlayerRecords"" WHERE ""MapName"" = @MapName AND ""SteamID"" = @SteamID AND ""Style"" = @Style";
-                            selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
-                            break;
-                        default:
-                            selectQuery = null;
-                            selectCommand = null;
-                            break;
-                    }
+                    string selectQuery = @"
+                        SELECT `TimesFinished`
+                        FROM `PlayerRecords`
+                        WHERE `MapName` = @MapName AND `SteamID` = @SteamID AND `Style` = @Style;";
+
+                    DbCommand selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
 
                     selectCommand!.AddParameterWithValue("@MapName", key);
                     selectCommand!.AddParameterWithValue("@SteamID", steamId);
@@ -1880,23 +1425,13 @@ namespace SharpTimer
                 {
                     try
                     {
-                        string? query;
-                        DbCommand? command;
-                        switch (dbType)
-                        {
-                            case DatabaseType.MySQL:
-                                query = $@"SELECT PlayerName, GlobalPoints FROM {PlayerStatsTable} ORDER BY GlobalPoints DESC LIMIT 10";
-                                command = new MySqlCommand(query, (MySqlConnection)connection);
-                                break;
-                            case DatabaseType.PostgreSQL:
-                                query = $@"SELECT ""PlayerName"", ""GlobalPoints"" FROM ""{PlayerStatsTable}"" ORDER BY ""GlobalPoints"" DESC LIMIT 10";
-                                command = new NpgsqlCommand(query, (NpgsqlConnection)connection);
-                                break;
-                            default:
-                                query = null;
-                                command = null;
-                                break;
-                        }
+                        string query = $@"
+                            SELECT `PlayerName`, `GlobalPoints`
+                            FROM `{PlayerStatsTable}`
+                            ORDER BY `GlobalPoints` DESC
+                            LIMIT 10;";
+
+                        DbCommand command = new MySqlCommand(query, (MySqlConnection)connection);
 
                         using (command)
                         {
@@ -1952,23 +1487,13 @@ namespace SharpTimer
                 using (var connection = await OpenConnectionAsync())
                 {
                     await CreatePlayerStatsTableAsync(connection);
-                    string? selectQuery;
-                    DbCommand? selectCommand;
-                    switch (dbType)
-                    {
-                        case DatabaseType.MySQL:
-                            selectQuery = selectQuery = $"SELECT IsVip, BigGifID FROM {PlayerStatsTable} WHERE SteamID = @SteamID";
-                            selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
-                            break;
-                        case DatabaseType.PostgreSQL:
-                            selectQuery = $@"SELECT ""IsVip"", ""BigGifID"" FROM ""{PlayerStatsTable}"" WHERE ""SteamID"" = @SteamID";
-                            selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
-                            break;
-                        default:
-                            selectQuery = null;
-                            selectCommand = null;
-                            break;
-                    }
+
+                    string selectQuery = $@"
+                        SELECT `IsVip`, `BigGifID`
+                        FROM `{PlayerStatsTable}`
+                        WHERE `SteamID` = @SteamID;";
+
+                    DbCommand selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
 
                     using (selectCommand)
                     {
@@ -1978,15 +1503,10 @@ namespace SharpTimer
 
                         if (row.Read() && playerTimers.TryGetValue(playerSlot, out PlayerTimerInfo? value))
                         {
-                            // get player columns
+                            // Get player columns
                             bool isVip = false;
-                            switch (dbType)
-                            {
-                                case DatabaseType.MySQL:
-                                case DatabaseType.PostgreSQL:
-                                    isVip = row.GetBoolean("IsVip");
-                                    break;
-                            }
+                            isVip = row.GetBoolean("IsVip");
+
                             if (isVip)
                             {
                                 Server.NextFrame(() => SharpTimerDebug($"Replay is VIP setting gif..."));
@@ -2023,56 +1543,32 @@ namespace SharpTimer
                 using (IDbConnection connection = await OpenConnectionAsync())
                 {
                     await CreatePlayerRecordsTableAsync(connection);
-                    string? selectQuery;
-                    DbCommand? selectCommand;
-                    if (top10 != 0)
+                    string selectQuery;
+                    DbCommand selectCommand;
+
+                    if (top10 > 0)
                     {
-                        switch (dbType)
-                        {
-                            case DatabaseType.MySQL:
-                                // Get the top N records based on TimerTicks
-                                selectQuery = "SELECT SteamID, PlayerName, TimerTicks " +
-                                                "FROM PlayerRecords " +
-                                                "WHERE MapName = @MapName " +
-                                                "AND Style = @Style " +
-                                                "ORDER BY TimerTicks ASC " +
-                                                $"LIMIT 1 OFFSET {top10 - 1};";
-                                selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
-                                break;
-                            case DatabaseType.PostgreSQL:
-                                // Get the top N records based on TimerTicks
-                                selectQuery = @"SELECT ""SteamID"", ""PlayerName"", ""TimerTicks"" " +
-                                                @"FROM ""PlayerRecords"" " +
-                                                @"WHERE ""MapName"" = @MapName " +
-                                                @"AND ""Style"" = @Style " +
-                                                @"ORDER BY ""TimerTicks"" ASC " +
-                                                $"LIMIT 1 OFFSET {top10 - 1};";
-                                selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
-                                break;
-                            default:
-                                selectQuery = null;
-                                selectCommand = null;
-                                break;
-                        }
+                        selectQuery = @"
+                            SELECT `SteamID`, `PlayerName`, `TimerTicks`
+                            FROM `PlayerRecords`
+                            WHERE `MapName` = @MapName AND `Style` = @Style
+                            ORDER BY `TimerTicks` ASC
+                            LIMIT 1 OFFSET @Offset;";
+
+                        var myCmd = new MySqlCommand(selectQuery, (MySqlConnection)connection);
+                        myCmd.Parameters.AddWithValue("@Offset", top10 - 1);
+                        selectCommand = myCmd;
                     }
                     else
                     {
-                        // Get the overall top player
-                        switch (dbType)
-                        {
-                            case DatabaseType.MySQL:
-                                selectQuery = $"SELECT SteamID, PlayerName, TimerTicks FROM PlayerRecords WHERE MapName = @MapName AND Style = @Style ORDER BY TimerTicks ASC LIMIT 1";
-                                selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
-                                break;
-                            case DatabaseType.PostgreSQL:
-                                selectQuery = $@"SELECT ""SteamID"", ""PlayerName"", ""TimerTicks"" FROM ""PlayerRecords"" WHERE ""MapName"" = @MapName AND ""Style"" = @Style ORDER BY ""TimerTicks"" ASC LIMIT 1";
-                                selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
-                                break;
-                            default:
-                                selectQuery = null;
-                                selectCommand = null;
-                                break;
-                        }
+                        selectQuery = @"
+                            SELECT `SteamID`, `PlayerName`, `TimerTicks`
+                            FROM `PlayerRecords`
+                            WHERE `MapName` = @MapName AND `Style` = @Style
+                            ORDER BY `TimerTicks` ASC
+                            LIMIT 1;";
+
+                        selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
                     }
 
                     using (selectCommand)
@@ -2115,56 +1611,32 @@ namespace SharpTimer
             {
                 using (IDbConnection connection = await OpenConnectionAsync())
                 {
-                    string? selectQuery;
-                    DbCommand? selectCommand;
-                    if (top10 != 0)
+                    string selectQuery;
+                    DbCommand selectCommand;
+
+                    if (top10 > 0)
                     {
-                        switch (dbType)
-                        {
-                            case DatabaseType.MySQL:
-                                // Get the top N records based on TimerTicks
-                                selectQuery = "SELECT SteamID, PlayerName, TimerTicks " +
-                                                "FROM PlayerStageTimes " +
-                                                "WHERE MapName = @MapName " +
-                                                "AND Stage = @Stage " +
-                                                "ORDER BY TimerTicks ASC " +
-                                                $"LIMIT 1 OFFSET {top10 - 1};";
-                                selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
-                                break;
-                            case DatabaseType.PostgreSQL:
-                                // Get the top N records based on TimerTicks
-                                selectQuery = @"SELECT ""SteamID"", ""PlayerName"", ""TimerTicks"" " +
-                                                @"FROM ""PlayerStageTimes"" " +
-                                                @"WHERE ""MapName"" = @MapName " +
-                                                @"AND ""Stage"" = @Stage " +
-                                                @"ORDER BY ""TimerTicks"" ASC " +
-                                                $"LIMIT 1 OFFSET {top10 - 1};";
-                                selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
-                                break;
-                            default:
-                                selectQuery = null;
-                                selectCommand = null;
-                                break;
-                        }
+                        selectQuery = @"
+                            SELECT `SteamID`, `PlayerName`, `TimerTicks`
+                            FROM `PlayerStageTimes`
+                            WHERE `MapName` = @MapName AND `Stage` = @Stage
+                            ORDER BY `TimerTicks` ASC
+                            LIMIT 1 OFFSET @Offset;";
+
+                        var myCmd = new MySqlCommand(selectQuery, (MySqlConnection)connection);
+                        myCmd.Parameters.AddWithValue("@Offset", top10 - 1);
+                        selectCommand = myCmd;
                     }
                     else
                     {
-                        // Get the overall top player
-                        switch (dbType)
-                        {
-                            case DatabaseType.MySQL:
-                                selectQuery = $"SELECT SteamID, PlayerName, TimerTicks FROM PlayerStageTimes WHERE MapName = @MapName AND Stage = @Stage ORDER BY TimerTicks ASC LIMIT 1";
-                                selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
-                                break;
-                            case DatabaseType.PostgreSQL:
-                                selectQuery = $@"SELECT ""SteamID"", ""PlayerName"", ""TimerTicks"" FROM ""PlayerStageTimes"" WHERE ""MapName"" = @MapName AND ""Stage"" = @Stage ORDER BY ""TimerTicks"" ASC LIMIT 1";
-                                selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
-                                break;
-                            default:
-                                selectQuery = null;
-                                selectCommand = null;
-                                break;
-                        }
+                        selectQuery = @"
+                            SELECT `SteamID`, `PlayerName`, `TimerTicks`
+                            FROM `PlayerStageTimes`
+                            WHERE `MapName` = @MapName AND `Stage` = @Stage
+                            ORDER BY `TimerTicks` ASC
+                            LIMIT 1;";
+
+                        selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
                     }
 
                     using (selectCommand)
@@ -2208,37 +1680,16 @@ namespace SharpTimer
             {
                 using (IDbConnection connection = await OpenConnectionAsync())
                 {
-                    string? selectQuery;
-                    DbCommand? selectCommand;
-                    switch (dbType)
-                    {
-                        case DatabaseType.MySQL:
-                            // Get the top N records based on TimerTicks
-                            selectQuery = "SELECT Velocity, TimerTicks " +
-                                            "FROM PlayerStageTimes " +
-                                            "WHERE MapName = @MapName " +
-                                            "AND Stage = @Stage " +
-                                            "AND SteamID = @SteamID " +
-                                            "ORDER BY TimerTicks ASC " +
-                                            $"LIMIT 1;";
-                            selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
-                            break;
-                        case DatabaseType.PostgreSQL:
-                            // Get the top N records based on TimerTicks
-                            selectQuery = @"SELECT ""Velocity"", ""TimerTicks"" " +
-                                            @"FROM ""PlayerStageTimes"" " +
-                                            @"WHERE ""MapName"" = @MapName " +
-                                            @"AND ""Stage"" = @Stage " +
-                                            @"AND ""SteamID"" = @SteamID " +
-                                            @"ORDER BY ""TimerTicks"" ASC " +
-                                            $"LIMIT 1;";
-                            selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
-                            break;
-                        default:
-                            selectQuery = null;
-                            selectCommand = null;
-                            break;
-                    }
+                    string selectQuery = @"
+                        SELECT `Velocity`, `TimerTicks`
+                        FROM `PlayerStageTimes`
+                        WHERE `MapName` = @MapName
+                        AND `Stage`   = @Stage
+                        AND `SteamID` = @SteamID
+                        ORDER BY `TimerTicks` ASC
+                        LIMIT 1;";
+
+                    DbCommand selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
 
                     using (selectCommand)
                     {
@@ -2284,25 +1735,13 @@ namespace SharpTimer
                 using (IDbConnection connection = await OpenConnectionAsync())
                 {
                     await CreatePlayerRecordsTableAsync(connection);
-                    string? selectQuery;
-                    DbCommand? selectCommand;
 
-                    // Retrieve the TimerTicks value for the specified player on the current map
-                    switch (dbType)
-                    {
-                        case DatabaseType.MySQL:
-                            selectQuery = "SELECT TimerTicks FROM PlayerRecords WHERE MapName = @MapName AND SteamID = @SteamID AND Style = @Style";
-                            selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
-                            break;
-                        case DatabaseType.PostgreSQL:
-                            selectQuery = @"SELECT ""TimerTicks"" FROM ""PlayerRecords"" WHERE ""MapName"" = @MapName AND ""SteamID"" = @SteamID AND ""Style"" = @Style";
-                            selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
-                            break;
-                        default:
-                            selectQuery = null;
-                            selectCommand = null;
-                            break;
-                    }
+                    string selectQuery = @"
+                        SELECT `TimerTicks`
+                        FROM `PlayerRecords`
+                        WHERE `MapName` = @MapName AND `SteamID` = @SteamID AND `Style` = @Style;";
+
+                    DbCommand selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
 
                     using (selectCommand)
                     {
@@ -2343,25 +1782,12 @@ namespace SharpTimer
 
                 using (IDbConnection connection = await OpenConnectionAsync())
                 {
-                    string? selectQuery;
-                    DbCommand? selectCommand;
+                    string selectQuery = @"
+                        SELECT `TimerTicks`
+                        FROM `PlayerStageTimes`
+                        WHERE `MapName` = @MapName AND `SteamID` = @SteamID AND `Stage` = @Stage;";
 
-                    // Retrieve the TimerTicks value for the specified player on the current map
-                    switch (dbType)
-                    {
-                        case DatabaseType.MySQL:
-                            selectQuery = "SELECT TimerTicks FROM PlayerStageTimes WHERE MapName = @MapName AND SteamID = @SteamID AND Stage = @Stage";
-                            selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
-                            break;
-                        case DatabaseType.PostgreSQL:
-                            selectQuery = @"SELECT ""TimerTicks"" FROM ""PlayerStageTimes"" WHERE ""MapName"" = @MapName AND ""SteamID"" = @SteamID AND ""Stage"" = @Stage";
-                            selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
-                            break;
-                        default:
-                            selectQuery = null;
-                            selectCommand = null;
-                            break;
-                    }
+                    DbCommand selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
 
                     using (selectCommand)
                     {
@@ -2399,23 +1825,13 @@ namespace SharpTimer
                 using (var connection = await OpenConnectionAsync())
                 {
                     await CreatePlayerStatsTableAsync(connection);
-                    string? selectQuery;
-                    DbCommand? selectCommand;
-                    switch (dbType)
-                    {
-                        case DatabaseType.MySQL:
-                            selectQuery = $"SELECT GlobalPoints FROM {PlayerStatsTable} WHERE SteamID = @SteamID";
-                            selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
-                            break;
-                        case DatabaseType.PostgreSQL:
-                            selectQuery = $@"SELECT ""GlobalPoints"" FROM ""{PlayerStatsTable}"" WHERE ""SteamID"" = @SteamID";
-                            selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
-                            break;
-                        default:
-                            selectQuery = null;
-                            selectCommand = null;
-                            break;
-                    }
+
+                    string selectQuery = $@"
+                        SELECT `GlobalPoints`
+                        FROM `{PlayerStatsTable}`
+                        WHERE `SteamID` = @SteamID;";
+
+                    DbCommand selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
 
                     using (selectCommand)
                     {
@@ -2456,44 +1872,32 @@ namespace SharpTimer
                     await CreatePlayerRecordsTableAsync(connection);
 
                     // Retrieve and sort records for the current map
-                    string? selectQuery;
-                    DbCommand? selectCommand;
-                    if (limit != 0)
+                    string selectQuery;
+                    DbCommand selectCommand;
+
+                    if (limit > 0)
                     {
-                        switch (dbType)
-                        {
-                            case DatabaseType.MySQL:
-                                selectQuery = $@"SELECT SteamID, PlayerName, TimerTicks FROM PlayerRecords WHERE MapName = @MapName AND Style = @Style ORDER BY TimerTicks ASC LIMIT {limit}";
-                                selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
-                                break;
-                            case DatabaseType.PostgreSQL:
-                                selectQuery = $@"SELECT ""SteamID"", ""PlayerName"", ""TimerTicks"" FROM ""PlayerRecords"" WHERE ""MapName"" = @MapName AND ""Style"" = @Style ORDER BY ""TimerTicks"" ASC LIMIT {limit}";
-                                selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
-                                break;
-                            default:
-                                selectQuery = null;
-                                selectCommand = null;
-                                break;
-                        }
+                        selectQuery = @"
+                            SELECT `SteamID`, `PlayerName`, `TimerTicks`
+                            FROM `PlayerRecords`
+                            WHERE `MapName` = @MapName AND `Style` = @Style
+                            ORDER BY `TimerTicks` ASC
+                            LIMIT @Limit;";
+
+                        var myCmd = new MySqlCommand(selectQuery, (MySqlConnection)connection);
+                        myCmd.Parameters.AddWithValue("@Limit", limit);
+                        selectCommand = myCmd;
                     }
                     else
                     {
-                        switch (dbType)
-                        {
-                            case DatabaseType.MySQL:
-                                selectQuery = @"SELECT SteamID, PlayerName, TimerTicks FROM PlayerRecords WHERE MapName = @MapName AND Style = @Style";
-                                selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
-                                break;
-                            case DatabaseType.PostgreSQL:
-                                selectQuery = @"SELECT ""SteamID"", ""PlayerName"", ""TimerTicks"" FROM ""PlayerRecords"" WHERE ""MapName"" = @MapName AND ""Style"" = @Style";
-                                selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
-                                break;
-                            default:
-                                selectQuery = null;
-                                selectCommand = null;
-                                break;
-                        }
+                        selectQuery = @"
+                            SELECT `SteamID`, `PlayerName`, `TimerTicks`
+                            FROM `PlayerRecords`
+                            WHERE `MapName` = @MapName AND `Style` = @Style;";
+
+                        selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
                     }
+
                     using (selectCommand)
                     {
                         selectCommand!.AddParameterWithValue("@MapName", currentMapNamee);
@@ -2533,7 +1937,7 @@ namespace SharpTimer
             }
             return [];
         }
-        
+
         public async Task<List<PlayerRecord>> GetAllSortedRecordsFromDatabase(int limit = 0, int bonusX = 0, int style = 0)
         {
             SharpTimerDebug($"Trying GetSortedRecords {(bonusX != 0 ? $"bonus {bonusX}" : "")} from database");
@@ -2543,56 +1947,30 @@ namespace SharpTimer
                 {
                     await CreatePlayerRecordsTableAsync(connection);
 
-                    string? selectQuery;
-                    DbCommand? selectCommand;
+                    string selectQuery;
+                    DbCommand selectCommand;
 
-                    if (limit != 0)
+                    if (limit > 0)
                     {
-                        switch (dbType)
-                        {
-                            case DatabaseType.MySQL:
-                                selectQuery = @"SELECT SteamID, PlayerName, TimerTicks, MapName
-                                                FROM PlayerRecords
-                                                WHERE Style = @Style
-                                                ORDER BY TimerTicks ASC
-                                                LIMIT " + limit;
-                                selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
-                                break;
-                            case DatabaseType.PostgreSQL:
-                                selectQuery = @"SELECT ""SteamID"", ""PlayerName"", ""TimerTicks"", ""MapName""
-                                                FROM ""PlayerRecords""
-                                                WHERE ""Style"" = @Style
-                                                ORDER BY ""TimerTicks"" ASC
-                                                LIMIT " + limit;
-                                selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
-                                break;
-                            default:
-                                selectQuery = null;
-                                selectCommand = null;
-                                break;
-                        }
+                        selectQuery = @"
+                            SELECT `SteamID`, `PlayerName`, `TimerTicks`, `MapName`
+                            FROM `PlayerRecords`
+                            WHERE `Style` = @Style
+                            ORDER BY `TimerTicks` ASC
+                            LIMIT @Limit;";
+
+                        var myCmd = new MySqlCommand(selectQuery, (MySqlConnection)connection);
+                        myCmd.Parameters.AddWithValue("@Limit", limit);
+                        selectCommand = myCmd;
                     }
                     else
                     {
-                        switch (dbType)
-                        {
-                            case DatabaseType.MySQL:
-                                selectQuery = @"SELECT SteamID, PlayerName, TimerTicks, MapName
-                                                FROM PlayerRecords
-                                                WHERE Style = @Style";
-                                selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
-                                break;
-                            case DatabaseType.PostgreSQL:
-                                selectQuery = @"SELECT ""SteamID"", ""PlayerName"", ""TimerTicks"", ""MapName""
-                                                FROM ""PlayerRecords""
-                                                WHERE ""Style"" = @Style";
-                                selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
-                                break;
-                            default:
-                                selectQuery = null;
-                                selectCommand = null;
-                                break;
-                        }
+                        selectQuery = @"
+                            SELECT `SteamID`, `PlayerName`, `TimerTicks`, `MapName`
+                            FROM `PlayerRecords`
+                            WHERE `Style` = @Style;";
+
+                        selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
                     }
 
                     using (selectCommand)
@@ -2661,44 +2039,32 @@ namespace SharpTimer
                     await CreatePlayerRecordsTableAsync(connection);
 
                     // Retrieve and sort records for the current map
-                    string? selectQuery;
-                    DbCommand? selectCommand;
-                    if (limit != 0)
+                    string selectQuery;
+                    DbCommand selectCommand;
+
+                    if (limit > 0)
                     {
-                        switch (dbType)
-                        {
-                            case DatabaseType.MySQL:
-                                selectQuery = $@"SELECT SteamID, PlayerName, TimerTicks FROM PlayerStageTimes WHERE MapName = @MapName AND Stage = @Stage ORDER BY TimerTicks ASC LIMIT {limit}";
-                                selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
-                                break;
-                            case DatabaseType.PostgreSQL:
-                                selectQuery = $@"SELECT ""SteamID"", ""PlayerName"", ""TimerTicks"" FROM ""PlayerStageTimes"" WHERE ""MapName"" = @MapName AND ""Stage"" = @Stage ORDER BY ""TimerTicks"" ASC LIMIT {limit}";
-                                selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
-                                break;
-                            default:
-                                selectQuery = null;
-                                selectCommand = null;
-                                break;
-                        }
+                        selectQuery = @"
+                            SELECT `SteamID`, `PlayerName`, `TimerTicks`
+                            FROM `PlayerStageTimes`
+                            WHERE `MapName` = @MapName AND `Stage` = @Stage
+                            ORDER BY `TimerTicks` ASC
+                            LIMIT @Limit;";
+
+                        var myCmd = new MySqlCommand(selectQuery, (MySqlConnection)connection);
+                        myCmd.Parameters.AddWithValue("@Limit", limit);
+                        selectCommand = myCmd;
                     }
                     else
                     {
-                        switch (dbType)
-                        {
-                            case DatabaseType.MySQL:
-                                selectQuery = @"SELECT SteamID, PlayerName, TimerTicks FROM PlayerStageTimes WHERE MapName = @MapName AND Stage = @Stage";
-                                selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
-                                break;
-                            case DatabaseType.PostgreSQL:
-                                selectQuery = @"SELECT ""SteamID"", ""PlayerName"", ""TimerTicks"" FROM ""PlayerStageTimes"" WHERE ""MapName"" = @MapName AND ""Stage"" = @Stage";
-                                selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
-                                break;
-                            default:
-                                selectQuery = null;
-                                selectCommand = null;
-                                break;
-                        }
+                        selectQuery = @"
+                            SELECT `SteamID`, `PlayerName`, `TimerTicks`
+                            FROM `PlayerStageTimes`
+                            WHERE `MapName` = @MapName AND `Stage` = @Stage;";
+
+                        selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
                     }
+
                     using (selectCommand)
                     {
                         selectCommand!.AddParameterWithValue("@MapName", currentMapNamee);
@@ -2744,23 +2110,8 @@ namespace SharpTimer
                 try
                 {
                     await CreatePlayerStatsTableAsync(connection);
-                    string? selectQuery;
-                    DbCommand? selectCommand;
-                    switch (dbType)
-                    {
-                        case DatabaseType.MySQL:
-                            selectQuery = $@"SELECT SteamID, PlayerName, GlobalPoints FROM {PlayerStatsTable}";
-                            selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
-                            break;
-                        case DatabaseType.PostgreSQL:
-                            selectQuery = $@"SELECT ""SteamID"", ""PlayerName"", ""GlobalPoints"" FROM ""{PlayerStatsTable}""";
-                            selectCommand = new NpgsqlCommand(selectQuery, (NpgsqlConnection)connection);
-                            break;
-                        default:
-                            selectQuery = null;
-                            selectCommand = null;
-                            break;
-                    }
+                    string selectQuery = $@"SELECT `SteamID`, `PlayerName`, `GlobalPoints` FROM `{PlayerStatsTable}`;";
+                    DbCommand selectCommand = new MySqlCommand(selectQuery, (MySqlConnection)connection);
 
                     using (selectCommand)
                     {
@@ -2870,46 +2221,23 @@ namespace SharpTimer
             {
                 await CreatePlayerStatsTableAsync(connection);
 
-                string? upsertQuery;
-                DbCommand? cmd;
+                string upsertQuery = $@"
+                    INSERT INTO `{PlayerStatsTable}` AS new
+                        (`PlayerName`, `SteamID`, `GlobalPoints`)
+                    VALUES
+                        (@PlayerName, @SteamID, @Points)
+                    ON DUPLICATE KEY UPDATE
+                        `PlayerName`   = new.`PlayerName`,
+                        `GlobalPoints` = new.`GlobalPoints`;";
 
-                switch (dbType)
+                DbCommand command = new MySqlCommand(upsertQuery, (MySqlConnection)connection);
+
+                using (command)
                 {
-                    case DatabaseType.MySQL:
-                        upsertQuery = $@"
-                            INSERT INTO {PlayerStatsTable}
-                                (PlayerName, SteamID, GlobalPoints)
-                            VALUES
-                                (@PlayerName, @SteamID, @Points)
-                            ON DUPLICATE KEY UPDATE
-                                PlayerName = VALUES(PlayerName),
-                                GlobalPoints = VALUES(GlobalPoints);";
-                        cmd = new MySqlCommand(upsertQuery, (MySqlConnection)connection);
-                        break;
-
-                    case DatabaseType.PostgreSQL:
-                        upsertQuery = $@"
-                            INSERT INTO ""{PlayerStatsTable}""
-                                (""PlayerName"", ""SteamID"", ""GlobalPoints"")
-                            VALUES
-                                (@PlayerName, @SteamID, @Points)
-                            ON CONFLICT (""SteamID"")
-                            DO UPDATE SET
-                                ""PlayerName""   = EXCLUDED.""PlayerName"",
-                                ""GlobalPoints"" = EXCLUDED.""GlobalPoints"";";
-                        cmd = new NpgsqlCommand(upsertQuery, (NpgsqlConnection)connection);
-                        break;
-
-                    default:
-                        upsertQuery = null; cmd = null; break;
-                }
-
-                using (cmd)
-                {
-                    cmd!.AddParameterWithValue("@PlayerName", playerName);
-                    cmd!.AddParameterWithValue("@SteamID", steamId);
-                    cmd!.AddParameterWithValue("@Points", points);
-                    await cmd!.ExecuteNonQueryAsync();
+                    command.AddParameterWithValue("@PlayerName", playerName);
+                    command.AddParameterWithValue("@SteamID", steamId);
+                    command.AddParameterWithValue("@Points", points);
+                    await command.ExecuteNonQueryAsync();
                 }
             }
         }
@@ -2920,32 +2248,20 @@ namespace SharpTimer
             {
                 await CreatePlayerRecordsTableAsync(connection);
 
-                string? q; DbCommand? cmd;
-                switch (dbType)
-                {
-                    case DatabaseType.MySQL:
-                        q = @"SELECT TimesFinished
-                            FROM PlayerRecords
-                            WHERE MapName = @MapName AND SteamID = @SteamID AND Style = @Style";
-                        cmd = new MySqlCommand(q, (MySqlConnection)connection);
-                        break;
-                    case DatabaseType.PostgreSQL:
-                        q = @"SELECT ""TimesFinished""
-                            FROM ""PlayerRecords""
-                            WHERE ""MapName"" = @MapName AND ""SteamID"" = @SteamID AND ""Style"" = @Style";
-                        cmd = new NpgsqlCommand(q, (NpgsqlConnection)connection);
-                        break;
-                    default:
-                        return 0;
-                }
+                string q = @"
+                    SELECT `TimesFinished`
+                    FROM `PlayerRecords`
+                    WHERE `MapName` = @MapName AND `SteamID` = @SteamID AND `Style` = @Style;";
 
-                using (cmd)
-                {
-                    cmd!.AddParameterWithValue("@MapName", mapNameWithSuffix); // e.g. "surf_aircontrol_ksf" or "..._bonus1"
-                    cmd!.AddParameterWithValue("@SteamID", steamId);
-                    cmd!.AddParameterWithValue("@Style", style);
+                DbCommand command = new MySqlCommand(q, (MySqlConnection)connection);
 
-                    var result = await cmd!.ExecuteScalarAsync();
+                using (command)
+                {
+                    command.AddParameterWithValue("@MapName", mapNameWithSuffix); // e.g. "surf_aircontrol_ksf" or "..._bonus1"
+                    command.AddParameterWithValue("@SteamID", steamId);
+                    command.AddParameterWithValue("@Style", style);
+
+                    var result = await command.ExecuteScalarAsync();
                     return (result != null && result != DBNull.Value) ? Convert.ToInt32(result) : 0;
                 }
             }
@@ -2967,23 +2283,10 @@ namespace SharpTimer
                 try
                 {
                     await CreatePlayerStatsTableAsync(connection);
-                    string? updateQuery;
-                    DbCommand? updateCommand;
-                    switch (dbType)
-                    {
-                        case DatabaseType.MySQL:
-                            updateQuery = $@"UPDATE {PlayerStatsTable} SET GlobalPoints = 0";
-                            updateCommand = new MySqlCommand(updateQuery, (MySqlConnection)connection);
-                            break;
-                        case DatabaseType.PostgreSQL:
-                            updateQuery = $@"UPDATE ""{PlayerStatsTable}"" SET ""GlobalPoints"" = 0";
-                            updateCommand = new NpgsqlCommand(updateQuery, (NpgsqlConnection)connection);
-                            break;
-                        default:
-                            updateQuery = null;
-                            updateCommand = null;
-                            break;
-                    }
+
+                    string updateQuery = $@"UPDATE `{PlayerStatsTable}` SET `GlobalPoints` = 0;";
+                    DbCommand updateCommand = new MySqlCommand(updateQuery, (MySqlConnection)connection);
+
                     using (updateCommand)
                     {
                         await updateCommand!.ExecuteNonQueryAsync();
@@ -3018,62 +2321,27 @@ namespace SharpTimer
                 }
 
                 string connectionString = await GetConnectionStringFromConfigFile();
-                IDbConnection? connection = null;
-                switch (dbType)
-                {
-                    case DatabaseType.MySQL:
-                        connection = new MySqlConnection(connectionString);
-                        break;
-                    case DatabaseType.PostgreSQL:
-                        connection = new NpgsqlConnection(connectionString);
-                        break;
-                    default:
-                        SharpTimerError($"Error: Invalid database type.");
-                        return;
-                }
+                IDbConnection connection = new MySqlConnection(connectionString);
                 using (connection)
                 {
                     connection.Open();
 
                     // Check if the table exists, and create it if necessary
-                    string? createTableQuery = null;
-                    DbCommand? createTableCommand = null;
-                    switch (dbType)
-                    {
-                        case DatabaseType.MySQL:
-                            createTableQuery = @"CREATE TABLE IF NOT EXISTS PlayerRecords (
-                                            MapName VARCHAR(255),
-                                            SteamID VARCHAR(255),
-                                            PlayerName VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-                                            TimerTicks INT,
-                                            FormattedTime VARCHAR(255),
-                                            UnixStamp INT,
-                                            TimesFinished INT,
-                                            LastFinished INT,
-                                            Style INT,
-                                            PRIMARY KEY (MapName, SteamID)
-                                        )";
-                            createTableCommand = new MySqlCommand(createTableQuery, (MySqlConnection)connection);
-                            break;
-                        case DatabaseType.PostgreSQL:
-                            createTableQuery = @"CREATE TABLE IF NOT EXISTS ""PlayerRecords"" (
-                                            ""MapName"" VARCHAR(255),
-                                            ""SteamID"" VARCHAR(255),
-                                            ""PlayerName"" VARCHAR(255),
-                                            ""TimerTicks"" INT,
-                                            ""FormattedTime"" VARCHAR(255),
-                                            ""UnixStamp"" INT,
-                                            ""TimesFinished"" INT,
-                                            ""LastFinished"" INT,
-                                            ""Style"" INT,
-                                            PRIMARY KEY (""MapName"", ""SteamID"", ""Style"")
-                                        )";
-                            createTableCommand = new NpgsqlCommand(createTableQuery, (NpgsqlConnection)connection);
-                            break;
-                        default:
-                            createTableQuery = null;
-                            break;
-                    }
+                    string createTableQuery = @"
+                        CREATE TABLE IF NOT EXISTS `PlayerRecords` (
+                            `MapName`       VARCHAR(255),
+                            `SteamID`       VARCHAR(20),
+                            `PlayerName`    VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+                            `TimerTicks`    INT,
+                            `FormattedTime` VARCHAR(255),
+                            `UnixStamp`     INT,
+                            `TimesFinished` INT,
+                            `LastFinished`  INT,
+                            `Style`         INT,
+                            PRIMARY KEY (`MapName`, `SteamID`, `Style`)
+                        );";
+
+                    DbCommand createTableCommand = new MySqlCommand(createTableQuery, (MySqlConnection)connection);
                     using (createTableCommand)
                     {
                         await createTableCommand!.ExecuteNonQueryAsync();
@@ -3099,30 +2367,17 @@ namespace SharpTimer
                             string mapName = Path.GetFileNameWithoutExtension(filePath);
 
                             // Check if the player is already in the database
-                            string? insertOrUpdateQuery = null;
-                            DbCommand? insertOrUpdateCommand = null;
-                            switch (dbType)
-                            {
-                                case DatabaseType.MySQL:
-                                    insertOrUpdateQuery = @"INSERT INTO PlayerRecords (SteamID, PlayerName, TimerTicks, FormattedTime, MapName, UnixStamp, TimesFinished, LastFinished, Style)
-                                        VALUES (@SteamID, @PlayerName, @TimerTicks, @FormattedTime, @MapName, @UnixStamp, @TimesFinished, @LastFinished, @Style)
-                                        ON DUPLICATE KEY UPDATE
-                                        TimerTicks = if (@TimerTicks < TimerTicks, @TimerTicks, TimerTicks),
-                                        FormattedTime = if (@TimerTicks < TimerTicks, @FormattedTime, FormattedTime)";
-                                    insertOrUpdateCommand = new MySqlCommand(insertOrUpdateQuery, (MySqlConnection)connection);
-                                    break;
-                                case DatabaseType.PostgreSQL:
-                                    insertOrUpdateQuery = @"INSERT INTO ""PlayerRecords"" (""SteamID"", ""PlayerName"", ""TimerTicks"", ""FormattedTime"", ""MapName"", ""UnixStamp"", ""TimesFinished"", ""LastFinished"", ""Style"")
-                                        VALUES (@SteamID, @PlayerName, @TimerTicks, @FormattedTime, @MapName, @UnixStamp, @TimesFinished, @LastFinished, @Style)
-                                        ON CONFLICT (""MapName"", ""SteamID"", ""Style"") DO UPDATE
-                                        SET ""TimerTicks"" = CASE WHEN @TimerTicks < ""TimerTicks"" THEN @TimerTicks ELSE ""TimerTicks"" END,
-                                        ""FormattedTime"" = CASE WHEN @TimerTicks < ""TimerTicks"" THEN @FormattedTime ELSE ""FormattedTime"" END";
-                                    insertOrUpdateCommand = new NpgsqlCommand(insertOrUpdateQuery, (NpgsqlConnection)connection);
-                                    break;
-                                default:
-                                    insertOrUpdateQuery = null;
-                                    break;
-                            }
+                            string insertOrUpdateQuery = @"
+                                INSERT INTO `PlayerRecords`
+                                    (`SteamID`, `PlayerName`, `TimerTicks`, `FormattedTime`, `MapName`, `UnixStamp`, `TimesFinished`, `LastFinished`, `Style`)
+                                VALUES
+                                    (@SteamID, @PlayerName, @TimerTicks, @FormattedTime, @MapName, @UnixStamp, @TimesFinished, @LastFinished, @Style)
+                                AS new
+                                ON DUPLICATE KEY UPDATE
+                                    `TimerTicks`    = IF(new.`TimerTicks` < `TimerTicks`, new.`TimerTicks`, `TimerTicks`),
+                                    `FormattedTime` = IF(new.`TimerTicks` < `TimerTicks`, new.`FormattedTime`, `FormattedTime`);";
+
+                            DbCommand insertOrUpdateCommand = new MySqlCommand(insertOrUpdateQuery, (MySqlConnection)connection);
 
                             using (insertOrUpdateCommand)
                             {

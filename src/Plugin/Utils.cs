@@ -821,29 +821,19 @@ namespace SharpTimer
 
                     if (!sqlCheck)
                     {
-                        if (useMySQL)
-                        {
-                            string mysqlConfigFileName = "SharpTimer/mysqlConfig.json";
-                            mySQLpath = Path.Join(gameDir + "/csgo/cfg", mysqlConfigFileName);
-                            SharpTimerDebug($"Set mySQLpath to {mySQLpath}");
-                            dbType = DatabaseType.MySQL;
-                            dbPath = mySQLpath;
-                            enableDb = true;
-                        }
-                        else if (usePostgres)
-                        {
-                            string postgresConfigFileName = "SharpTimer/postgresConfig.json";
-                            postgresPath = Path.Join(gameDir + "/csgo/cfg", postgresConfigFileName);
-                            SharpTimerDebug($"Set postgresPath to {postgresPath}");
-                            dbType = DatabaseType.PostgreSQL;
-                            dbPath = postgresPath;
-                            enableDb = true;
-                        }
+                        string mysqlConfigFileName = "SharpTimer/mysqlConfig.json";
+                        mySQLpath = Path.Join(gameDir + "/csgo/cfg", mysqlConfigFileName);
+                        SharpTimerDebug($"Set mySQLpath to {mySQLpath}");
+
+                        dbPath = mySQLpath;
+                        enableDb = true;
+
                         using (var connection = OpenConnection())
                         {
                             _ = CheckTablesAsync();
-                            //ExecuteMigrations(connection);
+                            // ExecuteMigrations(connection);
                         }
+
                         sqlCheck = true;
                     }
                 });

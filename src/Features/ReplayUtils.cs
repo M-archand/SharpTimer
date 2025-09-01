@@ -459,21 +459,12 @@ namespace SharpTimer
             {
                 using (var connection = await OpenConnectionAsync())
                 {
-                    DbCommand command = null!;
-                    string query = string.Empty;
-                    switch (dbType)
-                    {
-                        case DatabaseType.MySQL:
-                            query = "SELECT ReplayData FROM PlayerReplays WHERE SteamID = @SteamID AND MapName = @MapName AND Style = @Style";
-                            command = new MySqlCommand(query, (MySqlConnection)connection);
-                            break;
-                        case DatabaseType.PostgreSQL:
-                            query = @"SELECT ""ReplayData"" FROM ""PlayerReplays"" WHERE ""SteamID"" = @SteamID AND ""MapName"" = @MapName AND ""Style"" = @Style";
-                            command = new NpgsqlCommand(query, (NpgsqlConnection)connection);
-                            break;
-                        default:
-                            throw new Exception("Unsupported database type");
-                    }
+                    string query = @"
+                        SELECT `ReplayData`
+                        FROM `PlayerReplays`
+                        WHERE `SteamID` = @SteamID AND `MapName` = @MapName AND `Style` = @Style;";
+
+                    DbCommand command = new MySqlCommand(query, (MySqlConnection)connection);
                     
                     // Set parameters using extension method
                     command.AddParameterWithValue("@SteamID", steamId);
@@ -544,7 +535,6 @@ namespace SharpTimer
             byte[] replayBinaryData = GetReplayBinaryData(playerReplays[playerSlot]);
             SharpTimerDebug($"DumpReplayToDatabase called with SteamID: {steamId}, bonusX: {bonusX}, style: {style}, currentMapName: {currentMapName}");
             SharpTimerDebug($"Replay binary data length: {replayBinaryData.Length}");
-            SharpTimerDebug($"Replay binary data length: {replayBinaryData.Length}");
             
             try
             {
@@ -553,27 +543,14 @@ namespace SharpTimer
                     // Ensure the PlayerReplays table exists
                     await CreatePlayerReplaysTableAsync(connection);
                     
-                    DbCommand command = null!;
-                    string query = string.Empty;
-                    switch (dbType)
-                    {
-                        case DatabaseType.MySQL:
-                            query = @"
-                                INSERT INTO PlayerReplays (SteamID, MapName, Style, ReplayData)
-                                VALUES (@SteamID, @MapName, @Style, @ReplayData)
-                                ON DUPLICATE KEY UPDATE ReplayData = @ReplayData";
-                            command = new MySqlCommand(query, (MySqlConnection)connection);
-                            break;
-                        case DatabaseType.PostgreSQL:
-                            query = @"
-                                INSERT INTO ""PlayerReplays"" (""SteamID"", ""MapName"", ""Style"", ""ReplayData"")
-                                VALUES (@SteamID, @MapName, @Style, @ReplayData)
-                                ON CONFLICT (""SteamID"", ""MapName"", ""Style"") DO UPDATE SET ReplayData = @ReplayData";
-                            command = new NpgsqlCommand(query, (NpgsqlConnection)connection);
-                            break;
-                        default:
-                            throw new Exception("Unsupported database type");
-                    }
+                    string query = @"
+                        INSERT INTO `PlayerReplays` (`SteamID`, `MapName`, `Style`, `ReplayData`)
+                        VALUES (@SteamID, @MapName, @Style, @ReplayData)
+                        AS new
+                        ON DUPLICATE KEY UPDATE
+                            `ReplayData` = new.`ReplayData`;";
+
+                    DbCommand command = new MySqlCommand(query, (MySqlConnection)connection);
                     
                     // Set parameters
                     command.AddParameterWithValue("@SteamID", steamId);

@@ -102,7 +102,7 @@ namespace SharpTimer
         public bool killServerCommands = true;
         public bool useMySQL = false;
         public bool usePostgres = false;
-        public DatabaseType dbType;
+
         public string dbPath = "";
         public bool enableDb = false;
         public bool enableStageTimes = true;
