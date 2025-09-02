@@ -835,6 +835,76 @@ namespace SharpTimer
             }
         }
         
+        [ConsoleCommand("sharptimer_enable_standard_mode", "Enable or disable standard mode. Default value: true")]
+        [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
+        public void SharpTimerEnableStandardModeConvar(CCSPlayerController? player, CommandInfo command)
+        {
+            string args = command.ArgString;
+
+            if (!(bool.TryParse(args, out bool value) ? value : args != "0"))
+                ModeManager.DisableMode(Mode.Standard);
+        }
+        
+        [ConsoleCommand("sharptimer_enable_85t_mode", "Enable or disable 85t mode. Default value: true")]
+        [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
+        public void SharpTimerEnable85tModeConvar(CCSPlayerController? player, CommandInfo command)
+        {
+            string args = command.ArgString;
+
+            if (!(bool.TryParse(args, out bool value) ? value : args != "0"))
+                ModeManager.DisableMode(Mode._85t);
+        }
+        
+        [ConsoleCommand("sharptimer_enable_102t_mode", "Enable or disable 102t mode. Default value: true")]
+        [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
+        public void SharpTimerEnable102tModeConvar(CCSPlayerController? player, CommandInfo command)
+        {
+            string args = command.ArgString;
+
+            if (!(bool.TryParse(args, out bool value) ? value : args != "0"))
+                ModeManager.DisableMode(Mode._102t);
+        }
+        
+        [ConsoleCommand("sharptimer_enable_128t_mode", "Enable or disable 128t mode. Default value: true")]
+        [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
+        public void SharpTimerEnable128tModeConvar(CCSPlayerController? player, CommandInfo command)
+        {
+            string args = command.ArgString;
+
+            if (!(bool.TryParse(args, out bool value) ? value : args != "0"))
+                ModeManager.DisableMode(Mode._128t);
+        }
+        
+        [ConsoleCommand("sharptimer_enable_source_mode", "Enable or disable source mode. Default value: true")]
+        [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
+        public void SharpTimerEnableSourceModeConvar(CCSPlayerController? player, CommandInfo command)
+        {
+            string args = command.ArgString;
+
+            if (!(bool.TryParse(args, out bool value) ? value : args != "0"))
+                ModeManager.DisableMode(Mode.Source);
+        }
+        
+        [ConsoleCommand("sharptimer_enable_bhop_mode", "Enable or disable bhop mode. Default value: true")]
+        [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
+        public void SharpTimerEnableBhopModeConvar(CCSPlayerController? player, CommandInfo command)
+        {
+            string args = command.ArgString;
+
+            if (!(bool.TryParse(args, out bool value) ? value : args != "0"))
+                ModeManager.DisableMode(Mode.Bhop);
+        }
+        
+        [ConsoleCommand("sharptimer_enable_custom_mode", "Enable or disable custom mode. Default value: true")]
+        [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
+        public void SharpTimerEnableCustomModeConvar(CCSPlayerController? player, CommandInfo command)
+        {
+            string args = command.ArgString;
+
+            if (!(bool.TryParse(args, out bool value) ? value : args != "0"))
+                ModeManager.DisableMode(Mode.Custom);
+        }
+        
         [ConsoleCommand("sharptimer_mode_multiplier_standard", "Point modifier for standard mode. Default value: 1")]
         [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
         public void SharpTimerStandardModeMultiplierConvar(CCSPlayerController? player, CommandInfo command)

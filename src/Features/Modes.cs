@@ -64,12 +64,12 @@ public partial class SharpTimer
 
     private bool TryParseMode(string input, out Mode mode)
     {
-        if (Enum.TryParse<Mode>(input, true, out mode))
+        if (Enum.TryParse<Mode>(input, true, out mode) && ModeManager.IsModeEnabled(mode))
         {
             return true;
         }
 
-        var modes = Enum.GetValues<Mode>();
+        var modes = ModeManager.GetEnabledModes();
         foreach (var m in modes)
         {
             if (GetModeName(m).Equals(input, StringComparison.OrdinalIgnoreCase))
@@ -171,7 +171,7 @@ public partial class SharpTimer
 
         if (command.ArgByIndex(1) == "")
         {
-            var modes = Enum.GetValues<Mode>();
+            var modes = ModeManager.GetEnabledModes().ToArray();
 
             for (int i = 0; i < modes.Length; i++)
             {
@@ -182,26 +182,7 @@ public partial class SharpTimer
             return;
         }
 
-        if (int.TryParse(desiredMode, out int modeIndex))
-        {
-            var modes = Enum.GetValues<Mode>();
-
-            if (modeIndex >= 0 && modeIndex < modes.Length)
-            {
-                Mode newMode = modes[modeIndex];
-                SetPlayerMode(player, newMode);
-                Utils.PrintToChat(player, Localizer["mode_set", GetModeName(newMode)]);
-                AddTimer(0.1f, () =>
-                {
-                    RespawnPlayer(player);
-                });
-            }
-            else
-            {
-                Utils.PrintToChat(player, Localizer["mode_not_found", desiredMode]);
-            }
-        }
-        else if (TryParseMode(desiredMode.ToLower(), out Mode newMode))
+        if (TryParseMode(desiredMode.ToLower(), out Mode newMode))
         {
             SetPlayerMode(player, newMode);
             Utils.PrintToChat(player, Localizer["mode_set", GetModeName(newMode)]);
@@ -253,4 +234,19 @@ public enum Mode
     Source = 4,    // 66t-ish + lower accel + cs:s friction (30.71 wishspeed & 5 accel & 4 friction)
     Bhop = 5,      // 128t-ish + 1000 aa (52.59 wishspeed & 1000 aa)
     Custom = 6     // Use custom server cvars (WILL NOT SUBMIT TO GLOBAL)
+}
+
+
+public class ModeManager
+{
+    private static HashSet<Mode> enabledModes =
+        [Mode.Standard, Mode._85t, Mode._102t, Mode._128t, Mode.Source, Mode.Bhop, Mode.Custom];
+
+    public static bool IsModeEnabled(Mode mode) => enabledModes.Contains(mode);
+    
+    public static void EnableMode(Mode mode) => enabledModes.Add(mode);
+    
+    public static void DisableMode(Mode mode) => enabledModes.Remove(mode);
+    
+    public static IEnumerable<Mode> GetEnabledModes() => enabledModes.ToList();
 }
