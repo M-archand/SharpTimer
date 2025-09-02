@@ -2,8 +2,10 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Admin;
+using CounterStrikeSharp.API.Modules.Utils;
 using CounterStrikeSharp.API.Modules.Commands;
 using MySqlConnector;
+using Dapper;
 using System.Text.Json;
 using System.Data;
 using System.Data.Common;
@@ -2034,21 +2036,21 @@ namespace SharpTimer
             {
                 using var conn = await OpenConnectionAsync(); // returns MySQL connection in your setup
                 await EnsurePlayerStartPositionTableAsync(conn);
-        
+
                 const string sql = @"
-                    INSERT INTO `PlayerStartPosition` AS new
+                    INSERT INTO `PlayerStartPosition`
                         (`SteamID`,`MapName`,`PosX`,`PosY`,`PosZ`,`AngX`,`AngY`,`AngZ`)
                     VALUES
                         (@SteamID,@MapName,@PosX,@PosY,@PosZ,@AngX,@AngY,@AngZ)
                     ON DUPLICATE KEY UPDATE
-                        `PosX` = new.`PosX`,
-                        `PosY` = new.`PosY`,
-                        `PosZ` = new.`PosZ`,
-                        `AngX` = new.`AngX`,
-                        `AngY` = new.`AngY`,
-                        `AngZ` = new.`AngZ`,
+                        `PosX` = @PosX,
+                        `PosY` = @PosY,
+                        `PosZ` = @PosZ,
+                        `AngX` = @AngX,
+                        `AngY` = @AngY,
+                        `AngZ` = @AngZ,
                         `UpdatedAt` = CURRENT_TIMESTAMP;";
-        
+
                 await conn.ExecuteAsync(sql, new
                 {
                     SteamID = steamId,
