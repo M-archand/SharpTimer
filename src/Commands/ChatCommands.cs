@@ -1103,7 +1103,35 @@ namespace SharpTimer
             if (useTriggers == false)
             {
                 PrintToChat(player, Localizer["map_using_manual_zones"]);
-                return;
+                //return;
+            }
+
+            // Add "!startpos clear" argument to delete it
+            if (command != null && command.ArgCount >= 1)
+            {
+                string arg1 = command.GetArg(1);
+                if (!string.IsNullOrEmpty(arg1) && arg1.Equals("clear", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (!enableDb)
+                        return;
+            
+                    if (playerTimers.TryGetValue(player.Slot, out var t))
+                    {
+                        t.SetRespawnPos = null;
+                        t.SetRespawnAng = null;
+                    }
+            
+                    string sid = player.SteamID.ToString();
+                    string map = currentMapName!;
+                    _ = Task.Run(async () =>
+                    {
+                        try { await ClearPlayerStartPositionAsync(sid, map); }
+                        catch (Exception ex) { SharpTimerError($"!startpos clear failed: {ex.Message}"); }
+                    });
+            
+                    PrintToChat(player, "Deleted existing start position");
+                    return;
+                }
             }
 
             // Get the player's current position and rotation
@@ -1121,6 +1149,27 @@ namespace SharpTimer
                     playerTimers[player.Slot].SetRespawnPos = positionString;
                     playerTimers[player.Slot].SetRespawnAng = rotationString;
                     PrintToChat(player, Localizer["saved_custom_respawnpos"]);
+
+                    // Send to DB
+                    if (enableDb && !player.IsBot && !string.IsNullOrEmpty(currentMapName))
+                    {
+                        string sid = player.SteamID.ToString();
+                        string mapName = currentMapName!;
+                        var pos = new Vector(currentPosition.X, currentPosition.Y, currentPosition.Z);
+                        var ang = new QAngle(currentRotation.X, currentRotation.Y, currentRotation.Z);
+        
+                        _ = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                await SavePlayerStartPositionAsync(sid, mapName, pos, ang);
+                            }
+                            catch (Exception ex)
+                            {
+                                SharpTimerError($"!startpos save failed: {ex.Message}");
+                            }
+                        });
+                    }
                 }
                 else
                 {
@@ -1138,6 +1187,26 @@ namespace SharpTimer
                     playerTimers[player.Slot].SetRespawnPos = positionString;
                     playerTimers[player.Slot].SetRespawnAng = rotationString;
                     PrintToChat(player, Localizer["saved_custom_respawnpos"]);
+
+                    if (enableDb && !player.IsBot && !string.IsNullOrEmpty(currentMapName))
+                    {
+                        string sid = player.SteamID.ToString();
+                        string mapName = currentMapName!;
+                        var pos = new Vector(currentPosition.X, currentPosition.Y, currentPosition.Z);
+                        var ang = new QAngle(currentRotation.X, currentRotation.Y, currentRotation.Z);
+        
+                        _ = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                await SavePlayerStartPositionAsync(sid, mapName, pos, ang);
+                            }
+                            catch (Exception ex)
+                            {
+                                SharpTimerError($"!startpos save failed: {ex.Message}");
+                            }
+                        });
+                    }
                 }
                 else
                 {
