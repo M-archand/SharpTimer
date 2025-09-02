@@ -68,11 +68,7 @@ public partial class SharpTimer : BasePlugin
         RunCommand = isLinux ? new RunCommandLinux() : new RunCommandWindows();
 
         if (isLinux)
-        {
             RunCommand?.Hook(OnRunCommandPre, HookMode.Pre);
-            ProcessMovement.Hook(ProcessMovementPre, HookMode.Pre);
-            ProcessMovement.Hook(ProcessMovementPost, HookMode.Post);
-        }
 
         StateTransition.Hook(Hook_StateTransition, HookMode.Post);
         RemoveDamage?.Hook();
@@ -105,11 +101,7 @@ public partial class SharpTimer : BasePlugin
     public override void Unload(bool hotReload)
     {
         if (isLinux)
-        {
             RunCommand?.Unhook(OnRunCommandPre, HookMode.Pre);
-            ProcessMovement.Unhook(ProcessMovementPre, HookMode.Pre);
-            ProcessMovement.Unhook(ProcessMovementPost, HookMode.Post);
-        }
 
         StateTransition.Unhook(Hook_StateTransition, HookMode.Post);
         RemoveDamage?.Unhook();
@@ -167,6 +159,8 @@ public partial class SharpTimer : BasePlugin
                     QAngle_t viewAngle = userCmd.GetViewAngles()!.Value;
                     ParseStrafes(player, new(viewAngle.X, viewAngle.Y, viewAngle.Z));
                 }
+                
+                ApplyMode(player);
 
                 // Style Stuff
                 if ((playerTimers[player.Slot].IsTimerRunning || playerTimers[player.Slot].IsBonusTimerRunning) &&

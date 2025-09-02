@@ -4,14 +4,12 @@ using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Cvars;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
+using CounterStrikeSharp.API.Modules.UserMessages;
 
 namespace SharpTimer;
 
 public partial class SharpTimer
 {
-    private static readonly MemoryFunctionVoid<CCSPlayer_MovementServices, IntPtr> ProcessMovement =
-        new (GameData.GetSignature("ProcessMovement"));
-    
     private readonly ConVar? _wishspeed = ConVar.Find("sv_air_max_wishspeed");
     private readonly ConVar? _airaccel = ConVar.Find("sv_airaccelerate");
     private readonly ConVar? _accel = ConVar.Find("sv_accelerate");
@@ -173,7 +171,7 @@ public partial class SharpTimer
 
         if (command.ArgByIndex(1) == "")
         {
-            var modes = Enum.GetValues<Mode>().ToArray();
+            var modes = Enum.GetValues<Mode>();
 
             for (int i = 0; i < modes.Length; i++)
             {
@@ -186,7 +184,7 @@ public partial class SharpTimer
 
         if (int.TryParse(desiredMode, out int modeIndex))
         {
-            var modes = Enum.GetValues<Mode>().ToArray();
+            var modes = Enum.GetValues<Mode>();
 
             if (modeIndex >= 0 && modeIndex < modes.Length)
             {
@@ -223,20 +221,17 @@ public partial class SharpTimer
         int? slot = player.Slot;
         return _playerModes[slot.Value];
     }
-    
-    private HookResult ProcessMovementPre(DynamicHook h)
-    {
-        var player = h.GetParam<CCSPlayer_MovementServices>(movementServices).Pawn.Value.Controller.Value
-            ?.As<CCSPlayerController>();
 
-        if (player == null || player.IsBot || !player.IsValid || player.IsHLTV) return HookResult.Continue;
+    private void ApplyMode(CCSPlayerController player)
+    {
+        if (player == null || player.IsBot || !player.IsValid || player.IsHLTV) return;
         
         Mode? playerMode = GetPlayerMode(player);
         
         if (_accel == null || _airaccel == null || _wishspeed == null || _friction == null)
         {
             Utils.LogDebug("ApplyConvar: Mode convar values are null");
-            return HookResult.Continue;
+            return;
         }
 
         ModeConfig modeConfig = _configValues[ModeIndexLookup[playerMode!.Value]];
@@ -245,31 +240,6 @@ public partial class SharpTimer
         _airaccel.SetValue(modeConfig.AirAccelerate);
         _wishspeed.SetValue(modeConfig.Wishspeed);
         _friction.SetValue(modeConfig.Friction);
-        
-        return HookResult.Continue;
-    }
-
-    private HookResult ProcessMovementPost(DynamicHook h)
-    {
-        var player = h.GetParam<CCSPlayer_MovementServices>(movementServices).Pawn.Value.Controller.Value
-            ?.As<CCSPlayerController>();
-
-        if (player == null || player.IsBot || !player.IsValid || player.IsHLTV) return HookResult.Continue;
-        
-        if (_accel == null || _airaccel == null || _wishspeed == null || _friction == null)
-        {
-            Utils.LogDebug("ResetConvar: Mode convar values are null");
-            return HookResult.Continue;
-        }
-
-        var defaultConfig = _configValues[ModeIndexLookup[defaultMode]];
-        
-        _accel.SetValue(defaultConfig.Accelerate);
-        _airaccel.SetValue(defaultConfig.AirAccelerate);
-        _wishspeed.SetValue(defaultConfig.Wishspeed);
-        _friction.SetValue(defaultConfig.Friction);
-        
-        return HookResult.Continue;
     }
 }
 

@@ -3730,14 +3730,14 @@ namespace SharpTimer
             try
             {
                 Server.NextFrame(() => Utils.PrintToChatAll("Points import initialized"));
-                var sortedRecords = await GetAllSortedRecordsFromDatabase();
+                var sortedRecords = await GetAllSortedRecordsFromDatabase(0, 0, 0, GetModeName(defaultMode));
 
                 int batchSize = 10;
                 for (int i = 0; i < sortedRecords.Count; i += batchSize)
                 {
                     var batch = sortedRecords.Skip(i).Take(batchSize);
                     var tasks = batch.Select(record => SavePlayerPoints(record.SteamID!, record.PlayerName!, -1,
-                        record.TimerTicks, 0, "", false, 0, 0, 0, record.MapName!, true));
+                        record.TimerTicks, 0, GetModeName(defaultMode), false, 0, 0, 0, record.MapName!, true));
 
                     await Task.WhenAll(tasks);
                 }
