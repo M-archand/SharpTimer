@@ -1995,5 +1995,129 @@ namespace SharpTimer
                 SharpTimerError($"Error adding JSON times to the database: {ex.Message}");
             }
         }
+        
+        // --- PlayerStartPosition (WIP) ----------------------------------------
+        
+        private sealed class StartPosRow
+        {
+            public double PosX { get; set; }
+            public double PosY { get; set; }
+            public double PosZ { get; set; }
+            public double AngX { get; set; }
+            public double AngY { get; set; }
+            public double AngZ { get; set; }
+        }
+        
+        private const string CreatePlayerStartPositionTableSql = @"
+                    CREATE TABLE IF NOT EXISTS `PlayerStartPosition` (
+                      `SteamID`  VARCHAR(20)  NOT NULL,
+                      `MapName`  VARCHAR(255) NOT NULL,
+                      `PosX`     DOUBLE       NOT NULL,
+                      `PosY`     DOUBLE       NOT NULL,
+                      `PosZ`     DOUBLE       NOT NULL,
+                      `AngX`     DOUBLE       NOT NULL,
+                      `AngY`     DOUBLE       NOT NULL,
+                      `AngZ`     DOUBLE       NOT NULL,
+                      `UpdatedAt` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                      PRIMARY KEY (`SteamID`, `MapName`)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+        
+        private async Task EnsurePlayerStartPositionTableAsync(IDbConnection conn)
+        {
+            await conn.ExecuteAsync(CreatePlayerStartPositionTableSql);
+        }
+        
+        // Save (or update) a player's chosen start position for the current map.
+        private async Task SavePlayerStartPositionAsync(string steamId, string mapName, Vector pos, QAngle ang)
+        {
+            try
+            {
+                using var conn = await OpenConnectionAsync(); // returns MySQL connection in your setup
+                await EnsurePlayerStartPositionTableAsync(conn);
+        
+                const string sql = @"
+                    INSERT INTO `PlayerStartPosition` AS new
+                        (`SteamID`,`MapName`,`PosX`,`PosY`,`PosZ`,`AngX`,`AngY`,`AngZ`)
+                    VALUES
+                        (@SteamID,@MapName,@PosX,@PosY,@PosZ,@AngX,@AngY,@AngZ)
+                    ON DUPLICATE KEY UPDATE
+                        `PosX` = new.`PosX`,
+                        `PosY` = new.`PosY`,
+                        `PosZ` = new.`PosZ`,
+                        `AngX` = new.`AngX`,
+                        `AngY` = new.`AngY`,
+                        `AngZ` = new.`AngZ`,
+                        `UpdatedAt` = CURRENT_TIMESTAMP;";
+        
+                await conn.ExecuteAsync(sql, new
+                {
+                    SteamID = steamId,
+                    MapName = mapName,
+                    PosX = (double)pos.X,
+                    PosY = (double)pos.Y,
+                    PosZ = (double)pos.Z,
+                    AngX = (double)ang.X,
+                    AngY = (double)ang.Y,
+                    AngZ = (double)ang.Z
+                });
+            }
+            catch (Exception ex)
+            {
+                SharpTimerError($"SavePlayerStartPositionAsync: {ex.Message}");
+            }
+        }
+        
+        /// Load a saved start position for (steamId, mapName) and push into playerTimers
+        private async Task LoadPlayerStartPositionForMapAsync(string steamId, string mapName, int playerSlot)
+        {
+            try
+            {
+                using var conn = await OpenConnectionAsync();
+                await EnsurePlayerStartPositionTableAsync(conn);
+        
+                const string sql = @"
+                    SELECT `PosX`,`PosY`,`PosZ`,`AngX`,`AngY`,`AngZ`
+                    FROM `PlayerStartPosition`
+                    WHERE `SteamID` = @SteamID AND `MapName` = @MapName
+                    LIMIT 1;";
+        
+                var row = await conn.QueryFirstOrDefaultAsync<StartPosRow>(sql, new { SteamID = steamId, MapName = mapName });
+                if (row is null) return;
+        
+                string pos = $"{row.PosX} {row.PosY} {row.PosZ}";
+                string ang = $"{row.AngX} {row.AngY} {row.AngZ}";
+        
+                // Load on next frame
+                Server.NextFrame(() =>
+                {
+                    if (playerTimers.TryGetValue(playerSlot, out var t))
+                    {
+                        t.SetRespawnPos = pos;
+                        t.SetRespawnAng = ang;
+                        SharpTimerDebug($"[startpos] Loaded for slot {playerSlot} on {mapName}: {pos} | {ang}");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                SharpTimerError($"LoadPlayerStartPositionForMapAsync: {ex.Message}");
+            }
+        }
+        
+        /// Remove saved startpos for the current map (css_delstartpos)
+        private async Task ClearPlayerStartPositionAsync(string steamId, string mapName)
+        {
+            try
+            {
+                using var conn = await OpenConnectionAsync();
+                await EnsurePlayerStartPositionTableAsync(conn);
+                await conn.ExecuteAsync(@"DELETE FROM `PlayerStartPosition` WHERE `SteamID`=@SteamID AND `MapName`=@MapName;",
+                    new { SteamID = steamId, MapName = mapName });
+            }
+            catch (Exception ex)
+            {
+                SharpTimerError($"ClearPlayerStartPositionAsync: {ex.Message}");
+            }
+        }
     }
 }
