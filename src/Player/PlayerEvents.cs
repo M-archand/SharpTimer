@@ -53,6 +53,26 @@ namespace SharpTimer
                     playerTimers[playerSlot].SetRespawnAng = null;
                     playerTimers[playerSlot].SoundsEnabled = soundsEnabledByDefault;
 
+                    // Load saved start position for this map
+                    if (enableDb && !isForBot)
+                    {
+                        var mapName = currentMapName;
+                        if (!string.IsNullOrEmpty(mapName))
+                        {
+                            _ = Task.Run(async () =>
+                            {
+                                try
+                                {
+                                    await LoadPlayerStartPositionForMapAsync(steamID, mapName!, playerSlot);
+                                }
+                                catch (Exception ex)
+                                {
+                                    SharpTimerError($"startpos load failed for {steamID} on {mapName}: {ex.Message}");
+                                }
+                            });
+                        }
+                    }
+
                     if (isForBot == false) _ = Task.Run(async () => await IsPlayerATester(steamID, playerSlot));
 
                     //PlayerSettings
