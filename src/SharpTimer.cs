@@ -52,6 +52,8 @@ public partial class SharpTimer : BasePlugin
         gameDir = Server.GameDirectory;
         Utils.LogDebug($"Set gameDir to {gameDir}");
 
+        CheckMissingFakeConvars();
+
         float randomf = new Random().Next(5, 31);
         if (apiKey != "")
             AddTimer(randomf, () => CheckCvarsAndMaxVelo(), TimerFlags.REPEAT);
