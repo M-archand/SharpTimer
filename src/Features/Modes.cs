@@ -246,7 +246,6 @@ public partial class SharpTimer
         _wishspeed.SetValue(modeConfig.Wishspeed);
         _friction.SetValue(modeConfig.Friction);
         
-        
         return HookResult.Continue;
     }
 

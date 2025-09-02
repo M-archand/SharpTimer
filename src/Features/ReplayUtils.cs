@@ -553,7 +553,7 @@ namespace SharpTimer
                                 ChangePlayerName(bot, replayBotName);
                                 playerTimers[bot.Slot].IsTimerBlocked = true;
                                 _ = Task.Run(async () =>
-                                    await ReplayHandler(bot, bot.Slot, "1", "69", "unknown", 0, 0, false, "Standard"));
+                                    await ReplayHandler(bot, bot.Slot, "1", "69", "unknown", 0, 0, false, GetModeName(defaultMode)));
                                 Utils.LogDebug($"Starting replay for {bot.PlayerName}");
                             }
                             else
@@ -621,18 +621,9 @@ namespace SharpTimer
                         {
                             return true;
                         }
-
-                        return false;
-                    }
-                    else
-                    {
-                        return false;
                     }
                 }
-                else
-                {
-                    return false;
-                }
+                return false;
             }
             catch (Exception ex)
             {

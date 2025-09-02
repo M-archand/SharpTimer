@@ -79,7 +79,7 @@ namespace SharpTimer
                         if (enableDb) _ = Task.Run(async () =>
                         {
                             await GetPlayerStats(player, steamID, playerName, player.Slot, true);
-                            if (string.IsNullOrEmpty(playerTimers[player.Slot].Mode))
+                            if (string.IsNullOrEmpty(playerTimers[player.Slot].Mode) || playerTimers[player.Slot].Mode == "None")
                             {
                                 Utils.LogDebug($"Player has null mode, falling back to default");
                                 playerTimers[player.Slot].Mode = GetModeName(defaultMode);
