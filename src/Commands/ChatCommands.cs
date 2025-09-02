@@ -986,7 +986,6 @@ namespace SharpTimer
             }
         }
 
-        [ConsoleCommand("css_rb", "Teleports you to Bonus start")]
         [ConsoleCommand("css_b", "alias for !rb")]
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
         public void RespawnBonusPlayer(CCSPlayerController? player, CommandInfo command)
@@ -994,82 +993,86 @@ namespace SharpTimer
             try
             {
                 if (!IsAllowedPlayer(player) || respawnEnabled == false) return;
-                SharpTimerDebug($"{player!.PlayerName} calling css_rb...");
+                SharpTimerDebug($"{player!.PlayerName} calling css_b...");
 
-                if (CommandCooldown(player))
-                    return;
+                if (CommandCooldown(player)) return;
+                if (ReplayCheck(player))     return;
 
-                if (ReplayCheck(player))
-                    return;
+                var slot = player.Slot;
+                playerTimers[slot].TicksSinceLastCmd = 0;
 
-                playerTimers[player.Slot].TicksSinceLastCmd = 0;
+                // 1) Decide which bonus to use
+                int targetBonus = 0;
 
-                //defaults to !b 1 without any args
-                if (command.ArgString == null || command.ArgString == "")
+                // If user passed an explicit number, use it
+                if (!string.IsNullOrWhiteSpace(command.ArgString))
                 {
-                    if (bonusRespawnPoses[1] != null)
+                    if (!int.TryParse(command.ArgString, out targetBonus))
                     {
-                        if (bonusRespawnAngs.TryGetValue(1, out QAngle? bonusAng) && bonusAng != null)
-                        {
-                            player.PlayerPawn.Value!.Teleport(bonusRespawnPoses[1]!, bonusRespawnAngs[1]!, new Vector(0, 0, 0));
-                        }
-                        else
-                        {
-                            player.PlayerPawn.Value!.Teleport(bonusRespawnPoses[1]!, new QAngle(player.PlayerPawn.Value.EyeAngles.X, player.PlayerPawn.Value.EyeAngles.Y, player.PlayerPawn.Value.EyeAngles.Z) ?? new QAngle(0, 0, 0), new Vector(0, 0, 0));
-                        }
-                        SharpTimerDebug($"{player.PlayerName} css_rb {1} to {bonusRespawnPoses[1]}");
+                        SharpTimerDebug("css_rb conversion failed. The input string is not a valid integer.");
+                        PrintToChat(player, Localizer["no_respawnpos_bonus_rb"]);
+                        return;
                     }
-                    else
-                    {
-                        PrintToChat(player, Localizer["no_respawnpos_bonus_index", 1]);
-                    }
-                    Server.NextFrame(() =>
-                    {
-                        playerTimers[player.Slot].IsTimerRunning = false;
-                        playerTimers[player.Slot].TimerTicks = 0;
-                        playerTimers[player.Slot].IsBonusTimerRunning = false;
-                        playerTimers[player.Slot].BonusTimerTicks = 0;
-                    });
-                    return;
-                }
-
-                if (!int.TryParse(command.ArgString, out int bonusX))
-                {
-                    SharpTimerDebug("css_rb conversion failed. The input string is not a valid integer.");
-                    PrintToChat(player, Localizer["no_respawnpos_bonus_rb"]);
-                    return;
-                }
-
-                // Remove checkpoints for the current player
-                if (!playerTimers[player.Slot].IsTimerBlocked)
-                {
-                    playerCheckpoints.Remove(player.Slot);
-                }
-
-                if (bonusRespawnPoses[bonusX] != null)
-                {
-                    if (bonusRespawnAngs.TryGetValue(bonusX, out QAngle? bonusAng) && bonusAng != null)
-                    {
-                        player.PlayerPawn.Value!.Teleport(bonusRespawnPoses[bonusX]!, bonusRespawnAngs[bonusX]!, new Vector(0, 0, 0));
-                    }
-                    else
-                    {
-                        player.PlayerPawn.Value!.Teleport(bonusRespawnPoses[bonusX]!, new QAngle(player.PlayerPawn.Value.EyeAngles.X, player.PlayerPawn.Value.EyeAngles.Y, player.PlayerPawn.Value.EyeAngles.Z) ?? new QAngle(0, 0, 0), new Vector(0, 0, 0));
-                    }
-                    SharpTimerDebug($"{player.PlayerName} css_rb {bonusX} to {bonusRespawnPoses[bonusX]}");
                 }
                 else
                 {
-                    PrintToChat(player, Localizer["no_respawnpos_bonus"]);
+                    // No arg: default to the LAST bonus start the player was in
+                    if (playerTimers.TryGetValue(slot, out var t))
+                        targetBonus = t.CurrentZoneInfo?.CurrentBonusNumber ?? 0;
+
+                    // If we still don't have a valid bonus (never touched one), fall back to 1
+                    if (targetBonus == 0) targetBonus = 1;
                 }
 
+                // 2) Remove checkpoints if timer isn't blocked (keeps parity with other respawns)
+                if (!playerTimers[slot].IsTimerBlocked)
+                    playerCheckpoints.Remove(slot);
+
+                // 3) Validate & teleport
+                if (bonusRespawnPoses[targetBonus] != null)
+                {
+                    if (bonusRespawnAngs.TryGetValue(targetBonus, out QAngle? ang) && ang != null)
+                        player.PlayerPawn.Value!.Teleport(bonusRespawnPoses[targetBonus]!, ang, new Vector(0, 0, 0));
+                    else
+                        player.PlayerPawn.Value!.Teleport(
+                            bonusRespawnPoses[targetBonus]!,
+                            player.PlayerPawn.Value.EyeAngles ?? new QAngle(0, 0, 0),
+                            new Vector(0, 0, 0)
+                        );
+
+                    SharpTimerDebug($"{player.PlayerName} css_rb {targetBonus} to {bonusRespawnPoses[targetBonus]}");
+                }
+                else
+                {
+                    // Keep existing messaging behavior
+                    if (string.IsNullOrWhiteSpace(command.ArgString))
+                        PrintToChat(player, Localizer["no_respawnpos_bonus_index", targetBonus]);
+                    else
+                        PrintToChat(player, Localizer["no_respawnpos_bonus"]);
+                    return;
+                }
+
+                // 4) Reset timer state, mark player as in start zone, and set HUD context to the chosen bonus
                 Server.NextFrame(() =>
                 {
-                    playerTimers[player.Slot].IsTimerRunning = false;
-                    playerTimers[player.Slot].TimerTicks = 0;
-                    playerTimers[player.Slot].IsBonusTimerRunning = false;
-                    playerTimers[player.Slot].BonusTimerTicks = 0;
-                    playerTimers[player.Slot].IsTimerBlocked = false;
+                    var pT = playerTimers[slot];
+                    pT.IsTimerRunning      = false;
+                    pT.TimerTicks          = 0;
+                    pT.IsBonusTimerRunning = false;
+                    pT.BonusTimerTicks     = 0;
+                    pT.IsTimerBlocked      = false;
+
+                    // Match css_r behavior so max-startspeed and guards apply
+                    pT.inStartzone      = true;
+                    pT.TicksInStartZone = 0;
+
+                    // Inform HUD/logic which bonus start we're at now
+                    pT.CurrentZoneInfo = new CurrentZoneInfo
+                    {
+                        InMainMapStartZone = false,
+                        InBonusStartZone   = true,
+                        CurrentBonusNumber = targetBonus
+                    };
                 });
 
                 PlaySound(player, respawnSound);
@@ -1555,55 +1558,109 @@ namespace SharpTimer
             }
         }
 
-        [ConsoleCommand("css_rs", "Teleport player to start of stage.")]
+        // Auto-respawn: stage if you're on the main map; last bonus start if you're on a bonus
+        [ConsoleCommand("css_rs", "Smart restart: stage or last bonus start")]
+        [ConsoleCommand("css_rb", "Smart restart: stage or last bonus start")]
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
-        public void RestartCurrentStageCmd(CCSPlayerController? player, CommandInfo command)
+        public void RespawnSmart(CCSPlayerController? player, CommandInfo command)
         {
-            if (!IsAllowedPlayer(player)) return;
-
-            if (CommandCooldown(player))
-                return;
-
-            SharpTimerDebug($"{player!.PlayerName} calling css_rs...");
-
-            if (stageTriggerCount == 0)
-            {
-                if (enableRsOnLinear) {
-                    player.ExecuteClientCommandFromServer("css_r");
-                    return;
-                }
-                PrintToChat(player, Localizer["map_no_stages"]);
-                return;
-            }
-
-            if (!playerTimers.TryGetValue(player.Slot, out PlayerTimerInfo? playerTimer) || playerTimer.CurrentMapStage == 0)
-            {
-                PrintToChat(player, Localizer["error_occured"]);
-                SharpTimerDebug("Failed to get playerTimer or playerTimer.CurrentMapStage == 0.");
-                return;
-            }
-
-            int currStage = playerTimer.CurrentMapStage;
-
             try
             {
-                playerTimers[player.Slot].TicksSinceLastCmd = 0;
+                if (!IsAllowedPlayer(player) || respawnEnabled == false)
+                    return;
+                if (CommandCooldown(player))
+                    return;
+                if (ReplayCheck(player))
+                    return;
 
-                if (stageTriggerPoses.TryGetValue(currStage, out Vector? stagePos) && stagePos != null)
+                var slot = player!.Slot;
+                var pT   = playerTimers[slot];
+                pT.TicksSinceLastCmd = 0;
+
+                // Bonus context detection: you're actually running a bonus, or standing in its start
+                bool inBonusContext =
+                    pT.IsBonusTimerRunning ||
+                    (pT.CurrentZoneInfo?.InBonusStartZone ?? false) ||
+                    (((pT.CurrentZoneInfo?.CurrentBonusNumber ?? 0) > 0) && pT.CurrentMapStage == 0);
+
+                // --------------------- BONUS PATH (Sane as old !rb) ---------------------
+                if (inBonusContext)
                 {
-                    player.PlayerPawn.Value!.Teleport(stagePos, stageTriggerAngs[currStage] ?? player.PlayerPawn.Value.EyeAngles, new Vector(0, 0, 0));
-                    SharpTimerDebug($"{player.PlayerName} css_rs {player.PlayerName}");
+                    if (!pT.IsTimerBlocked)
+                        playerCheckpoints.Remove(slot);
+
+                    int targetBonus = pT.CurrentZoneInfo?.CurrentBonusNumber ?? 0;
+                    if (targetBonus <= 0) targetBonus = 1;
+
+                    if (bonusRespawnPoses.TryGetValue(targetBonus, out var bPos) && bPos != null)
+                    {
+                        var bAng = (bonusRespawnAngs.TryGetValue(targetBonus, out var a) && a != null)
+                                ? a
+                                : FallbackAng(player);
+
+                        player.PlayerPawn.Value!.Teleport(bPos, bAng, new Vector(0, 0, 0));
+
+                        Server.NextFrame(() =>
+                        {
+                            // Reset like !rb
+                            pT.IsTimerRunning      = false;
+                            pT.TimerTicks          = 0;
+                            pT.IsBonusTimerRunning = false;
+                            pT.BonusTimerTicks     = 0;
+                            pT.IsTimerBlocked      = false;
+
+                            pT.inStartzone      = true;
+                            pT.TicksInStartZone = 0;
+
+                            pT.CurrentMapStage = 0;
+                            pT.CurrentZoneInfo = new CurrentZoneInfo
+                            {
+                                InMainMapStartZone = false,
+                                InBonusStartZone   = true,
+                                CurrentBonusNumber = targetBonus
+                            };
+                        });
+
+                        PlaySound(player, respawnSound);
+                        SharpTimerDebug($"{player.PlayerName} smart-respawn BONUS {targetBonus} -> {bPos}");
+                        return;
+                    }
+
+                    PrintToChat(player, Localizer["no_respawnpos_bonus_rb"]);
+                    return;
+                }
+
+                // --------------------- STAGE PATH (same as like old !rs) ---------------------
+                // Don't clear checkpoints, don't reset timers, etc.
+                int targetStage = pT.CurrentMapStage > 0 ? pT.CurrentMapStage : 1;
+
+                if (stageTriggerPoses.TryGetValue(targetStage, out var sPos) && sPos != null)
+                {
+                    var sAng = (stageTriggerAngs.TryGetValue(targetStage, out var sa) && sa != null)
+                            ? sa
+                            : FallbackAng(player);
+
+                    player.PlayerPawn.Value!.Teleport(sPos, sAng, new Vector(0, 0, 0));
+
+                    pT.CurrentMapStage = targetStage;
+
+                    PlaySound(player, respawnSound);
+                    SharpTimerDebug($"{player.PlayerName} smart-respawn STAGE {targetStage} -> {sPos}");
                 }
                 else
                 {
-                    PrintToChat(player, Localizer["stages_unavalible_respawnpos"]);
+                    PrintToChat(player, Localizer["no_respawnpos_stage"]);
                 }
             }
             catch (Exception ex)
             {
-                SharpTimerError($"Exception in RestartCurrentStage: {ex.Message}");
+                SharpTimerError($"Exception in RespawnSmart: {ex.Message}");
             }
         }
+
+        // Null-safe angle fallback
+        private static QAngle FallbackAng(CCSPlayerController? p)
+            => p?.PlayerPawn?.Value?.EyeAngles ?? new QAngle(0, 0, 0);
 
         [ConsoleCommand("css_timer", "Stops your timer")]
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
