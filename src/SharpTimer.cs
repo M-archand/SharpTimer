@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 
 namespace SharpTimer
 {
-    [MinimumApiVersion(287)]
+    [MinimumApiVersion(337)]
     public partial class SharpTimer : BasePlugin
     {
         public required IRunCommand RunCommand;
@@ -33,7 +33,6 @@ namespace SharpTimer
             string recordsFileName = $"SharpTimer/PlayerRecords/";
             playerRecordsPath = Path.Join(gameDir + "/csgo/cfg", recordsFileName);
 
-
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) isLinux = true;
             else isLinux = false;
 
@@ -54,12 +53,11 @@ namespace SharpTimer
             StateTransition.Hook(Hook_StateTransition, HookMode.Post);
 
             float randomf = new Random().Next(5, 31);
-            //if (apiKey != "") AddTimer(randomf, () => CheckCvarsAndMaxVelo(), TimerFlags.REPEAT);
 
             currentMapName = Server.MapName;
 
             RegisterListener<Listeners.OnMetamodAllPluginsLoaded>(InitializeTriggerHooks);
-            
+
             RegisterListener<Listeners.CheckTransmit>((CCheckTransmitInfoList infoList) =>
             {
                 IEnumerable<CCSPlayerController> players = Utilities.FindAllEntitiesByDesignerName<CCSPlayerController>("cs_player_controller");
@@ -74,7 +72,7 @@ namespace SharpTimer
 
                     if (!connectedPlayers.TryGetValue(player.Slot, out var connected) || connected == null)
                         continue;
-                    
+                        
                     if (!playerTimers.TryGetValue(player.Slot, out var timer) || timer == null || !timer.HidePlayers)
                         continue;
 
@@ -112,7 +110,7 @@ namespace SharpTimer
                     {
                         if (player is null || !player.IsValid)
                             return HookResult.Continue;
-                        
+
                         if (playerTimers[player.Slot].HidePlayers)
                             sound.Recipients.Remove(player);
                     }
@@ -128,7 +126,7 @@ namespace SharpTimer
                     {
                         if (player is null || !player.IsValid)
                             return HookResult.Continue;
-                        
+
                         if (playerTimers[player.Slot].HidePlayers)
                             sound.Recipients.Remove(player);
                     }
@@ -144,7 +142,7 @@ namespace SharpTimer
                     {
                         if (player is null || !player.IsValid)
                             return HookResult.Continue;
-                        
+
                         if (playerTimers[player.Slot].HidePlayers)
                             sound.Recipients.Remove(player);
                     }
@@ -161,12 +159,12 @@ namespace SharpTimer
 
                 if (!applyInfiniteAmmo)
                     return HookResult.Continue;
-                
+
                 ApplyInfiniteClip(player);
                 ApplyInfiniteReserve(player);
                 return HookResult.Continue;
             });
-            
+
             RegisterListener<Listeners.OnMapStart>(OnMapStartHandler);
 
             RegisterEventHandler<EventPlayerConnectFull>((@event, info) =>
