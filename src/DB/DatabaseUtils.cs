@@ -2105,8 +2105,56 @@ namespace SharpTimer
                 SharpTimerError($"LoadPlayerStartPosition: {ex.Message}");
             }
         }
-        
-        /// Remove saved startpos for the current map (css_delstartpos)
+
+        private async Task LoadPlayerBonusStartPositions(string steamId, string baseMapName, int playerSlot)
+        {
+            try
+            {
+                if (enableDb && !_startPosSchemaReady) await _startPosSchemaTask;
+                using var conn = await OpenConnectionAsync();
+
+                const string sql = @"
+                    SELECT `MapName`,`PosX`,`PosY`,`PosZ`,`AngX`,`AngY`
+                    FROM `PlayerStartPosition`
+                    WHERE `SteamID` = @SteamID
+                    AND `MapName` LIKE CONCAT(@BaseMap, '/_bonus%') ESCAPE '/';";
+
+                var rows = (await conn.QueryAsync<StartPosRow>(sql, new { SteamID = steamId, BaseMap = baseMapName })).ToList();
+                var ic = CultureInfo.InvariantCulture;
+
+                Server.NextFrame(() =>
+                {
+                    if (!playerTimers.TryGetValue(playerSlot, out var t)) return;
+
+                    string prefix = baseMapName + "_bonus";
+                    foreach (var r in rows)
+                    {
+                        // Expect "baseMap_bonusN"
+                        if (!r.MapName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                            continue;
+
+                        var numPart = r.MapName.Substring(prefix.Length); // e.g. "1"
+                        if (!int.TryParse(numPart, out var bNum) || bNum <= 0)
+                            continue;
+
+                        string p = string.Format(ic, "{0:0.###} {1:0.###} {2:0.###}", r.PosX, r.PosY, r.PosZ);
+                        string a = string.Format(ic, "{0:0.###} {1:0.###} 0",       r.AngX, r.AngY);
+
+                        t.SavedBonusStartPos[bNum] = p;
+                        t.SavedBonusStartAng[bNum] = a;
+                    }
+
+                    if (rows.Count > 0)
+                        SharpTimerDebug($"[startpos] Loaded {rows.Count} bonus startpos for slot {playerSlot} on {baseMapName}");
+                });
+            }
+            catch (Exception ex)
+            {
+                SharpTimerError($"LoadPlayerBonusStartPositions: {ex.Message}");
+            }
+        }
+                
+        /// Remove saved startpos for the current map (css_startpos clear)
         private async Task ClearPlayerStartPosition(string steamId, string mapName)
         {
             try

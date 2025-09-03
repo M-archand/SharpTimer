@@ -1139,80 +1139,66 @@ namespace SharpTimer
             Vector currentPosition = player.Pawn.Value!.CBodyComponent?.SceneNode?.AbsOrigin ?? new Vector(0, 0, 0);
             QAngle currentRotation = player.PlayerPawn.Value!.EyeAngles ?? new QAngle(0, 0, 0);
 
-            if (useTriggers == true)
+            // Are we in main start?
+            bool inMainStart = IsVectorInsideBox(currentPosition + new Vector(0, 0, 10),
+                                                currentMapStartTriggerMaxs!, currentMapStartTriggerMins!);
+
+            // Are we in a bonus start? Prefer your tick-updated zone info
+            int bonusNum = playerTimers[player.Slot].CurrentZoneInfo?.CurrentBonusNumber ?? 0;
+            bool inBonusStart = (playerTimers[player.Slot].CurrentZoneInfo?.InBonusStartZone ?? false) && bonusNum > 0;
+
+            // Convert to strings
+            var ic = CultureInfo.InvariantCulture;
+            string positionString = string.Format(ic, "{0:0.###} {1:0.###} {2:0.###}",
+                currentPosition.X, currentPosition.Y, currentPosition.Z);
+            string rotationString = string.Format(ic, "{0:0.###} {1:0.###} 0",
+                currentRotation.X, currentRotation.Y);
+
+            if (inMainStart)
             {
-                if (IsVectorInsideBox(currentPosition + new Vector(0, 0, 10), currentMapStartTriggerMaxs!, currentMapStartTriggerMins!))
+                // Existing behavior (main map)
+                playerTimers[player.Slot].SetRespawnPos = positionString;
+                playerTimers[player.Slot].SetRespawnAng = rotationString;
+                PrintToChat(player, Localizer["saved_custom_respawnpos"]);
+
+                if (enableDb && !player.IsBot && !string.IsNullOrEmpty(currentMapName))
                 {
-                    // Convert position and rotation to strings
-                    string positionString = $"{currentPosition.X} {currentPosition.Y} {currentPosition.Z}";
-                    string rotationString = string.Format(CultureInfo.InvariantCulture, "{0:0.###} {1:0.###} 0", currentRotation.X, currentRotation.Y);
+                    string sid = player.SteamID.ToString();
+                    string key = currentMapName!;
+                    var pos = new Vector(currentPosition.X, currentPosition.Y, currentPosition.Z);
+                    var ang = new QAngle(currentRotation.X, currentRotation.Y, currentRotation.Z);
 
-                    playerTimers[player.Slot].SetRespawnPos = positionString;
-                    playerTimers[player.Slot].SetRespawnAng = rotationString;
-                    PrintToChat(player, Localizer["saved_custom_respawnpos"]);
-
-                    // Send to DB
-                    if (enableDb && !player.IsBot && !string.IsNullOrEmpty(currentMapName))
+                    _ = Task.Run(async () =>
                     {
-                        string sid = player.SteamID.ToString();
-                        string mapName = currentMapName!;
-                        var pos = new Vector(currentPosition.X, currentPosition.Y, currentPosition.Z);
-                        var ang = new QAngle(currentRotation.X, currentRotation.Y, currentRotation.Z);
-        
-                        _ = Task.Run(async () =>
-                        {
-                            try
-                            {
-                                await SavePlayerStartPosition(sid, mapName, pos, ang);
-                            }
-                            catch (Exception ex)
-                            {
-                                SharpTimerError($"!startpos save failed: {ex.Message}");
-                            }
-                        });
-                    }
+                        try { await SavePlayerStartPosition(sid, key, pos, ang); }
+                        catch (Exception ex) { SharpTimerError($"!startpos save (main) failed: {ex.Message}"); }
+                    });
                 }
-                else
+            }
+            else if (inBonusStart)
+            {
+                // NEW: Bonus save under mapName_bonus{N}
+                playerTimers[player.Slot].SavedBonusStartPos[bonusNum] = positionString;
+                playerTimers[player.Slot].SavedBonusStartAng[bonusNum] = rotationString;
+                PrintToChat(player, Localizer["saved_custom_respawnpos_bonus", bonusNum]);
+
+                if (enableDb && !player.IsBot && !string.IsNullOrEmpty(currentMapName))
                 {
-                    PrintToChat(player, Localizer["not_inside_startzone"]);
+                    string sid = player.SteamID.ToString();
+                    string key = $"{currentMapName!}_bonus{bonusNum}";
+                    var pos = new Vector(currentPosition.X, currentPosition.Y, currentPosition.Z);
+                    var ang = new QAngle(currentRotation.X, currentRotation.Y, currentRotation.Z);
+
+                    _ = Task.Run(async () =>
+                    {
+                        try { await SavePlayerStartPosition(sid, key, pos, ang); }
+                        catch (Exception ex) { SharpTimerError($"!startpos save (bonus{bonusNum}) failed: {ex.Message}"); }
+                    });
                 }
             }
             else
             {
-                if (IsVectorInsideBox(currentPosition + new Vector(0, 0, 10), currentMapStartC1, currentMapStartC2))
-                {
-                    // Convert position and rotation to strings
-                    string positionString = $"{currentPosition.X} {currentPosition.Y} {currentPosition.Z}";
-                    string rotationString = $"{currentRotation.X} {currentRotation.Y} {currentRotation.Z}";
-
-                    playerTimers[player.Slot].SetRespawnPos = positionString;
-                    playerTimers[player.Slot].SetRespawnAng = rotationString;
-                    PrintToChat(player, Localizer["saved_custom_respawnpos"]);
-
-                    if (enableDb && !player.IsBot && !string.IsNullOrEmpty(currentMapName))
-                    {
-                        string sid = player.SteamID.ToString();
-                        string mapName = currentMapName!;
-                        var pos = new Vector(currentPosition.X, currentPosition.Y, currentPosition.Z);
-                        var ang = new QAngle(currentRotation.X, currentRotation.Y, currentRotation.Z);
-        
-                        _ = Task.Run(async () =>
-                        {
-                            try
-                            {
-                                await SavePlayerStartPosition(sid, mapName, pos, ang);
-                            }
-                            catch (Exception ex)
-                            {
-                                SharpTimerError($"!startpos save failed: {ex.Message}");
-                            }
-                        });
-                    }
-                }
-                else
-                {
-                    PrintToChat(player, Localizer["not_inside_startzone"]);
-                }
+                PrintToChat(player, Localizer["not_inside_startzone"]);
             }
         }
 
@@ -1628,6 +1614,29 @@ namespace SharpTimer
             }
         }
 
+        private static bool TryParseVector(string s, out Vector v)
+        {
+            v = new Vector(0,0,0);
+            var p = s.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (p.Length != 3) return false;
+            if (!decimal.TryParse(p[0], NumberStyles.Float, CultureInfo.InvariantCulture, out var x)) return false;
+            if (!decimal.TryParse(p[1], NumberStyles.Float, CultureInfo.InvariantCulture, out var y)) return false;
+            if (!decimal.TryParse(p[2], NumberStyles.Float, CultureInfo.InvariantCulture, out var z)) return false;
+            v = new Vector((float)x, (float)y, (float)z);
+            return true;
+        }
+        private static bool TryParseQAngle(string s, out QAngle q)
+        {
+            q = new QAngle(0,0,0);
+            var p = s.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (p.Length != 3) return false;
+            if (!decimal.TryParse(p[0], NumberStyles.Float, CultureInfo.InvariantCulture, out var x)) return false;
+            if (!decimal.TryParse(p[1], NumberStyles.Float, CultureInfo.InvariantCulture, out var y)) return false;
+            if (!decimal.TryParse(p[2], NumberStyles.Float, CultureInfo.InvariantCulture, out var z)) return false;
+            q = new QAngle((float)x, (float)y, (float)z);
+            return true;
+        }
+
         // Auto-respawn: stage if you're on the main map; last bonus start if you're on a bonus
         [ConsoleCommand("css_rs", "Smart restart: stage or last bonus start")]
         [ConsoleCommand("css_rb", "Smart restart: stage or last bonus start")]
@@ -1656,12 +1665,44 @@ namespace SharpTimer
                 // --------------------- BONUS PATH (Sane as old !rb) ---------------------
                 if (inBonusContext)
                 {
-                    if (!pT.IsTimerBlocked)
-                        playerCheckpoints.Remove(slot);
-
+                    // Determine which bonus to use
                     int targetBonus = pT.CurrentZoneInfo?.CurrentBonusNumber ?? 0;
                     if (targetBonus <= 0) targetBonus = 1;
 
+                    // Prefer player's saved bonus startpos, if present
+                    if (pT.SavedBonusStartPos.TryGetValue(targetBonus, out var sbPosStr) &&
+                        pT.SavedBonusStartAng.TryGetValue(targetBonus, out var sbAngStr) &&
+                        TryParseVector(sbPosStr, out var sbPos) &&
+                        TryParseQAngle(sbAngStr, out var sbAng))
+                    {
+                        player.PlayerPawn.Value!.Teleport(sbPos, sbAng, new Vector(0, 0, 0));
+
+                        Server.NextFrame(() =>
+                        {
+                            pT.IsTimerRunning      = false;
+                            pT.TimerTicks          = 0;
+                            pT.IsBonusTimerRunning = false;
+                            pT.BonusTimerTicks     = 0;
+                            pT.IsTimerBlocked      = false;
+
+                            pT.inStartzone      = true;
+                            pT.TicksInStartZone = 0;
+
+                            pT.CurrentMapStage = 0;
+                            pT.CurrentZoneInfo = new CurrentZoneInfo
+                            {
+                                InMainMapStartZone = false,
+                                InBonusStartZone   = true,
+                                CurrentBonusNumber = targetBonus
+                            };
+                        });
+
+                        PlaySound(player, respawnSound);
+                        SharpTimerDebug($"Called RespawnSmart for {player.PlayerName}. BONUS {targetBonus} custom startpos = {sbPos}");
+                        return;
+                    }
+
+                    // Fallback to map-defined bonus start if no per-player save
                     if (bonusRespawnPoses.TryGetValue(targetBonus, out var bPos) && bPos != null)
                     {
                         var bAng = (bonusRespawnAngs.TryGetValue(targetBonus, out var a) && a != null)
@@ -1672,7 +1713,6 @@ namespace SharpTimer
 
                         Server.NextFrame(() =>
                         {
-                            // Reset like !rb
                             pT.IsTimerRunning      = false;
                             pT.TimerTicks          = 0;
                             pT.IsBonusTimerRunning = false;

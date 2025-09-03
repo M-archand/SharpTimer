@@ -202,6 +202,8 @@ namespace SharpTimer
         //set respawn
         public string? SetRespawnPos { get; set; }
         public string? SetRespawnAng { get; set; }
+        public Dictionary<int, string> SavedBonusStartPos { get; set; } = new();
+        public Dictionary<int, string> SavedBonusStartAng { get; set; } = new();
 
         public class ViewAngle
         {
@@ -389,6 +391,7 @@ namespace SharpTimer
     // !startpos
     public class StartPosRow
     {
+        public string  MapName { get; set; } = "";
         public decimal PosX { get; set; }
         public decimal PosY { get; set; }
         public decimal PosZ { get; set; }

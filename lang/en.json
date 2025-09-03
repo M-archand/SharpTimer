@@ -69,7 +69,8 @@
   "no_respawnpos_bonus_index": "{lightred}No RespawnBonusPos with index {0} found for current map!",
   "no_endpos": "{lightred}No EndPos found for current map!",
   "map_using_manual_zones": "Current Map is using manual zones",
-  "saved_custom_respawnpos": "Saved custom Start Zone RespawnPos!",
+  "saved_custom_respawnpos": "Saved custom Start Zone respawn position!",
+  "saved_custom_respawnpos_bonus": "Saved custom respawn position for Bonus {0}",
   "not_inside_startzone": "You are not inside the Start Zone!",
 
   "styles_list": "Style {0}. {lime}{1}",
@@ -126,7 +127,7 @@
   "connected_message_first": "Player {red}{0} {default}connected for the first time!",
   "disconnect_message": "Player {red}{0} {default}disconnected!",
   "afk_message": "{red}You are about to be moved to AFK!",
-  "start_speed": "Starting speed:",
+  "start_speed": "Start Speed:",
 
   "error_savingtime": "Error Saving Time: Player time is 0 ticks",
   "error_stagenotmatchfinalone": "Error Saving Time: Player current stage does not match final one{0}",

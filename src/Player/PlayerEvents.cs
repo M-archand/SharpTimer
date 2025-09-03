@@ -51,26 +51,31 @@ namespace SharpTimer
                     playerTimers[playerSlot].IsRecordingReplay = false;
                     playerTimers[playerSlot].SetRespawnPos = null;
                     playerTimers[playerSlot].SetRespawnAng = null;
+                    playerTimers[playerSlot].SavedBonusStartPos = new Dictionary<int, string>();
+                    playerTimers[playerSlot].SavedBonusStartAng = new Dictionary<int, string>();
                     playerTimers[playerSlot].SoundsEnabled = soundsEnabledByDefault;
 
-                    // Load saved start position for this map
-                    if (enableDb && !isForBot)
+                    // Load saved start positions for this map
+                    if (enableDb && !isForBot && !string.IsNullOrEmpty(currentMapName))
                     {
-                        var mapName = currentMapName;
-                        if (!string.IsNullOrEmpty(mapName))
+                        string sid  = steamID;
+                        string map  = currentMapName!;
+                        int    slot = playerSlot;
+
+                        _ = Task.Run(async () =>
                         {
-                            _ = Task.Run(async () =>
+                            try
                             {
-                                try
-                                {
-                                    await LoadPlayerStartPosition(steamID, mapName!, playerSlot);
-                                }
-                                catch (Exception ex)
-                                {
-                                    SharpTimerError($"startpos load failed for {steamID} on {mapName}: {ex.Message}");
-                                }
-                            });
-                        }
+                                await Task.WhenAll(
+                                    LoadPlayerStartPosition(sid, map, slot),
+                                    LoadPlayerBonusStartPositions(sid, map, slot)
+                                );
+                            }
+                            catch (Exception ex)
+                            {
+                                SharpTimerError($"[startpos] preload failed for {sid} on {map}: {ex.Message}");
+                            }
+                        });
                     }
 
                     if (isForBot == false) _ = Task.Run(async () => await IsPlayerATester(steamID, playerSlot));
