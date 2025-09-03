@@ -516,7 +516,6 @@ namespace SharpTimer
                                     {
                                         bonusRespawnPoses[bonusX] = info_tp.CBodyComponent.SceneNode.AbsOrigin;
                                         bonusRespawnAngs[bonusX] = info_tp.AbsRotation;
-                                        SharpTimerDebug($"Added Bonus !rb {bonusX} pos {bonusRespawnPoses[bonusX]} ang {bonusRespawnAngs[bonusX]}");
                                         bonusPosAndAngSet = true;
                                     }
                                 }
@@ -524,7 +523,6 @@ namespace SharpTimer
                                 {
                                     bonusRespawnPoses[bonusX] = info_tp.CBodyComponent.SceneNode.AbsOrigin;
                                     bonusRespawnAngs[bonusX] = info_tp.AbsRotation;
-                                    SharpTimerDebug($"Added Bonus !rb {bonusX} pos {bonusRespawnPoses[bonusX]} ang {bonusRespawnAngs[bonusX]}");
                                     bonusPosAndAngSet = true;
                                 }
                             }
@@ -542,13 +540,11 @@ namespace SharpTimer
                             else
                             {
                                 bonusRespawnPoses[bonusX] = trigger.CBodyComponent.SceneNode.AbsOrigin;
-                                SharpTimerDebug($"Added Bonus !rb {bonusX} pos {bonusRespawnPoses[bonusX]}");
                             }
                         }
                         catch (Exception)
                         {
                             bonusRespawnPoses[bonusX] = trigger.CBodyComponent.SceneNode.AbsOrigin;
-                            SharpTimerDebug($"Added Bonus !rb {bonusX} pos {bonusRespawnPoses[bonusX]}");
                         }
                     }
                 }

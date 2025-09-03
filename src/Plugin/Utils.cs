@@ -365,7 +365,6 @@ namespace SharpTimer
             beam.EndPos.Z = endPos.Z;
 
             beam.DispatchSpawn();
-            SharpTimerDebug($"Beam Spawned at S:{startPos} E:{beam.EndPos}");
         }
 
         public void DrawWireframe3D(Vector corner1, Vector corner8, string _color)
