@@ -209,7 +209,7 @@ namespace SharpTimer
             public float Y { get; set; }
             public float Z { get; set; }
 
-            public ViewAngle (QAngle angles)
+            public ViewAngle(QAngle angles)
             {
                 X = angles.X;
                 Y = angles.Y;
@@ -222,7 +222,7 @@ namespace SharpTimer
         public List<float> YawAccel { get; set; } = new List<float>();
         public List<double> AvgAccel { get; set; } = new List<double>();
         public double YawAccelPercent { get; set; }
-        public List<double> YawAccelPercents { get; set; }  = new List<double>();
+        public List<double> YawAccelPercents { get; set; } = new List<double>();
         public List<bool> MoveLeft { get; set; } = new List<bool>();
         public List<bool> MoveRight { get; set; } = new List<bool>();
         public int PerfectStrafes { get; set; }
@@ -384,5 +384,15 @@ namespace SharpTimer
     {
         public Dictionary<int, int>? StageTimes { get; set; }
         public Dictionary<int, string>? StageVelos { get; set; }
+    }
+    
+    // !startpos
+    public class StartPosRow
+    {
+        public decimal PosX { get; set; }
+        public decimal PosY { get; set; }
+        public decimal PosZ { get; set; }
+        public decimal AngX { get; set; }
+        public decimal AngY { get; set; }
     }
 }

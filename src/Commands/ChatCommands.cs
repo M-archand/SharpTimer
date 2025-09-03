@@ -7,6 +7,7 @@ using CounterStrikeSharp.API.Modules.Utils;
 using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Admin;
 using Dapper;
+using System.Globalization;
 
 namespace SharpTimer
 {
@@ -1125,7 +1126,7 @@ namespace SharpTimer
                     string map = currentMapName!;
                     _ = Task.Run(async () =>
                     {
-                        try { await ClearPlayerStartPositionAsync(sid, map); }
+                        try { await ClearPlayerStartPosition(sid, map); }
                         catch (Exception ex) { SharpTimerError($"!startpos clear failed: {ex.Message}"); }
                     });
             
@@ -1144,7 +1145,7 @@ namespace SharpTimer
                 {
                     // Convert position and rotation to strings
                     string positionString = $"{currentPosition.X} {currentPosition.Y} {currentPosition.Z}";
-                    string rotationString = $"{currentRotation.X} {currentRotation.Y} {currentRotation.Z}";
+                    string rotationString = string.Format(CultureInfo.InvariantCulture, "{0:0.###} {1:0.###} 0", currentRotation.X, currentRotation.Y);
 
                     playerTimers[player.Slot].SetRespawnPos = positionString;
                     playerTimers[player.Slot].SetRespawnAng = rotationString;
@@ -1162,7 +1163,7 @@ namespace SharpTimer
                         {
                             try
                             {
-                                await SavePlayerStartPositionAsync(sid, mapName, pos, ang);
+                                await SavePlayerStartPosition(sid, mapName, pos, ang);
                             }
                             catch (Exception ex)
                             {
@@ -1199,7 +1200,7 @@ namespace SharpTimer
                         {
                             try
                             {
-                                await SavePlayerStartPositionAsync(sid, mapName, pos, ang);
+                                await SavePlayerStartPosition(sid, mapName, pos, ang);
                             }
                             catch (Exception ex)
                             {

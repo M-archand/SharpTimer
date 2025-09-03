@@ -835,6 +835,11 @@ namespace SharpTimer
 
                         sqlCheck = true;
                     }
+
+                    if (enableDb)
+                    {
+                        _startPosSchemaTask = EnsureStartPositionTableExists();
+                    }
                 });
             }
             catch (Exception ex)

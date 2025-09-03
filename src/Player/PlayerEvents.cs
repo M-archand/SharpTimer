@@ -63,7 +63,7 @@ namespace SharpTimer
                             {
                                 try
                                 {
-                                    await LoadPlayerStartPositionForMapAsync(steamID, mapName!, playerSlot);
+                                    await LoadPlayerStartPosition(steamID, mapName!, playerSlot);
                                 }
                                 catch (Exception ex)
                                 {
