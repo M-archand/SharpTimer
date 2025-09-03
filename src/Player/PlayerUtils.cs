@@ -307,7 +307,7 @@ namespace SharpTimer
             }
         }
 
-        public async Task<string> GetPlayerMapPlacementWithTotal(CCSPlayerController? player, string steamId, string playerName, bool getRankImg = false, bool getPlacementOnly = false, int bonusX = 0, int style = 0, bool getPercentileOnly = false)
+        public async Task<string> GetPlayerMapPlacementWithTotal(CCSPlayerController? player, string steamId, string playerName, bool getRankImg = false, bool getPlacementOnly = false, int bonusX = 0, int style = 0)
         {
             try
             {
@@ -316,16 +316,24 @@ namespace SharpTimer
 
                 string currentMapNamee = bonusX == 0 ? currentMapName! : $"{currentMapName}_bonus{bonusX}";
 
+                // What is the player's saved PB time for this map/style?
                 int savedPlayerTime = await GetPreviousPlayerRecordFromDatabase(steamId, currentMapName!, playerName, bonusX, style);
 
-                if (savedPlayerTime == 0)
-                    return getRankImg ? UnrankedIcon : UnrankedTitle;
-
+                // Always get the records so we can know the total completions
                 Dictionary<int, PlayerRecord> sortedRecords = await GetSortedRecordsFromDatabase(0, bonusX, currentMapNamee, style);
-
-                int placement = sortedRecords.Count(kv => kv.Value.TimerTicks < savedPlayerTime) + 1;
                 int totalPlayers = sortedRecords.Count;
-                double percentage = (double)placement / totalPlayers * 100;
+
+                // If the player has no PB yet, show NA/total when placement-only is requested
+                if (savedPlayerTime == 0)
+                {
+                    if (getPlacementOnly)
+                        return $"NA/{totalPlayers}";
+                    return getRankImg ? UnrankedIcon : UnrankedTitle;
+                }
+
+                // Normal path: compute placement and return placement-only or rank text
+                int placement = sortedRecords.Count(kv => kv.Value.TimerTicks < savedPlayerTime) + 1;
+                double percentage = totalPlayers > 0 ? (double)placement / totalPlayers * 100 : 0;
 
                 return CalculateRankStuff(totalPlayers, placement, percentage, getRankImg, getPlacementOnly);
             }
@@ -335,6 +343,7 @@ namespace SharpTimer
                 return UnrankedTitle;
             }
         }
+
         public async Task<double> GetPlayerMapPercentile(string steamId, string playerName, string mapname = "", int bonusX = 0, int style = 0, /*bool global = false,*/int timerTicks = 0)
         {
             try
