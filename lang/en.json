@@ -25,10 +25,10 @@
   "top10_records_bonus": "Top 10 {0} Records for Bonus {1} on {2}:",
 
   "invalid_bonus_stage": "Please enter a valid Bonus stage i.e: {lime}!topbonus 1",
-  "invalid_bonus_rb": "Please enter a valid Bonus stage i.e: {lime}!rb <index>",
+  "invalid_bonus_rb": "Please enter a valid Bonus # i.e: {lime}!b 1",
   "stages_unavalible": "Stages unavalible",
-  "stages_unavalible_respawnpos": "{lightred}No RespawnStagePos with index {0} found for current map!",
-  "stages_enter_valid": "Please enter a valid stage i.e: {lime}!stage <index>",
+  "stages_unavalible_respawnpos": "{lightred}No stage with index {0} found for current map!",
+  "stages_enter_valid": "Please enter a valid stage e.g: {lime}!stage 3",
   "map_no_stages": "{lightred}Current map has no stages!",
 
   "current_rank": "You are currently {0}{1}{lime}",

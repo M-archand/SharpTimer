@@ -1011,7 +1011,7 @@ namespace SharpTimer
                     if (!int.TryParse(command.ArgString, out targetBonus))
                     {
                         SharpTimerDebug("css_rb conversion failed. The input string is not a valid integer.");
-                        PrintToChat(player, Localizer["no_respawnpos_bonus_rb"]);
+                        PrintToChat(player, Localizer["invalid_bonus_rb"]);
                         return;
                     }
                 }
