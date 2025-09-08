@@ -1307,17 +1307,29 @@ namespace SharpTimer
                     }
                     
                     // DRAW BONUS ZONE BEAMS
-                    (Vector? startRight, Vector? startLeft, Vector? endRight, Vector? endLeft) GetBonusBounds(string startName, string endName)
+                    (Vector? startMin, Vector? startMax, Vector? endMin, Vector? endMax)
+                    GetBonusBounds(string startName, string endName)
                     {
-                        var prevStart = currentMapStartTrigger;
-                        var prevEnd = currentMapEndTrigger;
+                        Vector? startMin = null, startMax = null, endMin = null, endMax = null;
 
-                        currentMapStartTrigger = startName;
-                        currentMapEndTrigger = endName;
-                        var bounds = FindTriggerBounds();
-                        currentMapStartTrigger = prevStart;
-                        currentMapEndTrigger = prevEnd;
-                        return bounds;
+                        foreach (var t in entityCache!.Triggers)
+                        {
+                            if (t?.Entity?.Name == null) continue;
+                            var name = t.Entity.Name.ToString();
+
+                            if (string.Equals(name, startName, StringComparison.OrdinalIgnoreCase))
+                            {
+                                startMin = t.Collision.Mins + t.CBodyComponent!.SceneNode!.AbsOrigin;
+                                startMax = t.Collision.Maxs + t.CBodyComponent.SceneNode.AbsOrigin;
+                            }
+                            else if (string.Equals(name, endName, StringComparison.OrdinalIgnoreCase))
+                            {
+                                endMin = t.Collision.Mins + t.CBodyComponent!.SceneNode!.AbsOrigin;
+                                endMax = t.Collision.Maxs + t.CBodyComponent.SceneNode.AbsOrigin;
+                            }
+                        }
+
+                        return (startMin, startMax, endMin, endMax);
                     }
 
                     void DrawOneBonus(string startName, string endName)
@@ -1328,15 +1340,18 @@ namespace SharpTimer
                             return;
                         }
 
-                        // Calc bonus bounds and main bounds. If identical, skip to avoid repainting main with bonus colors
-                        var bonusBounds = GetBonusBounds(startName, endName);
-                        var mainBounds  = FindTriggerBounds();
+                        // Get bounds for this bonus only
+                        var (startMin, startMax, endMin, endMax) = GetBonusBounds(startName, endName);
 
-                        if (bonusBounds.startRight == null || bonusBounds.startLeft == null || bonusBounds.endRight == null || bonusBounds.endLeft == null)
+                        if (startMin == null || startMax == null || endMin == null || endMax == null)
                         {
-                            SharpTimerDebug($"[BONUS] skip: missing bounds for {startName}/{endName}");
+                            SharpTimerDebug($"[BONUS] skip: missing bounds for {startName}/{endName} (startMin={startMin != null}, startMax={startMax != null}, endMin={endMin != null}, endMax={endMax != null})");
                             return;
                         }
+
+                        // Compare against main bounds. If identical, skip to avoid repainting main with bonus colors
+                        var bonusBounds = (startMin, startMax, endMin, endMax);
+                        var mainBounds = FindTriggerBounds();
 
                         if (BoundsAlmostEq(bonusBounds, mainBounds))
                         {
@@ -1345,8 +1360,8 @@ namespace SharpTimer
                         }
 
                         // Draw with bonus colors
-                        DrawWireframe3D(bonusBounds.startRight, bonusBounds.startLeft, bonusStartBeamColor);
-                        DrawWireframe3D(bonusBounds.endRight,   bonusBounds.endLeft,   bonusEndBeamColor);
+                        DrawWireframe3D(startMin, startMax, bonusStartBeamColor);
+                        DrawWireframe3D(endMin, endMax, bonusEndBeamColor);
                         SharpTimerDebug($"[BONUS] drew {startName}/{endName} with {bonusStartBeamColor}/{bonusEndBeamColor}");
                     }
 
@@ -1358,7 +1373,7 @@ namespace SharpTimer
                         var (valid, idx) = IsValidStartBonusTriggerName(trigger.Entity.Name.ToString());
                         if (valid) bonusIndices.Add(idx);
                     }
-                    SharpTimerDebug($"[Bonus] found indices: {string.Join(",", bonusIndices)}");
+                    SharpTimerError($"[Bonus] found indices: {string.Join(",", bonusIndices)}");
 
                     foreach (var i in bonusIndices)
                     {
