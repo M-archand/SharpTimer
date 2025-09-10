@@ -127,6 +127,15 @@ namespace SharpTimer
             displayScoreboardTags = bool.TryParse(args, out bool displayScoreboardTagsValue) ? displayScoreboardTagsValue : args != "0" && displayScoreboardTags;
         }
 
+        [ConsoleCommand("sharptimer_map_ranks_only", "Whether the plugin should display rank tags for the current map only, or for all maps. Default value: false")]
+        [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
+        public void SharpTimerMapRankConvar(CCSPlayerController? player, CommandInfo command)
+        {
+            string args = command.ArgString;
+
+            displayMapRanks = bool.TryParse(args, out bool displayMapRanksValue) ? displayMapRanksValue : args != "0" && displayMapRanks;
+        }
+
         [ConsoleCommand("sharptimer_global_rank_points_enabled", "Whether the plugin should reward players with global points for completing maps. Default value: false")]
         [CommandHelper(whoCanExecute: CommandUsage.SERVER_ONLY)]
         public void SharpTimerGlobalRanksConvar(CCSPlayerController? player, CommandInfo command)

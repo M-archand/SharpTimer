@@ -154,11 +154,9 @@ namespace SharpTimer
         public double group4 = 25;
         public double group5 = 50;
 
-
-        //public bool globalChecksPassed = false;
-        //public bool globalDisabled = true;
         public bool displayChatTags = true;
         public bool displayScoreboardTags = true;
+        public bool displayMapRanks = false;
         public string customVIPTag = "[OWNER] ";
         public bool useTriggers = true;
         public bool useTriggersAndFakeZones = false;

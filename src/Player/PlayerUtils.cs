@@ -684,10 +684,29 @@ namespace SharpTimer
                     return;
                 }
 
-                string clanTag = $"{rank} {(playerTimers[player.Slot].IsVip ? $"{customVIPTag}" : "")}";
+                // Decide what text to actually show in the tag
+                string rankText = rank;
+
+                if (displayMapRanks && playerTimers.TryGetValue(player.Slot, out var timerInfo))
+                {
+                    // CachedMapPlacement looks like "231/345" or UnrankedTitle
+                    var mp = timerInfo.CachedMapPlacement ?? string.Empty;
+                    if (!string.IsNullOrEmpty(mp))
+                    {
+                        int place = GetNumberBeforeSlash(mp); // uses the existing helper
+                        rankText = place > 0 ? $"#{place}" : UnrankedTitle;
+                    }
+                    else
+                    {
+                        // If they don'y have a map placement cached yet, fall back to Unranked
+                        rankText = UnrankedTitle;
+                    }
+                }
+
+                string clanTag = $"{rankText} {(playerTimers[player.Slot].IsVip ? $"{customVIPTag}" : "")}";
 
                 string rankColor = GetRankColorForChat(player);
-                string chatTag = $" {rankColor}{rank} ";
+                string chatTag = $" {rankColor}{rankText} ";
 
                 if (displayChatTags)
                 {
