@@ -345,6 +345,101 @@ namespace SharpTimer
             }
         }
 
+        // List the #1 record-holder for every Stage/CP on the current map
+        [ConsoleCommand("css_stagetop", "Prints the fastest stage/checkpoint time holder for each stage/CP on this map")]
+        [ConsoleCommand("css_stagerecord", "alias for !stagetop")]
+        [ConsoleCommand("css_cptop", "alias for !stagetop")]
+        [ConsoleCommand("css_cprecord", "alias for !stagetop")]
+        [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
+        public void PrintTopStages(CCSPlayerController? player, CommandInfo command)
+        {
+            if (!IsAllowedClient(player) || topEnabled == false) return;
+
+            if (CommandCooldown(player)) return;
+            playerTimers[player!.Slot].TicksSinceLastCmd = 0;
+
+            var playerName = player.PlayerName;
+            SharpTimerDebug($"{playerName} calling css_topstages...");
+
+            _ = Task.Run(async () => await PrintTopStagesHandler(player));
+        }
+
+        private async Task PrintTopStagesHandler(CCSPlayerController? player)
+        {
+            if (!IsAllowedClient(player) || topEnabled == false) return;
+
+            // Work out whether we're labeling as Stage or CP, and how many there are
+            bool labelAsStage = (useStageTriggers && !useCheckpointTriggers) || (!useStageTriggers && !useCheckpointTriggers);
+            int sectionCount = GetStageOrCheckpointCount();
+            string sectionLabel = labelAsStage ? "Stage" : "CP";
+
+            if (sectionCount <= 0)
+            {
+                Server.NextFrame(() =>
+                {
+                    if (IsAllowedClient(player))
+                        player!.PrintToChat($" {Localizer["prefix"]} No {sectionLabel.ToLower()}s detected for this map.");
+                });
+                return;
+            }
+
+            string mapName = currentMapName!;
+            var lines = new List<string>
+            {
+                $" {Localizer["prefix"]} {ChatColors.Gold}Top {sectionLabel} Records - {mapName}"
+            };
+
+            // Fetch the top record for each stage/cp
+            for (int s = 1; s <= sectionCount; s++)
+            {
+                try
+                {
+                    // Grab top1 result for this stage/cp
+                    var sorted = await GetSortedStageRecordsFromDatabase(s, 1, 0, mapName);
+
+                    if (sorted.Count == 0)
+                    {
+                        lines.Add($"{sectionLabel} {s}: -");
+                        continue;
+                    }
+
+                    // Grab the first entry (sorted is an ordered list im p sure)
+                    var topEntry = sorted.First();
+                    var rec      = topEntry.Value;
+                    string name  = rec.PlayerName ?? "Unknown";
+                    int ticks    = rec.TimerTicks;
+                    string time  = FormatTime(ticks);
+
+                    lines.Add($" {ChatColors.LightRed}{sectionLabel} {s}: {ChatColors.Lime}{time} {ChatColors.White}- {name}");
+                }
+                catch (Exception ex)
+                {
+                    SharpTimerError($"Top {sectionLabel} list failed for {mapName} {sectionLabel.ToLower()} {s}: {ex.Message}");
+                    lines.Add($" {Localizer["prefix"]} {sectionLabel} {s}: (error)");
+                }
+            }
+
+            Server.NextFrame(() =>
+            {
+                if (!IsAllowedClient(player)) return;
+                foreach (var line in lines)
+                    player!.PrintToChat(line);
+            });
+        }
+
+        // Check if it's linear or staged for chat label
+        private int GetStageOrCheckpointCount()
+        {
+            if (useStageTriggers && stageTriggerCount > 0)
+                return stageTriggerCount;
+
+            if (useCheckpointTriggers && cpTriggerCount > 0)
+                return cpTriggerCount;
+
+            // Fallback
+            return stageTriggerCount;
+        }
+
         [ConsoleCommand("css_stop", "stops the current replay")]
         [ConsoleCommand("css_stopreplay", "stops the current replay")]
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
