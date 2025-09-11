@@ -677,41 +677,47 @@ namespace SharpTimer
 
                 if (TagApi == null)
                     TagApi = ITagApi.Capability.Get();
-
                 if (TagApi == null)
                 {
-                    SharpTimerDebug("(SetClanTagAPI) Failed load TagApi");
+                    SharpTimerDebug("(TagsApi) Failed to load TagsApi.");
                     return;
                 }
 
-                // Decide what text to actually show in the tag
-                string rankText = rank;
+                string rankPlain = rank;
+                int mapPlace = 0;
 
                 if (displayMapRanks && playerTimers.TryGetValue(player.Slot, out var timerInfo))
                 {
-                    // CachedMapPlacement looks like "231/345" or UnrankedTitle
                     var mp = timerInfo.CachedMapPlacement ?? string.Empty;
                     if (!string.IsNullOrEmpty(mp))
                     {
-                        int place = GetNumberBeforeSlash(mp); // uses the existing helper
-                        rankText = place > 0 ? $"#{place}" : UnrankedTitle;
+                        mapPlace = GetNumberBeforeSlash(mp);
+                        rankPlain = mapPlace > 0 ? $"#{mapPlace}" : UnrankedTitle;
                     }
                     else
                     {
-                        // If they don'y have a map placement cached yet, fall back to Unranked
-                        rankText = UnrankedTitle;
+                        rankPlain = UnrankedTitle;
                     }
                 }
 
-                string clanTag = $"{rankText} {(playerTimers[player.Slot].IsVip ? $"{customVIPTag}" : "")}";
+                // Chat: Add map rank color
+                string chatColor = (displayMapRanks && mapPlace > 0)
+                    ? ChatColors.Lime.ToString()
+                    : GetRankColorForChat(player);
 
-                string rankColor = GetRankColorForChat(player);
-                string chatTag = $" {rankColor}{rankText} ";
+                string suffix = (displayMapRanks && mapPlace > 0) ? " | " : " ";
+                string chatTag = $" {chatColor}{rankPlain}{ChatColors.Default}{suffix}";
+
+                // Scoreboard: Put a blank leading space so that the "#" actually shows
+                string scoreboardRank = rankPlain;
+                if (scoreboardRank.Length > 0 && scoreboardRank[0] == '#')
+                    scoreboardRank = "\u200B" + scoreboardRank + " | ";
+
+                string clanTag = $"{scoreboardRank}{(playerTimers[player.Slot].IsVip ? $" {customVIPTag}" : "")}";
 
                 if (displayChatTags)
                 {
                     TagApi.ResetAttribute(player, Tags.TagType.ChatTag);
-
                     Server.NextFrame(() =>
                     {
                         string oldChatTag = TagApi.GetAttribute(player, Tags.TagType.ChatTag) ?? "";
@@ -722,7 +728,6 @@ namespace SharpTimer
                 if (displayScoreboardTags)
                 {
                     TagApi.ResetAttribute(player, Tags.TagType.ScoreTag);
-
                     Server.NextFrame(() =>
                     {
                         string oldClanTag = TagApi.GetAttribute(player, Tags.TagType.ScoreTag) ?? "";
