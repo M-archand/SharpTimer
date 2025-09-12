@@ -76,6 +76,27 @@ namespace SharpTimer
 
                 if (IsValidEndTriggerName(callerName) && playerTimers[playerSlot].IsTimerRunning && !playerTimers[playerSlot].IsTimerBlocked)
                 {
+                    // If the map uses stage triggers, persist the final stage (there is no "next stage" to trigger the save)
+                    if (useStageTriggers && playerTimers[playerSlot].CurrentMapStage == stageTriggerCount)
+                    {
+                        var finalStage = playerTimers[playerSlot].CurrentMapStage;
+                        var finalStageTicks = playerTimers[playerSlot].StageTicks;
+                        var speed = GetCurrentPlayerSpeed(player);
+
+                        if (playerTimers[playerSlot].StageTimes != null)
+                            playerTimers[playerSlot].StageTimes[finalStage] = finalStageTicks;
+
+                        if (playerTimers[playerSlot].StageVelos != null)
+                            playerTimers[playerSlot].StageVelos[finalStage] = speed;
+
+                        // Only record stage times for default style (0)
+                        if (playerTimers[playerSlot].currentStyle == 0)
+                        {
+                            _ = Task.Run(async () =>
+                                await SavePlayerStageTimeToDatabase(player, finalStageTicks, finalStage, speed, steamID, playerName, playerSlot));
+                        }
+                    }
+
                     OnTimerStop(player);
                     if (enableReplays) OnRecordingStop(player);
                     SharpTimerDebug($"Player {playerName} entered EndZone");
